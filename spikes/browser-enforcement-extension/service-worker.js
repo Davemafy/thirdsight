@@ -1,4 +1,4 @@
-const DEBUGGER_PROTOCOL_VERSION = '0.1';
+const DEBUGGER_PROTOCOL_VERSION = '1.3';
 const ANALYTICS_INTERCEPT_PATTERN = '*://*/api/spike/analytics*';
 const MAX_OBSERVATIONS = 100;
 
