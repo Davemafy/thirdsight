@@ -58,6 +58,11 @@ jobs:
           THIRDSIGHT_SPIKE_REPORT: spikes/browser-enforcement-extension/ci/report.json
         run: xvfb-run -a node spikes/browser-enforcement-extension/ci/browser-spike.mjs
 
+      - name: Observe public Jumia Nigeria traffic
+        env:
+          THIRDSIGHT_JUMIA_REPORT: spikes/browser-enforcement-extension/ci/jumia-observation-report.json
+        run: xvfb-run -a node spikes/browser-enforcement-extension/ci/jumia-observation-smoke.mjs
+
       - name: Print Commerce Lab log on failure
         if: failure()
         run: cat /tmp/commerce-lab.log || true
@@ -70,4 +75,5 @@ jobs:
           if-no-files-found: warn
           path: |
             spikes/browser-enforcement-extension/ci/report.json
+            spikes/browser-enforcement-extension/ci/jumia-observation-report.json
             /tmp/commerce-lab.log
