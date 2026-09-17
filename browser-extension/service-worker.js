@@ -18,8 +18,8 @@ chrome.action.onClicked.addListener(async (tab) => {
 });
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (message?.type === "THIRDSIGHT_SET_INGESTION_ENDPOINT") {
-    configureEndpoint(message.endpoint)
+  if (message?.type === "THIRDSIGHT_SET_INGESTION_CONFIG") {
+    configureIngestion(message.endpoint, message.token)
       .then(() => sendResponse({ ok: true }))
       .catch((error) => sendResponse({ ok: false, error: String(error) }));
     return true;
@@ -86,10 +86,22 @@ function sanitizeHttpUrl(value) {
   try {
     const url = new URL(value);
     if (url.protocol !== "http:" && url.protocol !== "https:") return null;
-    return `${url.origin}${url.pathname}`;
+    return `${url.origin}${sanitizePathname(url.pathname)}`;
   } catch {
     return null;
   }
+}
+
+function sanitizePathname(pathname) {
+  const segments = pathname.split("/").map((segment) => {
+    if (!segment) return segment;
+    if (/^\d{6,}$/.test(segment)) return ":id";
+    if (/^[0-9a-f]{16,}$/i.test(segment)) return ":id";
+    if (/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(segment)) return ":id";
+    if (segment.length > 64) return ":opaque";
+    return segment;
+  });
+  return segments.join("/") || "/";
 }
 
 async function storeObservation(observation) {
@@ -101,9 +113,9 @@ async function storeObservation(observation) {
   });
 }
 
-async function configureEndpoint(endpoint) {
-  if (endpoint === null || endpoint === "") {
-    await chrome.storage.local.remove("ingestionEndpoint");
+async function configureIngestion(endpoint, token) {
+  if ((endpoint === null || endpoint === "") && (token === null || token === "")) {
+    await chrome.storage.local.remove(["ingestionEndpoint", "ingestionToken"]);
     return;
   }
 
@@ -112,18 +124,30 @@ async function configureEndpoint(endpoint) {
     throw new Error("Ingestion endpoint must use http or https.");
   }
 
-  await chrome.storage.local.set({ ingestionEndpoint: parsed.toString() });
+  if (typeof token !== "string" || token.trim().length < 16) {
+    throw new Error("Ingestion token must be at least 16 characters.");
+  }
+
+  await chrome.storage.local.set({
+    ingestionEndpoint: parsed.toString(),
+    ingestionToken: token.trim(),
+  });
 }
 
 async function deliverObservation(observation) {
-  const config = await chrome.storage.local.get("ingestionEndpoint");
+  const config = await chrome.storage.local.get(["ingestionEndpoint", "ingestionToken"]);
   const endpoint = config.ingestionEndpoint;
+  const token = config.ingestionToken;
   if (typeof endpoint !== "string" || endpoint.length === 0) return;
+  if (typeof token !== "string" || token.length === 0) return;
 
   try {
     const response = await fetch(endpoint, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify(observation),
       credentials: "omit",
       cache: "no-store",

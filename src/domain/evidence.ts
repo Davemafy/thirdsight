@@ -71,7 +71,7 @@ export interface EvidenceGraphRecord {
   recordId: string;
   observedAt: string;
   integrationId: string | null;
-  integrationResolution: "RESOLVED" | "UNRESOLVED";
+  integrationResolution: "RESOLVED" | "UNRESOLVED" | "AMBIGUOUS";
   should: EvidenceClaim<PurposeEvidence>;
   could: EvidenceClaim<BrowserCapabilityLowerBound>;
   did: EvidenceClaim<RuntimeAccessEvidence>;

@@ -6,7 +6,8 @@ This directory contains the canonical product and implementation documents for T
 
 - [`architecture-v0.5.1.md`](architecture-v0.5.1.md) — frozen implementation baseline: thesis, evidence semantics, trust boundaries, authority model, response semantics, and declared limitations.
 - [`demo-contract-v1.md`](demo-contract-v1.md) — required demo behavior, attack scenarios, evidence requirements, and acceptance gates.
-- [`browser-evidence-adapter-v0.md`](browser-evidence-adapter-v0.md) — implementation contract for passive browser observations, conservative evidence-graph projection, privacy boundaries, and external feasibility results.
+- [`browser-evidence-adapter-v0.md`](browser-evidence-adapter-v0.md) — browser observation contract, feasibility results, privacy reduction, and evidence projection semantics.
+- [`evidence-persistence-v0.md`](evidence-persistence-v0.md) — durable browser evidence history, exact-origin integration identity resolution, sensor authentication, and persistence failure semantics.
 
 ## Document discipline
 

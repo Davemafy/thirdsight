@@ -1,9 +1,15 @@
 import { BrowserObservationValidationError } from "../src/infrastructure/browser-evidence/browser-evidence-adapter";
-import { ingestBrowserObservation } from "../src/infrastructure/browser-evidence/browser-observation-ingestion";
+import { ingestAndPersistBrowserObservation } from "../src/infrastructure/browser-evidence/browser-observation-pipeline";
+import {
+  EvidencePersistenceError,
+  SupabaseEvidenceHistoryStore,
+} from "../src/infrastructure/evidence-history/supabase-evidence-history-store";
 
 interface ApiRequest {
   method?: string;
   body?: unknown;
+  headers?: Record<string, string | string[] | undefined>;
+  query?: Record<string, string | string[] | undefined>;
 }
 
 interface ApiResponse {
@@ -13,12 +19,22 @@ interface ApiResponse {
   end(): void;
 }
 
+interface RuntimeConfiguration {
+  supabaseUrl: string;
+  serviceRoleKey: string;
+  ingestionToken: string;
+  environment: string;
+}
+
 const MAX_BODY_BYTES = 8 * 1024;
 
-export default function handler(request: ApiRequest, response: ApiResponse): void {
+export default async function handler(
+  request: ApiRequest,
+  response: ApiResponse,
+): Promise<void> {
   response.setHeader("Access-Control-Allow-Origin", "*");
-  response.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   response.setHeader("Cache-Control", "no-store");
 
   if (request.method === "OPTIONS") {
@@ -26,8 +42,34 @@ export default function handler(request: ApiRequest, response: ApiResponse): voi
     return;
   }
 
-  if (request.method !== "POST") {
+  if (request.method !== "GET" && request.method !== "POST") {
     response.status(405).json({ error: "METHOD_NOT_ALLOWED" });
+    return;
+  }
+
+  const configuration = readConfiguration();
+  if (!configuration) {
+    response.status(503).json({ error: "PERSISTENCE_NOT_CONFIGURED" });
+    return;
+  }
+
+  if (!isAuthorized(request, configuration.ingestionToken)) {
+    response.status(401).json({ error: "UNAUTHORIZED_SENSOR" });
+    return;
+  }
+
+  const store = new SupabaseEvidenceHistoryStore({
+    projectUrl: configuration.supabaseUrl,
+    serviceRoleKey: configuration.serviceRoleKey,
+  });
+
+  if (request.method === "GET") {
+    try {
+      const history = await store.list(readLimit(request.query?.limit));
+      response.status(200).json({ history });
+    } catch (error) {
+      handleServerError(error, response);
+    }
     return;
   }
 
@@ -43,11 +85,18 @@ export default function handler(request: ApiRequest, response: ApiResponse): voi
   }
 
   try {
-    const result = ingestBrowserObservation(input);
+    const result = await ingestAndPersistBrowserObservation(
+      input,
+      store,
+      configuration.environment,
+    );
+
     response.status(202).json({
       accepted: true,
+      persisted: result.persisted,
       acceptedAt: result.acceptedAt,
       evidence: result.evidence,
+      integrationResolution: result.integrationResolution,
     });
   } catch (error) {
     if (error instanceof BrowserObservationValidationError) {
@@ -58,9 +107,51 @@ export default function handler(request: ApiRequest, response: ApiResponse): voi
       return;
     }
 
-    console.error("[ThirdSight] Browser observation ingestion failed.", error);
-    response.status(500).json({ error: "INGESTION_FAILED" });
+    handleServerError(error, response);
   }
+}
+
+function handleServerError(error: unknown, response: ApiResponse): void {
+  if (error instanceof EvidencePersistenceError) {
+    console.error("[ThirdSight] Evidence persistence failed.", error.message);
+    response.status(503).json({ error: "EVIDENCE_PERSISTENCE_FAILED" });
+    return;
+  }
+
+  console.error("[ThirdSight] Browser observation ingestion failed.", error);
+  response.status(500).json({ error: "INGESTION_FAILED" });
+}
+
+function readConfiguration(): RuntimeConfiguration | null {
+  const supabaseUrl = readEnv("THIRDSIGHT_SUPABASE_URL");
+  const serviceRoleKey = readEnv("THIRDSIGHT_SUPABASE_SERVICE_ROLE_KEY");
+  const ingestionToken = readEnv("THIRDSIGHT_INGESTION_TOKEN");
+  const environment = readEnv("THIRDSIGHT_ENVIRONMENT");
+
+  if (!supabaseUrl || !serviceRoleKey || !ingestionToken || !environment) return null;
+  return { supabaseUrl, serviceRoleKey, ingestionToken, environment };
+}
+
+function readEnv(name: string): string | null {
+  const runtime = globalThis as typeof globalThis & {
+    process?: { env?: Record<string, string | undefined> };
+  };
+  const value = runtime.process?.env?.[name]?.trim();
+  return value ? value : null;
+}
+
+function isAuthorized(request: ApiRequest, expectedToken: string): boolean {
+  const header = request.headers?.authorization;
+  const value = Array.isArray(header) ? header[0] : header;
+  if (typeof value !== "string" || !value.startsWith("Bearer ")) return false;
+  return value.slice("Bearer ".length) === expectedToken;
+}
+
+function readLimit(value: string | string[] | undefined): number {
+  const candidate = Array.isArray(value) ? value[0] : value;
+  const parsed = candidate ? Number.parseInt(candidate, 10) : 50;
+  if (!Number.isFinite(parsed)) return 50;
+  return Math.max(1, Math.min(100, parsed));
 }
 
 function parseBody(body: unknown): unknown | null {
