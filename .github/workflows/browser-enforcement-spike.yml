@@ -1,0 +1,73 @@
+name: Browser enforcement spike
+
+on:
+  push:
+    branches:
+      - spike/browser-enforcement
+    paths:
+      - '.github/workflows/browser-enforcement-spike.yml'
+      - 'commerce-lab/**'
+      - 'spikes/browser-enforcement-extension/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-spike:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout spike branch
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Commerce Lab dependencies
+        run: npm install --prefix commerce-lab
+
+      - name: Install browser test dependency
+        working-directory: spikes/browser-enforcement-extension/ci
+        run: npm install
+
+      - name: Install Playwright Chromium
+        working-directory: spikes/browser-enforcement-extension/ci
+        run: npx playwright install --with-deps chromium
+
+      - name: Start Commerce Lab
+        run: |
+          npm --prefix commerce-lab run dev -- --hostname 127.0.0.1 > /tmp/commerce-lab.log 2>&1 &
+          echo $! > /tmp/commerce-lab.pid
+
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent --show-error http://127.0.0.1:3000/spike/browser-enforcement > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+
+          cat /tmp/commerce-lab.log
+          exit 1
+
+      - name: Prove observation and pre-send enforcement
+        env:
+          THIRDSIGHT_SPIKE_REPORT: spikes/browser-enforcement-extension/ci/report.json
+        run: xvfb-run -a node spikes/browser-enforcement-extension/ci/browser-spike.mjs
+
+      - name: Print Commerce Lab log on failure
+        if: failure()
+        run: cat /tmp/commerce-lab.log || true
+
+      - name: Upload spike evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-enforcement-spike-evidence
+          if-no-files-found: warn
+          path: |
+            spikes/browser-enforcement-extension/ci/report.json
+            /tmp/commerce-lab.log
