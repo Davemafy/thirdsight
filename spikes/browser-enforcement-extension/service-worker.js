@@ -74,9 +74,11 @@ async function attachFirstMatchingTab(urlPattern) {
     throw new Error(`No matching browser tab found for ${urlPattern}`);
   }
 
-  if (!(await isDebuggerAttached(tab.id))) {
-    await attachTab(tab);
-  }
+  // CI drives Chromium through a separate automation client, so getTargets().attached
+  // may already be true even when this extension has not attached. The CI control path
+  // must therefore attempt the extension attachment explicitly and let Chrome decide
+  // whether concurrent debugger clients are supported.
+  await attachTab(tab);
 
   return { tabId: tab.id, url: tab.url };
 }
