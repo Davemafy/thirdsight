@@ -128,6 +128,10 @@ async function handlePausedRequest(source, params) {
     ) {
       delete payload.customer.phone;
       removed.push('customer.phone');
+
+      if (Object.keys(payload.customer).length === 0) {
+        delete payload.customer;
+      }
     }
 
     const afterFields = collectFieldPaths(payload);
