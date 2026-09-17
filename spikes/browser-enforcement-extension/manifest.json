@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "ThirdSight Browser Enforcement Spike",
+  "version": "0.0.1",
+  "description": "Feasibility spike for live browser observation and pre-send request-body enforcement.",
+  "permissions": ["activeTab", "debugger", "storage", "tabs"],
+  "background": {
+    "service_worker": "service-worker.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Toggle ThirdSight browser spike"
+  }
+}
