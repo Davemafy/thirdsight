@@ -1,9 +1,9 @@
-import { BrowserObservationValidationError } from "../src/infrastructure/browser-evidence/browser-evidence-adapter";
-import { ingestAndPersistBrowserObservation } from "../src/infrastructure/browser-evidence/browser-observation-pipeline";
+import { BrowserObservationValidationError } from "../src/infrastructure/browser-evidence/browser-evidence-adapter.js";
+import { ingestAndPersistBrowserObservation } from "../src/infrastructure/browser-evidence/browser-observation-pipeline.js";
 import {
   EvidencePersistenceError,
   SupabaseEvidenceHistoryStore,
-} from "../src/infrastructure/evidence-history/supabase-evidence-history-store";
+} from "../src/infrastructure/evidence-history/supabase-evidence-history-store.js";
 
 interface ApiRequest {
   method?: string;
