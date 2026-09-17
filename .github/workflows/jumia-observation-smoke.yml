@@ -1,0 +1,48 @@
+name: Jumia observation smoke
+
+on:
+  push:
+    branches:
+      - spike/browser-enforcement
+    paths:
+      - '.github/workflows/jumia-observation-smoke.yml'
+      - 'spikes/browser-enforcement-extension/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  jumia-observation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    steps:
+      - name: Checkout spike branch
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install browser test dependency
+        working-directory: spikes/browser-enforcement-extension/ci
+        run: npm install
+
+      - name: Install Playwright Chromium
+        working-directory: spikes/browser-enforcement-extension/ci
+        run: npx playwright install --with-deps chromium
+
+      - name: Observe public Jumia Nigeria traffic
+        env:
+          THIRDSIGHT_JUMIA_REPORT: spikes/browser-enforcement-extension/ci/jumia-observation-report.json
+        run: xvfb-run -a node spikes/browser-enforcement-extension/ci/jumia-observation-smoke.mjs
+
+      - name: Upload observation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jumia-observation-smoke-evidence
+          if-no-files-found: warn
+          path: spikes/browser-enforcement-extension/ci/jumia-observation-report.json
