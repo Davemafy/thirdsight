@@ -1,11 +1,11 @@
 import type {
   IntegrationBindingConfidence,
   IntegrationOriginBinding,
-} from "../../domain/integration-identity";
+} from "../../domain/integration-identity.js";
 import type {
   EvidenceHistoryEntry,
   EvidenceHistoryStore,
-} from "./evidence-history-store";
+} from "./evidence-history-store.js";
 
 interface SupabaseEvidenceHistoryStoreConfig {
   projectUrl: string;

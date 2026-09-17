@@ -1,9 +1,9 @@
-import type { EvidenceGraphRecord } from "../../domain/evidence";
+import type { EvidenceGraphRecord } from "../../domain/evidence.js";
 import type {
   IntegrationOriginBinding,
   IntegrationResolutionResult,
-} from "../../domain/integration-identity";
-import type { BrowserObservationV1 } from "../browser-evidence/browser-evidence-adapter";
+} from "../../domain/integration-identity.js";
+import type { BrowserObservationV1 } from "../browser-evidence/browser-evidence-adapter.js";
 
 export interface EvidenceHistoryEntry {
   recordId: string;
