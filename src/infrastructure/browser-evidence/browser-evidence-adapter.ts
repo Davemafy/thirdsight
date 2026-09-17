@@ -4,7 +4,7 @@ import type {
   EvidenceGraphRecord,
   EvidenceRef,
   RuntimeAccessEvidence,
-} from "../../domain/evidence";
+} from "../../domain/evidence.js";
 
 export interface BrowserObservationV1 {
   schemaVersion: "browser-observation.v1";
