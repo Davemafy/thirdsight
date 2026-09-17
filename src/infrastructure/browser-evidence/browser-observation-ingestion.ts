@@ -1,9 +1,9 @@
-import type { EvidenceGraphRecord } from "../../domain/evidence";
+import type { EvidenceGraphRecord } from "../../domain/evidence.js";
 import {
   parseBrowserObservation,
   projectBrowserObservationToEvidenceGraph,
   type BrowserObservationV1,
-} from "./browser-evidence-adapter";
+} from "./browser-evidence-adapter.js";
 
 export interface BrowserObservationIngestionResult {
   acceptedAt: string;
