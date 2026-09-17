@@ -1,4 +1,4 @@
-import type { EvidenceConfidence, EvidenceGraphRecord } from "./evidence";
+import type { EvidenceConfidence, EvidenceGraphRecord } from "./evidence.js";
 
 export type IntegrationBindingConfidence = Extract<
   EvidenceConfidence,
