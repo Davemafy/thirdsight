@@ -8,18 +8,83 @@ chrome.action.onClicked.addListener(async (tab) => {
     return;
   }
 
-  const target = { tabId: tab.id };
-  const targets = await chrome.debugger.getTargets();
-  const isAttached = targets.some(
-    (candidate) => candidate.tabId === tab.id && candidate.attached,
-  );
+  try {
+    const isAttached = await isDebuggerAttached(tab.id);
+    if (isAttached) {
+      await detachTab(tab.id);
+      return;
+    }
 
-  if (isAttached) {
-    await chrome.debugger.detach(target);
-    await chrome.action.setBadgeText({ tabId: tab.id, text: '' });
-    console.info('[ThirdSight spike] Detached from tab', tab.id);
+    await attachTab(tab);
+  } catch (error) {
+    console.error('[ThirdSight spike] Could not toggle attachment.', error);
+  }
+});
+
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message?.type !== 'THIRDSIGHT_SPIKE_ATTACH_URL') return false;
+
+  attachFirstMatchingTab(message.urlPattern)
+    .then((result) => sendResponse({ ok: true, ...result }))
+    .catch((error) => {
+      sendResponse({
+        ok: false,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    });
+
+  return true;
+});
+
+chrome.debugger.onDetach.addListener(async (source, reason) => {
+  if (!source.tabId) return;
+  await chrome.action.setBadgeText({ tabId: source.tabId, text: '' });
+  console.info('[ThirdSight spike] Debugger detached', { tabId: source.tabId, reason });
+});
+
+chrome.debugger.onEvent.addListener(async (source, method, params) => {
+  if (!source.tabId || !params) return;
+
+  if (method === 'Network.requestWillBeSent') {
+    await recordObservation(source.tabId, params);
     return;
   }
+
+  if (method === 'Fetch.requestPaused') {
+    await handlePausedRequest(source, params);
+  }
+});
+
+async function attachFirstMatchingTab(urlPattern) {
+  if (typeof urlPattern !== 'string' || !urlPattern.startsWith('http')) {
+    throw new Error('A concrete http(s) URL pattern is required.');
+  }
+
+  const tabs = await chrome.tabs.query({ url: urlPattern });
+  const tab = tabs.find((candidate) => candidate.id && candidate.url?.startsWith('http'));
+
+  if (!tab?.id) {
+    throw new Error(`No matching browser tab found for ${urlPattern}`);
+  }
+
+  if (!(await isDebuggerAttached(tab.id))) {
+    await attachTab(tab);
+  }
+
+  return { tabId: tab.id, url: tab.url };
+}
+
+async function isDebuggerAttached(tabId) {
+  const targets = await chrome.debugger.getTargets();
+  return targets.some((candidate) => candidate.tabId === tabId && candidate.attached);
+}
+
+async function attachTab(tab) {
+  if (!tab.id || !tab.url?.startsWith('http')) {
+    throw new Error('Cannot attach to a non-http(s) tab.');
+  }
+
+  const target = { tabId: tab.id };
 
   await chrome.debugger.attach(target, DEBUGGER_PROTOCOL_VERSION);
   await chrome.debugger.sendCommand(target, 'Network.enable');
@@ -43,26 +108,14 @@ chrome.action.onClicked.addListener(async (tab) => {
   await chrome.action.setBadgeText({ tabId: tab.id, text: 'ON' });
 
   console.info('[ThirdSight spike] Attached to tab', tab.id, tab.url);
-});
+}
 
-chrome.debugger.onDetach.addListener(async (source, reason) => {
-  if (!source.tabId) return;
-  await chrome.action.setBadgeText({ tabId: source.tabId, text: '' });
-  console.info('[ThirdSight spike] Debugger detached', { tabId: source.tabId, reason });
-});
-
-chrome.debugger.onEvent.addListener(async (source, method, params) => {
-  if (!source.tabId || !params) return;
-
-  if (method === 'Network.requestWillBeSent') {
-    await recordObservation(source.tabId, params);
-    return;
-  }
-
-  if (method === 'Fetch.requestPaused') {
-    await handlePausedRequest(source, params);
-  }
-});
+async function detachTab(tabId) {
+  const target = { tabId };
+  await chrome.debugger.detach(target);
+  await chrome.action.setBadgeText({ tabId, text: '' });
+  console.info('[ThirdSight spike] Detached from tab', tabId);
+}
 
 async function recordObservation(tabId, params) {
   const request = params.request;
