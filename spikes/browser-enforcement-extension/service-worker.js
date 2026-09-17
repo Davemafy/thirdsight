@@ -39,6 +39,13 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 chrome.debugger.onDetach.addListener(async (source, reason) => {
   if (!source.tabId) return;
   await chrome.action.setBadgeText({ tabId: source.tabId, text: '' });
+  await chrome.storage.session.set({
+    lastDetach: {
+      at: new Date().toISOString(),
+      source,
+      reason,
+    },
+  });
   console.info('[ThirdSight spike] Debugger detached', { tabId: source.tabId, reason });
 });
 
@@ -52,13 +59,29 @@ chrome.debugger.onEvent.addListener(async (source, method, params) => {
     }
 
     if (method === 'Fetch.requestPaused') {
-      await handlePausedRequest(source.tabId, params);
+      await chrome.storage.session.set({
+        lastPausedRequest: {
+          observedAt: new Date().toISOString(),
+          source,
+          requestId: params.requestId,
+          url: params.request?.url ?? null,
+          method: params.request?.method ?? null,
+          hasPostData: Boolean(params.request?.postData),
+        },
+      });
+      await handlePausedRequest(source, params);
     }
   } catch (error) {
-    console.error('[ThirdSight spike] Debugger event handler failed.', {
-      method,
-      error: error instanceof Error ? error.message : String(error),
+    const message = error instanceof Error ? error.message : String(error);
+    await chrome.storage.session.set({
+      lastDebuggerError: {
+        at: new Date().toISOString(),
+        method,
+        source,
+        message,
+      },
     });
+    console.error('[ThirdSight spike] Debugger event handler failed.', { method, error: message });
   }
 });
 
@@ -110,6 +133,9 @@ async function attachTab(tab) {
     activeTabId: tab.id,
     attachedAt: new Date().toISOString(),
     lastEnforcement: null,
+    lastPausedRequest: null,
+    lastDebuggerError: null,
+    lastDetach: null,
     observations: [],
   });
 
@@ -161,19 +187,18 @@ async function recordObservation(tabId, params) {
   console.info('[ThirdSight observe]', observation);
 }
 
-async function handlePausedRequest(tabId, params) {
-  const target = { tabId };
+async function handlePausedRequest(source, params) {
   const requestId = params.requestId;
   const request = params.request;
 
   if (!request?.url?.includes('/api/spike/analytics')) {
-    await continueRequest(target, requestId);
+    await continueRequest(source, requestId);
     return;
   }
 
   const postData = request.postData;
   if (!postData) {
-    await continueRequest(target, requestId);
+    await continueRequest(source, requestId);
     return;
   }
 
@@ -200,7 +225,7 @@ async function handlePausedRequest(tabId, params) {
     const afterFields = collectFieldPaths(payload);
     const modifiedPostData = JSON.stringify(payload);
 
-    await chrome.debugger.sendCommand(target, 'Fetch.continueRequest', {
+    await chrome.debugger.sendCommand(source, 'Fetch.continueRequest', {
       requestId,
       postData: encodeBase64Utf8(modifiedPostData),
     });
@@ -218,8 +243,17 @@ async function handlePausedRequest(tabId, params) {
     await chrome.storage.session.set({ lastEnforcement: enforcement });
     console.info('[ThirdSight enforce]', enforcement);
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    await chrome.storage.session.set({
+      lastRewriteError: {
+        at: new Date().toISOString(),
+        source,
+        requestId,
+        message,
+      },
+    });
     console.error('[ThirdSight spike] Could not rewrite request; continuing unchanged.', error);
-    await continueRequest(target, requestId);
+    await continueRequest(source, requestId);
   }
 }
 
