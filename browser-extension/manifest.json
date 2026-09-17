@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "ThirdSight Browser Sensor",
+  "version": "0.1.0",
+  "description": "Browser evidence sensor for ThirdSight.",
+  "permissions": ["activeTab", "debugger", "storage", "tabs"],
+  "host_permissions": ["http://localhost/*", "https://*.vercel.app/*"],
+  "background": {
+    "service_worker": "service-worker.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Toggle ThirdSight browser sensor"
+  }
+}
