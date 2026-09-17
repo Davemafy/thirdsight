@@ -59,6 +59,7 @@ jobs:
         run: xvfb-run -a node spikes/browser-enforcement-extension/ci/browser-spike.mjs
 
       - name: Observe public Jumia Nigeria traffic
+        if: always()
         env:
           THIRDSIGHT_JUMIA_REPORT: spikes/browser-enforcement-extension/ci/jumia-observation-report.json
         run: xvfb-run -a node spikes/browser-enforcement-extension/ci/jumia-observation-smoke.mjs
