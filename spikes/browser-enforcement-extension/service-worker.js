@@ -45,13 +45,20 @@ chrome.debugger.onDetach.addListener(async (source, reason) => {
 chrome.debugger.onEvent.addListener(async (source, method, params) => {
   if (!source.tabId || !params) return;
 
-  if (method === 'Network.requestWillBeSent') {
-    await recordObservation(source.tabId, params);
-    return;
-  }
+  try {
+    if (method === 'Network.requestWillBeSent') {
+      await recordObservation(source.tabId, params);
+      return;
+    }
 
-  if (method === 'Fetch.requestPaused') {
-    await handlePausedRequest(source, params);
+    if (method === 'Fetch.requestPaused') {
+      await handlePausedRequest(source.tabId, params);
+    }
+  } catch (error) {
+    console.error('[ThirdSight spike] Debugger event handler failed.', {
+      method,
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 });
 
@@ -152,18 +159,19 @@ async function recordObservation(tabId, params) {
   console.info('[ThirdSight observe]', observation);
 }
 
-async function handlePausedRequest(source, params) {
+async function handlePausedRequest(tabId, params) {
+  const target = { tabId };
   const requestId = params.requestId;
   const request = params.request;
 
   if (!request?.url?.includes('/api/spike/analytics')) {
-    await continueRequest(source, requestId);
+    await continueRequest(target, requestId);
     return;
   }
 
   const postData = request.postData;
   if (!postData) {
-    await continueRequest(source, requestId);
+    await continueRequest(target, requestId);
     return;
   }
 
@@ -190,7 +198,7 @@ async function handlePausedRequest(source, params) {
     const afterFields = collectFieldPaths(payload);
     const modifiedPostData = JSON.stringify(payload);
 
-    await chrome.debugger.sendCommand(source, 'Fetch.continueRequest', {
+    await chrome.debugger.sendCommand(target, 'Fetch.continueRequest', {
       requestId,
       postData: encodeBase64Utf8(modifiedPostData),
     });
@@ -209,12 +217,12 @@ async function handlePausedRequest(source, params) {
     console.info('[ThirdSight enforce]', enforcement);
   } catch (error) {
     console.error('[ThirdSight spike] Could not rewrite request; continuing unchanged.', error);
-    await continueRequest(source, requestId);
+    await continueRequest(target, requestId);
   }
 }
 
-async function continueRequest(source, requestId) {
-  await chrome.debugger.sendCommand(source, 'Fetch.continueRequest', { requestId });
+async function continueRequest(target, requestId) {
+  await chrome.debugger.sendCommand(target, 'Fetch.continueRequest', { requestId });
 }
 
 function collectFieldPaths(value, prefix = '') {
