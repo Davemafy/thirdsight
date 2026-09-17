@@ -1,12 +1,12 @@
 import {
   resolveIntegrationIdentity,
   type IntegrationResolutionResult,
-} from "../../domain/integration-identity";
-import type { EvidenceHistoryEntry, EvidenceHistoryStore } from "../evidence-history/evidence-history-store";
+} from "../../domain/integration-identity.js";
+import type { EvidenceHistoryEntry, EvidenceHistoryStore } from "../evidence-history/evidence-history-store.js";
 import {
   ingestBrowserObservation,
   type BrowserObservationIngestionResult,
-} from "./browser-observation-ingestion";
+} from "./browser-observation-ingestion.js";
 
 export interface DurableBrowserObservationResult extends BrowserObservationIngestionResult {
   integrationResolution: IntegrationResolutionResult;
