@@ -74,6 +74,12 @@ export interface BusinessContextEvidence {
     | "TEMPORAL_ONLY";
 }
 
+export interface EvidenceCoverage {
+  label: "BROWSER_ONLY" | "MULTI_BOUNDARY";
+  boundaries: readonly RuntimeAccessEvidence["boundary"][];
+  limitations: readonly string[];
+}
+
 export interface EvidenceGraphRecord {
   recordId: string;
   observedAt: string;
@@ -83,4 +89,5 @@ export interface EvidenceGraphRecord {
   could: EvidenceClaim<BrowserCapabilityLowerBound>;
   did: EvidenceClaim<RuntimeAccessEvidence>;
   why: EvidenceClaim<BusinessContextEvidence>;
+  coverage?: EvidenceCoverage;
 }
