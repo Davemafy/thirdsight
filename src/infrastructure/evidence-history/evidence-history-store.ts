@@ -53,6 +53,7 @@ export interface EvidenceHistoryStore {
   findBusinessEvents(integrationId: string, observedAt: string): Promise<readonly BusinessEventEvidence[]>;
   findIntegrationLifecycle(integrationId: string): Promise<import("../../domain/deterministic-verifier.js").IntegrationLifecycleState | null>;
   findCredential(credentialId: string): Promise<{ credentialId: string; integrationId: string; status: "ACTIVE" | "REVOKED"; environment: string } | null>;
+  registerCredential(input: { credentialId: string; integrationId: string; environment: string; validFrom: string }): Promise<void>;
   isolateCredential(credentialId: string): Promise<boolean>;
 
   appendBusinessEvent(event: BusinessEventEvidence): Promise<void>;
