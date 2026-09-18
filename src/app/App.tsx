@@ -6,18 +6,32 @@ import type { BlindSpotAssessment } from "../domain/blind-spot-assessment";
 type Finding={type:string;action:string;field?:string;reason?:string};
 type Enforcement={action:"CONSTRAIN"|"ISOLATE";outcome:"PREVENTED";removedFields:readonly string[];continuedFields:readonly string[];receiver:{receivedFields:readonly string[];forbiddenFieldReceived:boolean}};
 type Containment={action:"ISOLATE";credentialId:string;applied:boolean};
-type ConsoleEvent={recordId:string;observedAt:string;integrationId:string|null;integrationResolution:string;should:EvidenceClaim<PurposeEvidence>;could:EvidenceClaim<BrowserCapabilityLowerBound>;did:EvidenceClaim<RuntimeAccessEvidence>;why:EvidenceClaim<BusinessContextEvidence>;coverage:EvidenceCoverage;findings:readonly Finding[];enforcement:Enforcement|null;containment:Containment|null;blindSpotAssessment:BlindSpotAssessment|null;decision:"ALLOW"|"OBSERVE"|"CONSTRAIN"|"ISOLATE"|null;outcome:"PREVENTED"|"DETECTED"|null};
+type AiAssessmentView={
+  analystVersion:string;
+  model:string;
+  accepted:boolean;
+  authorityViolation:boolean;
+  output:{
+    assessment:"NEEDS_REVIEW"|"INSUFFICIENT_EVIDENCE"|"EXPLAINABLE_OBSERVATION";
+    evidence_used:readonly string[];
+    unsupported_assumptions:readonly string[];
+    confidence:"LOW"|"MEDIUM"|"HIGH";
+    recommended_response:"OBSERVE"|"REVIEW"|"ABSTAIN";
+    explanation:string;
+  };
+};
+type ConsoleEvent={recordId:string;observedAt:string;integrationId:string|null;integrationResolution:string;should:EvidenceClaim<PurposeEvidence>;could:EvidenceClaim<BrowserCapabilityLowerBound>;did:EvidenceClaim<RuntimeAccessEvidence>;why:EvidenceClaim<BusinessContextEvidence>;coverage:EvidenceCoverage;findings:readonly Finding[];enforcement:Enforcement|null;containment:Containment|null;blindSpotAssessment:BlindSpotAssessment|null;aiAssessment:AiAssessmentView|null;decision:"ALLOW"|"OBSERVE"|"CONSTRAIN"|"ISOLATE"|null;outcome:"PREVENTED"|"DETECTED"|null};
 
 export default function App(){
   const [events,setEvents]=useState<ConsoleEvent[]>([]);
   const [selected,setSelected]=useState(0);
-  const [error,setError]=useState(false);
+  const [error,setError]=useState(false);\n  const [aiPromoted,setAiPromoted]=useState(false);
 
   useEffect(()=>{
     let live=true;
     const load=()=>fetch("/api/console-events",{cache:"no-store"})
       .then(r=>{if(!r.ok)throw new Error("evidence unavailable");return r.json()})
-      .then(d=>{if(!live)return;const history=(d.history??[]) as ConsoleEvent[];setEvents(history);setSelected(current=>current<history.length?current:0);setError(false)})
+      .then(d=>{if(!live)return;const history=(d.history??[]) as ConsoleEvent[];setEvents(history);setAiPromoted(Boolean(d.aiAnalyst?.promoted));setSelected(current=>current<history.length?current:0);setError(false)})
       .catch(()=>live&&setError(true));
     load();
     const id=window.setInterval(load,5000);
@@ -47,6 +61,7 @@ export default function App(){
           <Coverage coverage={event.coverage}/>
         </section>
         <ActionPanel event={event} discoveryOnly={discoveryOnly}/>
+        {aiPromoted&&event.aiAssessment?.accepted?<AiAnalystPanel assessment={event.aiAssessment}/>:null}
       </>}
     </main>
   </div>;
@@ -70,6 +85,21 @@ function ActionPanel({event,discoveryOnly}:{event:ConsoleEvent;discoveryOnly:boo
     {event.enforcement?<div className="proof-grid"><div><span>Removed before send</span><b>{event.enforcement.removedFields.join(", ")||"none"}</b></div><div><span>Continued</span><b>{event.enforcement.continuedFields.join(", ")||"none"}</b></div><div><span>Receiver got</span><b>{event.enforcement.receiver.receivedFields.join(", ")||"none"}</b></div><div><span>customer.phone at receiver</span><b>{event.enforcement.receiver.forbiddenFieldReceived?"YES":"NO"}</b></div></div>:null}
     <div className="meta"><span>Identity <b>{event.integrationResolution}</b></span><span>Observed <b>{new Date(event.observedAt).toLocaleString()}</b></span></div>
   </section>;
+}
+
+function AiAnalystPanel({assessment}:{assessment:AiAssessmentView}){
+  const output=assessment.output;
+  return <section className="ai-analyst-panel">
+    <div className="ai-analyst-head"><div><span className="eyebrow">AI analyst · advisory only</span><h2>{output.assessment.replaceAll("_"," ")}</h2></div><span className="ai-confidence">{output.confidence}</span></div>
+    <p>{output.explanation}</p>
+    <div className="ai-grid">
+      <div><span>Recommended response</span><b>{output.recommended_response}</b></div>
+      <div><span>Evidence used</span><b>{output.evidence_used.join(", ")||"none"}</b></div>
+      <div><span>Unsupported assumptions</span><b>{output.unsupported_assumptions.join(" · ")||"none declared"}</b></div>
+      <div><span>Model</span><b>{assessment.model}</b></div>
+    </div>
+    <small>AI cannot change SHOULD / COULD / DID / WHY, widen a Purpose Contract, override deterministic findings, independently CONSTRAIN or ISOLATE, or relabel DETECTED / PREVENTED.</small>
+  </section>
 }
 
 function Outcome({value}:{value:ConsoleEvent["outcome"]|ConsoleEvent["decision"]}){return <span className={"outcome "+(value?.toLowerCase()??"unknown")}>{value??"DISCOVERY"}</span>}
