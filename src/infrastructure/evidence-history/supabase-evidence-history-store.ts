@@ -183,7 +183,7 @@ export class SupabaseEvidenceHistoryStore implements EvidenceHistoryStore {
   }
 
   async list(limit = 50): Promise<readonly EvidenceHistoryEntry[]> {
-    const safeLimit = Math.max(1, Math.min(250, Math.floor(limit)));
+    const safeLimit = Math.max(1, Math.min(750, Math.floor(limit)));
     const url = this.restUrl("browser_evidence_history");
     url.searchParams.set("select", "payload");
     url.searchParams.set("order", "observed_at.desc");
