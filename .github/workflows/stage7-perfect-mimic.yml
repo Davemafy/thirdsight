@@ -1,0 +1,58 @@
+name: Stage 7 Perfect Mimic
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/stage7-perfect-mimic.yml"
+      - "api/stage7-perfect-mimic.ts"
+      - "src/domain/blind-spot-assessment.ts"
+      - "src/domain/deterministic-verifier.ts"
+      - "src/domain/evidence-verification.ts"
+      - "src/infrastructure/browser-evidence/**"
+      - "src/infrastructure/evidence-history/**"
+      - "src/infrastructure/auth/github-actions-oidc.ts"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  perfect-mimic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Request short-lived GitHub OIDC credential
+        shell: bash
+        run: |
+          response=$(curl -fsSL -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=thirdsight-stage7-perfect-mimic")
+          token=$(printf '%s' "$response" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>process.stdout.write(JSON.parse(s).value))')
+          echo "::add-mask::$token"
+          echo "THIRDSIGHT_OIDC_TOKEN=$token" >> "$GITHUB_ENV"
+      - name: Run persisted perfect-mimic proof
+        shell: bash
+        run: |
+          for i in {1..60}; do
+            code=$(curl -sS -o stage7-perfect-mimic.json -w "%{http_code}" -X POST -H "Authorization: Bearer $THIRDSIGHT_OIDC_TOKEN" https://thirdsight-five.vercel.app/api/stage7-perfect-mimic || true)
+            if [ "$code" = "200" ]; then break; fi
+            sleep 10
+          done
+          node - <<'NODE'
+          const fs=require("fs");
+          const body=JSON.parse(fs.readFileSync("stage7-perfect-mimic.json","utf8"));
+          if(!body.ok) throw new Error(JSON.stringify(body));
+          if(body.decision!=="ALLOW"||body.findings!==0) throw new Error("Perfect mimic must remain undetected");
+          if(body.blindSpotAssessment?.reasonCode!=="PERFECT_MIMIC_UNDETECTABLE") throw new Error("Known limitation was not recorded");
+          if(body.blindSpotAssessment?.detectable!==false) throw new Error("Perfect mimic must be explicitly marked undetectable");
+          if(body.should!=="KNOWN"||body.did!=="KNOWN"||body.why!=="KNOWN") throw new Error("Perfect mimic must satisfy evidence consistency");
+          console.log(JSON.stringify(body));
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stage7-perfect-mimic-proof
+          path: stage7-perfect-mimic.json
