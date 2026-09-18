@@ -10,7 +10,6 @@ interface ApiResponse { status(code:number):ApiResponse; setHeader(name:string,v
 
 const INTEGRATION_ID="analytics-partner";
 const ENVIRONMENT="production";
-const MANAGED_FIELDS=["product.id","product.category","product.price","customer.phone"] as const;
 
 export default async function handler(request:ApiRequest,response:ApiResponse):Promise<void>{
   response.setHeader("Cache-Control","no-store");
