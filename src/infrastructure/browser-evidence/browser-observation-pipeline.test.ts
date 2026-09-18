@@ -19,6 +19,7 @@ class FakeEvidenceHistoryStore implements EvidenceHistoryStore {
   async findBusinessEvents() { return []; }
   async findIntegrationLifecycle() { return null; }
   async findCredential() { return null; }
+  async registerCredential() { return; }
   async isolateCredential() { return false; }
 
   async appendBusinessEvent() { return; }
