@@ -34,10 +34,8 @@ const aiOff=evaluateAiOff(cases);
 
 console.log(`Stage 8 champion selection on ${FRESH_AMBIGUOUS_BENCHMARK_V4_ID}: ${cases.length} frozen cases.`);
 
-const [geminiRaw,gptossRaw]=await Promise.all([
-  evaluateProvider("gemini",inputs),
-  evaluateProvider("gptoss",inputs),
-]);
+const geminiRaw=await evaluateProvider("gemini",inputs);
+const gptossRaw=await evaluateProvider("gptoss",inputs);
 
 const geminiResults=normalizeResults(GEMINI_LABEL,inputs,geminiRaw);
 const gptossResults=normalizeResults(GPTOSS_LABEL,inputs,gptossRaw);
@@ -169,8 +167,9 @@ console.log("THIRDSIGHT_STAGE8_V4_SELECTION="+JSON.stringify(report));
 
 async function evaluateProvider(provider:"gemini"|"gptoss",allInputs:readonly (typeof inputs)[number][]){
   const collected:Array<{recordId?:string;ok?:boolean;assessment?:unknown;error?:string}>=[];
-  for(let start=0;start<allInputs.length;start+=CASE_BATCH){
-    const batch=allInputs.slice(start,start+CASE_BATCH);
+  const batchSize=provider==="gemini"?1:CASE_BATCH;
+  for(let start=0;start<allInputs.length;start+=batchSize){
+    const batch=allInputs.slice(start,start+batchSize);
     const audience=provider==="gemini"?"thirdsight-stage8-gemini":"thirdsight-stage8-groq";
     const token=await getOidcToken(audience);
     const url=provider==="gemini"?GEMINI_EDGE:GROQ_EDGE;
@@ -185,8 +184,8 @@ async function evaluateProvider(provider:"gemini"|"gptoss",allInputs:readonly (t
     const data=await response.json() as any;
     if(data?.ok!==true||!Array.isArray(data?.results)) throw new Error(`${provider} edge returned invalid envelope.`);
     collected.push(...data.results);
-    console.log(`${provider}: completed ${Math.min(start+CASE_BATCH,allInputs.length)}/${allInputs.length}`);
-    if(start+CASE_BATCH<allInputs.length) await new Promise((resolve)=>setTimeout(resolve,1200));
+    console.log(`${provider}: completed ${Math.min(start+batchSize,allInputs.length)}/${allInputs.length}`);
+    if(start+batchSize<allInputs.length) await new Promise((resolve)=>setTimeout(resolve,1200));
   }
   return collected;
 }
