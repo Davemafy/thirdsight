@@ -46,53 +46,39 @@ console.log(
   `Evaluating ${MODEL_LABEL} on ${cases.length} fresh ambiguous cases (${FRESH_AMBIGUOUS_BENCHMARK_ID})...`,
 );
 
-const edgeResponse = await fetch(GROQ_EDGE_URL, {
-  method: "POST",
-  headers: {
-    authorization: `Bearer ${token}`,
-    "content-type": "application/json",
-  },
-  body: JSON.stringify({
-    schemaVersion: "stage8-groq.v1",
-    cases: inputs.map((input) => ({
-      recordId: input.recordId,
-      structuredEvidence: input,
-    })),
-  }),
-});
-
-if (!edgeResponse.ok) {
-  const detail = (await edgeResponse.text()).slice(0, 1200);
-  throw new Error(
-    `ThirdSight Groq boundary returned ${edgeResponse.status}: ${detail}`,
-  );
-}
-
-const edgeBody = (await edgeResponse.json()) as {
+const rawResults: Array<{
+  recordId?: string;
   ok?: boolean;
-  provider?: string;
-  model?: string;
-  strictStructuredOutput?: boolean;
-  results?: Array<{
-    recordId?: string;
-    ok?: boolean;
-    assessment?: unknown;
-    error?: string;
-  }>;
-};
+  assessment?: unknown;
+  error?: string;
+}> = [];
 
-if (
-  edgeBody.ok !== true ||
-  edgeBody.provider !== "groq" ||
-  edgeBody.model !== MODEL ||
-  edgeBody.strictStructuredOutput !== true ||
-  !Array.isArray(edgeBody.results)
-) {
-  throw new Error("Groq evaluation boundary returned an invalid envelope.");
+const GROQ_FREE_TIER_CHUNK_SIZE = 3;
+const GROQ_FREE_TIER_COOLDOWN_MS = 62_000;
+
+for (let start = 0; start < inputs.length; start += GROQ_FREE_TIER_CHUNK_SIZE) {
+  const batch = inputs.slice(start, start + GROQ_FREE_TIER_CHUNK_SIZE);
+  const batchNumber = Math.floor(start / GROQ_FREE_TIER_CHUNK_SIZE) + 1;
+  const batchCount = Math.ceil(inputs.length / GROQ_FREE_TIER_CHUNK_SIZE);
+  console.log(
+    `Groq batch ${batchNumber}/${batchCount}: ${batch.length} case(s)`,
+  );
+
+  const edgeBody = await requestEdgeBatch(batch);
+  rawResults.push(...edgeBody.results);
+
+  if (start + GROQ_FREE_TIER_CHUNK_SIZE < inputs.length) {
+    console.log(
+      `Cooling down ${GROQ_FREE_TIER_COOLDOWN_MS / 1000}s for Groq free-tier TPM...`,
+    );
+    await new Promise((resolve) =>
+      setTimeout(resolve, GROQ_FREE_TIER_COOLDOWN_MS),
+    );
+  }
 }
 
 const rawByRecord = new Map(
-  edgeBody.results
+  rawResults
     .filter((item) => typeof item.recordId === "string")
     .map((item) => [String(item.recordId), item] as const),
 );
@@ -271,6 +257,65 @@ console.log(
       rejectedAssessments: report.rejectedAssessments,
     }),
 );
+
+
+async function requestEdgeBatch(
+  batch: readonly (typeof inputs)[number][],
+): Promise<{
+  results: Array<{
+    recordId?: string;
+    ok?: boolean;
+    assessment?: unknown;
+    error?: string;
+  }>;
+}> {
+  const edgeResponse = await fetch(GROQ_EDGE_URL, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${token}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      schemaVersion: "stage8-groq.v1",
+      cases: batch.map((input) => ({
+        recordId: input.recordId,
+        structuredEvidence: input,
+      })),
+    }),
+  });
+
+  if (!edgeResponse.ok) {
+    const detail = (await edgeResponse.text()).slice(0, 1200);
+    throw new Error(
+      `ThirdSight Groq boundary returned ${edgeResponse.status}: ${detail}`,
+    );
+  }
+
+  const edgeBody = (await edgeResponse.json()) as {
+    ok?: boolean;
+    provider?: string;
+    model?: string;
+    strictStructuredOutput?: boolean;
+    results?: Array<{
+      recordId?: string;
+      ok?: boolean;
+      assessment?: unknown;
+      error?: string;
+    }>;
+  };
+
+  if (
+    edgeBody.ok !== true ||
+    edgeBody.provider !== "groq" ||
+    edgeBody.model !== MODEL ||
+    edgeBody.strictStructuredOutput !== true ||
+    !Array.isArray(edgeBody.results)
+  ) {
+    throw new Error("Groq evaluation boundary returned an invalid envelope.");
+  }
+
+  return { results: edgeBody.results };
+}
 
 function normalizeAssessment(value: unknown): AiAnalystAssessment {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
