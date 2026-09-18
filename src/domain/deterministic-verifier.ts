@@ -1,6 +1,8 @@
 import type { EvidenceGraphRecord } from "./evidence.js";
 import type { PurposeContractEvidence } from "./evidence-sources.js";
 
+export const DETERMINISTIC_DETECTOR_VERSION = "stage7-v1-frozen";
+
 export type FindingType = "SCOPE_DRIFT" | "PURPOSE_MISMATCH" | "STALE_INTEGRATION" | "SHADOW_INTEGRATION";
 export type VerificationAction = "ALLOW" | "OBSERVE" | "CONSTRAIN" | "ISOLATE";
 
