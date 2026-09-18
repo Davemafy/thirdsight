@@ -24,15 +24,17 @@ ThirdSight distinguishes prevention from detection. Managed inline boundaries ma
 - [`docs/architecture-v0.5.1.md`](docs/architecture-v0.5.1.md) — architecture invariants, evidence semantics, trust boundaries, authority model, response semantics, and limitations.
 - [`docs/demo-contract-v1.md`](docs/demo-contract-v1.md) — required demo behavior, adversarial scenarios, and acceptance gates.
 - [`docs/README.md`](docs/README.md) — documentation versioning rules.
+- [`docs/stage8-ai-evaluation.md`](docs/stage8-ai-evaluation.md) — frozen advisory-AI evaluation and promotion record.
+- [`docs/stage9-learning-loop.md`](docs/stage9-learning-loop.md) — verified feedback, candidate training, and frozen learning gate.
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — repository structure, naming, data handling, and quality conventions.
 
 Architectural invariants change only when implementation or evaluation produces contradictory evidence. Any such change requires a written reason, regression evidence, and a version bump.
 
 ## Current implementation
 
-The current application is an early prototype shell being replaced incrementally by the 0.5.1 architecture.
+ThirdSight now has an evidence-backed end-to-end prototype rather than a mock dashboard. It persists browser and managed-runtime evidence, reconstructs SHOULD / COULD / DID / WHY, distinguishes post-access detection from inline prevention, evaluates deterministic adversarial scenarios, and exposes only persisted results in the evidence console.
 
-The first required end-to-end slice is intentionally narrow: a managed analytics event containing approved product fields plus an unapproved `customer.phone` field must be checked against its Purpose Contract, have the phone removed **before transmission**, allow the legitimate remainder to continue, and record the complete evidence chain.
+Stage 7 freezes the deterministic detector. Stage 8 adds a separately gated advisory AI analyst with no enforcement authority. Stage 9 adds a verified learning loop: a human-confirmed ambiguous outcome becomes a PII-minimized training example, a small classifier trains off the live decision path, and the candidate is promoted only after passing a frozen held-out benchmark. Learned recommendations remain limited to **REVIEW / OBSERVE / ABSTAIN**.
 
 ## Repository layout
 
@@ -40,9 +42,11 @@ The first required end-to-end slice is intentionally narrow: a managed analytics
 .
 ├── docs/                       # Canonical architecture and demo specifications
 ├── src/
-│   ├── app/                    # React application composition
-│   │   ├── App.tsx
-│   │   └── model.ts            # Temporary prototype model; replaced as domain modules land
+│   ├── app/                    # Evidence console and advisory learning UI
+│   ├── domain/                 # Frozen evidence and deterministic verification semantics
+│   ├── infrastructure/         # Browser, DB-audit, persistence, and auth adapters
+│   ├── ai-analyst/             # Stage 8 advisory AI boundary and evaluation
+│   ├── learning-loop/          # Stage 9 verified feedback, training, and promotion gate
 │   ├── styles/
 │   │   └── global.css
 │   └── main.tsx                # Browser entrypoint
@@ -54,7 +58,7 @@ The first required end-to-end slice is intentionally narrow: a managed analytics
 └── vite.config.ts
 ```
 
-Future directories such as `src/domain/`, `src/infrastructure/`, and `src/demo/` are added only when real implementation code exists. The repository does not keep placeholder folders.
+Directories are added only when real implementation code exists. The repository does not keep placeholder folders.
 
 ## Development
 
