@@ -1,4 +1,5 @@
 import { SupabaseEvidenceHistoryStore } from "../src/infrastructure/evidence-history/supabase-evidence-history-store.js";
+import { SupabaseAiAssessmentStore } from "../src/ai-analyst/ai-assessment-store.js";
 
 interface ApiRequest { method?: string }
 interface ApiResponse { status(code:number):ApiResponse; setHeader(name:string,value:string):void; json(body:unknown):void; end():void }
@@ -13,14 +14,26 @@ export default async function handler(request:ApiRequest,response:ApiResponse):P
   if(!url||!key){response.status(503).json({error:"PERSISTENCE_NOT_CONFIGURED"});return;}
   try{
     const store=new SupabaseEvidenceHistoryStore({projectUrl:url,serviceRoleKey:key});
+    const aiStore=new SupabaseAiAssessmentStore({projectUrl:url,serviceRoleKey:key});
     const history=selectRepresentativeHistory(await store.list(650));
-    response.status(200).json({history:history.map(entry=>({
+    const [aiByRecord,latestAiEvaluation]=await Promise.all([
+      aiStore.latestForRecords(history.map((entry)=>entry.recordId)),
+      aiStore.latestEvaluationRun(),
+    ]);
+    response.status(200).json({
+      aiAnalyst:{
+        promoted:latestAiEvaluation?.surfaceProminently??false,
+        latestEvaluation:latestAiEvaluation,
+      },
+      history:history.map(entry=>({
       recordId:entry.recordId,acceptedAt:entry.acceptedAt,observedAt:entry.evidence.observedAt,
       integrationId:entry.evidence.integrationId,integrationResolution:entry.evidence.integrationResolution,
       should:entry.evidence.should,could:entry.evidence.could,did:entry.evidence.did,why:entry.evidence.why,
       findings:entry.findings??[], enforcement:entry.enforcement??null, containment:entry.containment??null, blindSpotAssessment:entry.blindSpotAssessment??null, decision:entry.decision??null, coverage:entry.evidence.coverage??inferCoverage(entry.evidence.did.value?.boundary),
-      outcome:entry.outcome??derivePassiveOutcome(entry.evidence.did.value?.phase)
-    }))});
+      outcome:entry.outcome??derivePassiveOutcome(entry.evidence.did.value?.phase),
+      aiAssessment:aiByRecord.get(entry.recordId)??null
+    }))
+    });
   }catch{response.status(503).json({error:"EVIDENCE_READ_FAILED"});}
 }
 function derivePassiveOutcome(phase:string|undefined):"DETECTED"|null{
