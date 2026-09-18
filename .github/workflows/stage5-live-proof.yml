@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/stage5-live-proof.yml"
+      - "scripts/stage5-live-proof.mjs"
 
 jobs:
   live-proof:
