@@ -91,3 +91,16 @@ export interface CapabilityGrantEvidence {
 export function capabilityGrantEvidence(capability: CapabilityGrant, sourceId = capability.capabilityId): CapabilityGrantEvidence {
   return { capability, provenance: { source: "capability-registry", sourceId, observedAt: capability.validFrom, confidence: capability.authority } };
 }
+
+export function activePurposeContractsFor(integrationId: string, environment: string, observedAt: string, contracts: readonly PurposeContractEvidence[]): readonly PurposeContractEvidence[] {
+  return contracts.filter(({contract}) => contract.integrationId === integrationId && contract.environment === environment && activeAt(contract.validFrom, contract.expiresAt, observedAt));
+}
+
+export function activeCapabilitiesFor(integrationId: string, environment: string, observedAt: string, capabilities: readonly CapabilityGrantEvidence[]): readonly CapabilityGrantEvidence[] {
+  return capabilities.filter(({capability}) => capability.integrationId === integrationId && capability.environment === environment && activeAt(capability.validFrom, capability.validTo, observedAt));
+}
+
+function activeAt(from: string, to: string | null, at: string): boolean {
+  const t=Date.parse(at), start=Date.parse(from); if(!Number.isFinite(t)||!Number.isFinite(start)||start>t) return false;
+  if(to===null) return true; const end=Date.parse(to); return Number.isFinite(end)&&end>t;
+}
