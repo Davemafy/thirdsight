@@ -2,6 +2,7 @@ import type {
   IntegrationBindingConfidence,
   IntegrationOriginBinding,
 } from "../../domain/integration-identity.js";
+import { purposeContractEvidence, businessEventEvidence, capabilityGrantEvidence, type PurposeContract, type BusinessEvent, type CapabilityGrant } from "../../domain/evidence-sources.js";
 import type {
   EvidenceHistoryEntry,
   EvidenceHistoryStore,
@@ -76,6 +77,22 @@ export class SupabaseEvidenceHistoryStore implements EvidenceHistoryStore {
       });
   }
 
+  async findPurposeContracts(integrationId: string, environment: string, observedAt: string) {
+    const url=this.restUrl("purpose_contracts"); url.searchParams.set("select","payload"); url.searchParams.set("integration_id",`eq.${integrationId}`); url.searchParams.set("environment",`eq.${environment}`);
+    const rows=await this.requestJson<Array<{payload:PurposeContract}>>(url,{method:"GET"});
+    const at=Date.parse(observedAt); return rows.map(r=>purposeContractEvidence(r.payload,`${r.payload.contractId}:${r.payload.version}`)).filter(x=>Date.parse(x.contract.validFrom)<=at&&(x.contract.expiresAt===null||Date.parse(x.contract.expiresAt)>at));
+  }
+  async findCapabilities(integrationId: string, environment: string, observedAt: string) {
+    const url=this.restUrl("capability_grants"); url.searchParams.set("select","payload"); url.searchParams.set("integration_id",`eq.${integrationId}`); url.searchParams.set("environment",`eq.${environment}`);
+    const rows=await this.requestJson<Array<{payload:CapabilityGrant}>>(url,{method:"GET"});
+    const at=Date.parse(observedAt); return rows.map(r=>capabilityGrantEvidence(r.payload)).filter(x=>Date.parse(x.capability.validFrom)<=at&&(x.capability.validTo===null||Date.parse(x.capability.validTo)>at));
+  }
+  async findBusinessEvents(integrationId: string, observedAt: string) {
+    const url=this.restUrl("business_events"); url.searchParams.set("select","payload"); url.searchParams.set("integration_id",`eq.${integrationId}`);
+    const rows=await this.requestJson<Array<{payload:BusinessEvent}>>(url,{method:"GET"}); const at=Date.parse(observedAt);
+    return rows.map(r=>businessEventEvidence(r.payload)).filter(x=>{const d=at-Date.parse(x.event.timestamp);return d>=0&&d<=300000});
+  }
+
   async append(entry: EvidenceHistoryEntry): Promise<void> {
     const url = this.restUrl("browser_evidence_history");
     url.searchParams.set("on_conflict", "record_id");
@@ -95,6 +112,9 @@ export class SupabaseEvidenceHistoryStore implements EvidenceHistoryStore {
         integration_id: entry.evidence.integrationId,
         integration_resolution: entry.evidence.integrationResolution,
         payload: entry,
+        findings: entry.findings ?? [],
+        enforcement: entry.enforcement ?? null,
+        outcome: entry.outcome ?? null,
       }),
     });
   }
