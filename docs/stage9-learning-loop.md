@@ -127,11 +127,9 @@ Core implementation:
 - `src/learning-loop/learning-loop.test.ts`
 - `src/learning-loop/supabase-learning-store.ts`
 
-Product APIs:
+Product API:
 
-- `api/learning-review.ts`
-- `api/learning-train.ts`
-- `api/learning-status.ts`
+- `api/learning.ts` — consolidated status / verified-review / candidate-training endpoint (kept to one serverless function for Hobby-plan deployment limits).
 
 UI:
 
