@@ -15,13 +15,7 @@ export interface EvidenceHistoryEntry {
 }
 
 export interface EvidenceHistoryStore {
-  findActiveOriginBindings(
-    origin: string,
-    environment: string,
-    observedAt: string,
-  ): Promise<readonly IntegrationOriginBinding[]>;
-
+  findActiveOriginBindings(origin: string, environment: string, observedAt: string): Promise<readonly IntegrationOriginBinding[]>;
   append(entry: EvidenceHistoryEntry): Promise<void>;
-
   list(limit?: number): Promise<readonly EvidenceHistoryEntry[]>;
 }
