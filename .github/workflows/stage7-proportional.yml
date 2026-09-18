@@ -1,0 +1,59 @@
+name: Stage 7 Proportional Abuse
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/stage7-proportional.yml"
+      - "api/stage7-proportional.ts"
+      - "src/domain/evidence.ts"
+      - "src/domain/evidence-verification.ts"
+      - "src/domain/deterministic-verifier.ts"
+      - "src/infrastructure/browser-evidence/**"
+      - "src/infrastructure/evidence-history/**"
+      - "src/infrastructure/auth/github-actions-oidc.ts"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  proportional:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Request short-lived GitHub OIDC credential
+        shell: bash
+        run: |
+          response=$(curl -fsSL -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=thirdsight-stage7-proportional")
+          token=$(printf '%s' "$response" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>process.stdout.write(JSON.parse(s).value))')
+          echo "::add-mask::$token"
+          echo "THIRDSIGHT_OIDC_TOKEN=$token" >> "$GITHUB_ENV"
+      - name: Run persisted proportional-abuse proof
+        shell: bash
+        run: |
+          for i in {1..60}; do
+            code=$(curl -sS -o stage7-proportional.json -w "%{http_code}" -X POST -H "Authorization: Bearer $THIRDSIGHT_OIDC_TOKEN" https://thirdsight-five.vercel.app/api/stage7-proportional || true)
+            if [ "$code" = "200" ]; then break; fi
+            sleep 10
+          done
+          node - <<'NODE'
+          const fs=require("fs");
+          const body=JSON.parse(fs.readFileSync("stage7-proportional.json","utf8"));
+          if(!body.ok) throw new Error(JSON.stringify(body));
+          if(body.rawRequestToBusinessEventRatio!==1) throw new Error("Aggregate volume must look normal");
+          if(body.abusiveRequests!==10) throw new Error("Expected 10 proportional abuse requests");
+          if(body.purposeMismatchFindings!==10) throw new Error("Every abuse request must become PURPOSE_MISMATCH");
+          if(body.decisions?.ALLOW!==90||body.decisions?.CONSTRAIN!==10) throw new Error("Legitimate and abusive decisions are incorrect");
+          if(body.persistedRecords!==100) throw new Error("Expected 100 persisted scenario records");
+          console.log(JSON.stringify(body));
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stage7-proportional-proof
+          path: stage7-proportional.json
