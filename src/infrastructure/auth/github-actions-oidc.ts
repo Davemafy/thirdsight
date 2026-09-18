@@ -35,8 +35,8 @@ export async function verifyStage6GitHubOidc(token: string): Promise<boolean> {
     return await crypto.subtle.verify(
       "RSASSA-PKCS1-v1_5",
       key,
-      decodeBase64Url(parts[2]),
-      new TextEncoder().encode(`${parts[0]}.${parts[1]}`),
+      toArrayBuffer(decodeBase64Url(parts[2])),
+      toArrayBuffer(new TextEncoder().encode(`${parts[0]}.${parts[1]}`)),
     );
   } catch {
     return false;
@@ -82,4 +82,8 @@ function decodeBase64Url(value: string): Uint8Array {
   const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
   const binary = atob(padded);
   return Uint8Array.from(binary, (character) => character.charCodeAt(0));
+}
+
+function toArrayBuffer(value: Uint8Array): ArrayBuffer {
+  return value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength) as ArrayBuffer;
 }
