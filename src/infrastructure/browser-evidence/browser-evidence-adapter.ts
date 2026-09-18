@@ -133,6 +133,15 @@ export function projectBrowserObservationToEvidenceGraph(
     why: unknownClaim(
       "No trusted first-party business event is correlated by passive browser observation.",
     ),
+    coverage: {
+      label: "BROWSER_ONLY",
+      boundaries: ["browser"],
+      limitations: [
+        "No merchant-internal Purpose Contract is available from this sensor.",
+        "No authoritative first-party business justification is available from this sensor.",
+        "Backend permissions, server-to-server activity, database access, and downstream vendor behavior are outside this observation boundary.",
+      ],
+    },
   };
 }
 
