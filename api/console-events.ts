@@ -13,7 +13,7 @@ export default async function handler(request:ApiRequest,response:ApiResponse):P
   if(!url||!key){response.status(503).json({error:"PERSISTENCE_NOT_CONFIGURED"});return;}
   try{
     const store=new SupabaseEvidenceHistoryStore({projectUrl:url,serviceRoleKey:key});
-    const history=await store.list(200);
+    const history=selectRepresentativeHistory(await store.list(650));
     response.status(200).json({history:history.map(entry=>({
       recordId:entry.recordId,acceptedAt:entry.acceptedAt,observedAt:entry.evidence.observedAt,
       integrationId:entry.evidence.integrationId,integrationResolution:entry.evidence.integrationResolution,
@@ -31,4 +31,35 @@ function derivePassiveOutcome(phase:string|undefined):"DETECTED"|null{
 function inferCoverage(boundary:string|undefined){
   if(boundary==="browser") return {label:"BROWSER_ONLY",boundaries:["browser"],limitations:["Only browser-visible request metadata is covered by this observation."]};
   return {label:"MULTI_BOUNDARY",boundaries:boundary?[boundary]:[],limitations:[]};
+}
+
+
+function selectRepresentativeHistory<T extends {
+  recordId:string;
+  outcome?:"PREVENTED"|"DETECTED"|null;
+  decision?:"ALLOW"|"OBSERVE"|"CONSTRAIN"|"ISOLATE";
+  findings?:readonly {type:string}[];
+  blindSpotAssessment?:unknown;
+  evidence:{
+    integrationId:string|null;
+    integrationResolution:string;
+    should:{value?:{contractVersion?:string}|null};
+    why:{value?:{correlationStrength?:string}|null};
+    coverage?:{label?:string};
+  };
+}>(entries:readonly T[]):readonly T[]{
+  const selected:T[]=[...entries.slice(0,40)];
+  const add=(predicate:(entry:T)=>boolean)=>{const match=entries.find(predicate);if(match&&!selected.some((entry)=>entry.recordId===match.recordId))selected.push(match);};
+  add((entry)=>Boolean(entry.blindSpotAssessment));
+  add((entry)=>entry.findings?.some((finding)=>finding.type==="STALE_INTEGRATION")??false);
+  add((entry)=>entry.findings?.some((finding)=>finding.type==="SHADOW_INTEGRATION")??false);
+  add((entry)=>entry.findings?.some((finding)=>finding.type==="PURPOSE_MISMATCH")??false);
+  add((entry)=>entry.findings?.some((finding)=>finding.type==="SCOPE_DRIFT")??false);
+  add((entry)=>entry.evidence.should.value?.contractVersion==="4");
+  add((entry)=>entry.evidence.should.value?.contractVersion==="5"&&entry.decision==="ALLOW");
+  add((entry)=>entry.outcome==="PREVENTED");
+  add((entry)=>entry.outcome==="DETECTED");
+  add((entry)=>entry.evidence.coverage?.label==="BROWSER_ONLY"&&entry.evidence.integrationId===null);
+  add((entry)=>entry.decision==="ALLOW"&&entry.evidence.why.value?.correlationStrength==="BUSINESS_OBJECT_HASH");
+  return selected;
 }
