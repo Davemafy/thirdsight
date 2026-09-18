@@ -34,8 +34,10 @@ const aiOff=evaluateAiOff(cases);
 
 console.log(`Stage 8 champion selection on ${FRESH_AMBIGUOUS_BENCHMARK_V4_ID}: ${cases.length} frozen cases.`);
 
-const geminiRaw=await evaluateProvider("gemini",inputs);
-const gptossRaw=await evaluateProvider("gptoss",inputs);
+const [geminiRaw,gptossRaw]=await Promise.all([
+  evaluateProvider("gemini",inputs),
+  evaluateProvider("gptoss",inputs),
+]);
 
 const geminiResults=normalizeResults(GEMINI_LABEL,inputs,geminiRaw);
 const gptossResults=normalizeResults(GPTOSS_LABEL,inputs,gptossRaw);
@@ -166,27 +168,45 @@ await writeFile("stage8-ai-model-selection-v4.json",JSON.stringify(report,null,2
 console.log("THIRDSIGHT_STAGE8_V4_SELECTION="+JSON.stringify(report));
 
 async function evaluateProvider(provider:"gemini"|"gptoss",allInputs:readonly (typeof inputs)[number][]){
+  const concurrency=provider==="gemini"?4:4;
   const collected:Array<{recordId?:string;ok?:boolean;assessment?:unknown;error?:string}>=[];
-  const batchSize=provider==="gemini"?1:CASE_BATCH;
-  for(let start=0;start<allInputs.length;start+=batchSize){
-    const batch=allInputs.slice(start,start+batchSize);
-    const audience=provider==="gemini"?"thirdsight-stage8-gemini":"thirdsight-stage8-groq";
-    const token=await getOidcToken(audience);
-    const url=provider==="gemini"?GEMINI_EDGE:GROQ_EDGE;
-    const body=provider==="gemini"
-      ?{schemaVersion:"stage8-gemini.v1",cases:batch.map((input)=>({recordId:input.recordId,structuredEvidence:input}))}
-      :{schemaVersion:"stage8-groq.v2",model:GPTOSS_MODEL,cases:batch.map((input)=>({recordId:input.recordId,structuredEvidence:input}))};
-    const response=await fetch(url,{method:"POST",headers:{authorization:`Bearer ${token}`,"content-type":"application/json"},body:JSON.stringify(body)});
-    if(!response.ok){
-      const detail=(await response.text()).slice(0,1000);
-      throw new Error(`${provider} edge returned ${response.status}: ${detail}`);
+  let cursor=0;
+  let completed=0;
+
+  async function worker(workerId:number){
+    while(true){
+      const index=cursor++;
+      if(index>=allInputs.length) return;
+      const input=allInputs[index];
+      const audience=provider==="gemini"?"thirdsight-stage8-gemini":"thirdsight-stage8-groq";
+      const token=await getOidcToken(audience);
+      const url=provider==="gemini"?GEMINI_EDGE:GROQ_EDGE;
+      const body=provider==="gemini"
+        ?{schemaVersion:"stage8-gemini.v1",cases:[{recordId:input.recordId,structuredEvidence:input}]}
+        :{schemaVersion:"stage8-groq.v2",model:GPTOSS_MODEL,cases:[{recordId:input.recordId,structuredEvidence:input}]};
+
+      const response=await fetch(url,{
+        method:"POST",
+        headers:{authorization:`Bearer ${token}`,"content-type":"application/json"},
+        body:JSON.stringify(body),
+      });
+      if(!response.ok){
+        const detail=(await response.text()).slice(0,1000);
+        throw new Error(`${provider} edge returned ${response.status}: ${detail}`);
+      }
+      const data=await response.json() as any;
+      if(data?.ok!==true||!Array.isArray(data?.results)||data.results.length!==1){
+        throw new Error(`${provider} edge returned invalid envelope.`);
+      }
+      collected.push(...data.results);
+      completed+=1;
+      console.log(`${provider}: completed ${completed}/${allInputs.length} (worker ${workerId})`);
     }
-    const data=await response.json() as any;
-    if(data?.ok!==true||!Array.isArray(data?.results)) throw new Error(`${provider} edge returned invalid envelope.`);
-    collected.push(...data.results);
-    console.log(`${provider}: completed ${Math.min(start+batchSize,allInputs.length)}/${allInputs.length}`);
-    if(start+batchSize<allInputs.length) await new Promise((resolve)=>setTimeout(resolve,1200));
   }
+
+  await Promise.all(
+    Array.from({length:Math.min(concurrency,allInputs.length)},(_,index)=>worker(index+1)),
+  );
   return collected;
 }
 
