@@ -15,6 +15,7 @@ export type EvidenceSource =
   | "webhook"
   | "db-audit"
   | "credential-registry"
+  | "integration-registry"
   | "business-event"
   | "purpose-contract"
   | "capability-registry";
@@ -84,7 +85,7 @@ export interface BusinessContextEvidence {
 }
 
 export interface EvidenceCoverage {
-  label: "BROWSER_ONLY" | "MULTI_BOUNDARY";
+  label: "BROWSER_ONLY" | "DB_AUDIT_ONLY" | "MULTI_BOUNDARY";
   boundaries: readonly RuntimeAccessEvidence["boundary"][];
   limitations: readonly string[];
 }
