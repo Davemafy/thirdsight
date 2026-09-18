@@ -1,7 +1,7 @@
 import type { EvidenceGraphRecord } from "./evidence.js";
 import type { PurposeContractEvidence } from "./evidence-sources.js";
 
-export type FindingType = "SCOPE_DRIFT" | "PURPOSE_MISMATCH";
+export type FindingType = "SCOPE_DRIFT" | "PURPOSE_MISMATCH" | "STALE_INTEGRATION";
 export type VerificationAction = "ALLOW" | "OBSERVE" | "CONSTRAIN" | "ISOLATE";
 
 export interface ScopeDriftFinding {
@@ -25,7 +25,24 @@ export interface PurposeMismatchFinding {
   reason: string;
 }
 
-export type VerificationFinding = ScopeDriftFinding | PurposeMismatchFinding;
+export interface StaleIntegrationFinding {
+  type: "STALE_INTEGRATION";
+  action: "ISOLATE";
+  evidenceRecordId: string;
+  integrationId: string;
+  credentialId?: string;
+  reason: string;
+}
+
+export type VerificationFinding = ScopeDriftFinding | PurposeMismatchFinding | StaleIntegrationFinding;
+
+export interface IntegrationLifecycleState {
+  integrationId: string;
+  displayName: string;
+  lifecycleStatus: "ACTIVE" | "RETIRED";
+  owner?: string | null;
+  credentialId?: string;
+}
 
 export function verifyObservedFields(
   evidence: EvidenceGraphRecord,
@@ -79,4 +96,25 @@ export function decideVerification(findings: readonly VerificationFinding[]): Ve
   if (actions.includes("CONSTRAIN")) return "CONSTRAIN";
   if (actions.includes("OBSERVE")) return "OBSERVE";
   return "ALLOW";
+}
+
+
+export function verifyIntegrationLifecycle(
+  evidence: EvidenceGraphRecord,
+  integration: IntegrationLifecycleState,
+): readonly VerificationFinding[] {
+  if (evidence.integrationId !== integration.integrationId) return [];
+  if (integration.lifecycleStatus !== "RETIRED") return [];
+  const did = evidence.did.value;
+  if (evidence.did.status !== "KNOWN" || !did || did.phase !== "ACCESSED") return [];
+
+  return [{
+    type: "STALE_INTEGRATION",
+    action: "ISOLATE",
+    evidenceRecordId: evidence.recordId,
+    integrationId: integration.integrationId,
+    ...(integration.credentialId ? { credentialId: integration.credentialId } : {}),
+    reason:
+      `${integration.displayName} is retired, but runtime evidence shows access after retirement through the ${did.boundary} boundary. The observed access is historical evidence; isolation contains future use and is not described as preventing the access already seen.`,
+  }];
 }
