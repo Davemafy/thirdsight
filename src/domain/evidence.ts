@@ -38,6 +38,10 @@ export interface PurposeEvidence {
   contractId: string;
   contractVersion: string;
   purpose: string;
+  resources?: readonly string[];
+  fields?: readonly string[];
+  operations?: readonly string[];
+  validTriggers?: readonly string[];
 }
 
 export interface BrowserCapabilityLowerBound {
@@ -57,6 +61,7 @@ export interface RuntimeAccessEvidence {
   initiatorType: string;
   hasPostData: boolean;
   originRelationship: "SAME_ORIGIN" | "CROSS_ORIGIN" | "UNKNOWN";
+  dataCategories?: readonly string[];
 }
 
 export interface BusinessContextEvidence {
