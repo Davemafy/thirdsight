@@ -13,7 +13,7 @@ export default async function handler(request:ApiRequest,response:ApiResponse):P
   if(!url||!key){response.status(503).json({error:"PERSISTENCE_NOT_CONFIGURED"});return;}
   try{
     const store=new SupabaseEvidenceHistoryStore({projectUrl:url,serviceRoleKey:key});
-    const history=await store.list(25);
+    const history=await store.list(200);
     response.status(200).json({history:history.map(entry=>({
       recordId:entry.recordId,acceptedAt:entry.acceptedAt,observedAt:entry.evidence.observedAt,
       integrationId:entry.evidence.integrationId,integrationResolution:entry.evidence.integrationResolution,
