@@ -50,6 +50,14 @@ export interface BrowserCapabilityLowerBound {
   statement: string;
 }
 
+export interface BusinessObjectRefs {
+  customerRefHash?: string;
+  orderRefHash?: string;
+  paymentRefHash?: string;
+  deliveryRefHash?: string;
+  campaignRef?: string;
+}
+
 export interface RuntimeAccessEvidence {
   boundary: "browser" | "server-egress" | "gateway" | "webhook" | "db-audit";
   phase: "ATTEMPTED" | "TRANSMITTED" | "ACCESSED";
@@ -62,6 +70,7 @@ export interface RuntimeAccessEvidence {
   hasPostData: boolean;
   originRelationship: "SAME_ORIGIN" | "CROSS_ORIGIN" | "UNKNOWN";
   dataCategories?: readonly string[];
+  businessObjectRefs?: BusinessObjectRefs;
 }
 
 export interface BusinessContextEvidence {
