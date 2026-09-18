@@ -58,6 +58,10 @@ function projectShould(
       contractId: selected.contract.contractId,
       contractVersion: selected.contract.version,
       purpose: selected.contract.purpose,
+      resources: selected.contract.resources,
+      fields: selected.contract.fields,
+      operations: selected.contract.operations,
+      validTriggers: selected.contract.validTriggers,
     },
     provenance: [selected.provenance],
     reason: "Projected from the active approved Purpose Contract; runtime behavior cannot widen this policy.",
@@ -88,7 +92,7 @@ function projectWhy(
   const selected = candidates[0].item;
   return {
     status: "PARTIAL",
-    confidence: "AUTHORITATIVE",
+    confidence: "INFERRED",
     value: {
       eventId: selected.event.id,
       eventType: selected.event.type,
