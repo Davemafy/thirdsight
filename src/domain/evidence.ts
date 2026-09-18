@@ -16,7 +16,8 @@ export type EvidenceSource =
   | "db-audit"
   | "credential-registry"
   | "business-event"
-  | "purpose-contract";
+  | "purpose-contract"
+  | "capability-registry";
 
 export interface EvidenceRef {
   source: EvidenceSource;
@@ -40,7 +41,7 @@ export interface PurposeEvidence {
 }
 
 export interface BrowserCapabilityLowerBound {
-  kind: "BROWSER_REQUEST_EXECUTION";
+  kind: "BROWSER_REQUEST_EXECUTION" | "DECLARED_BROWSER_CAPABILITY";
   destinationOrigin: string;
   statement: string;
 }
