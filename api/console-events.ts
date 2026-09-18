@@ -18,11 +18,12 @@ export default async function handler(request:ApiRequest,response:ApiResponse):P
       recordId:entry.recordId,acceptedAt:entry.acceptedAt,observedAt:entry.evidence.observedAt,
       integrationId:entry.evidence.integrationId,integrationResolution:entry.evidence.integrationResolution,
       should:entry.evidence.should,could:entry.evidence.could,did:entry.evidence.did,why:entry.evidence.why,
-      outcome:deriveOutcome(entry.evidence.did.value?.phase)
+      findings:entry.findings??[], enforcement:entry.enforcement??null,
+      outcome:entry.outcome??derivePassiveOutcome(entry.evidence.did.value?.phase)
     }))});
   }catch{response.status(503).json({error:"EVIDENCE_READ_FAILED"});}
 }
-function deriveOutcome(phase:string|undefined):"DETECTED"|null{
+function derivePassiveOutcome(phase:string|undefined):"DETECTED"|null{
   // Only post-access evidence may be labelled DETECTED. ATTEMPTED is not transmission proof.
   return phase==="TRANSMITTED"||phase==="ACCESSED"?"DETECTED":null;
 }
