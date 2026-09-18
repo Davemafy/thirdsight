@@ -4,3 +4,16 @@
 .discovery-note{display:flex;gap:18px;align-items:flex-start;margin-top:12px;padding:14px 16px;border:1px solid #d8e3da;border-radius:14px;background:#f2f7f3;color:#536055;font-size:11px;line-height:1.55}.discovery-note b{color:#173e23;white-space:nowrap}.coverage-card pre{min-height:80px}.discovery-action{background:#243a2a}.discovery-action h2{letter-spacing:.04em}@media(max-width:1250px){.questions{grid-template-columns:repeat(2,minmax(0,1fr))}.coverage-card{grid-column:1/-1}}@media(max-width:720px){.questions{grid-template-columns:1fr}.coverage-card{grid-column:auto}.discovery-note{flex-direction:column;gap:6px}.discovery-note b{white-space:normal}}
 
 .blind-spot-note{display:flex;gap:18px;align-items:flex-start;margin-top:12px;padding:14px 16px;border:1px solid #ead9b8;border-radius:14px;background:#fff8ea;color:#725a2b;font-size:11px;line-height:1.55}.blind-spot-note b{color:#6b4b0d;white-space:nowrap}@media(max-width:720px){.blind-spot-note{flex-direction:column;gap:6px}.blind-spot-note b{white-space:normal}}
+
+.ai-analyst-panel{margin-top:12px;padding:20px;border:1px solid #d8e0dd;border-radius:16px;background:#f8faf8;color:#233228}
+.ai-analyst-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}
+.ai-analyst-head h2{margin:7px 0 0;font-size:18px;letter-spacing:-.02em}
+.ai-analyst-panel>p{margin:12px 0 0;color:#5f6c62;font-size:12px;line-height:1.6}
+.ai-confidence{padding:6px 8px;border-radius:999px;background:#e7ece8;color:#4f5d52;font-size:9px;font-weight:800;letter-spacing:.09em}
+.ai-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:16px}
+.ai-grid div{padding:11px;border:1px solid #e0e6e1;border-radius:10px;background:#fff}
+.ai-grid span,.ai-grid b{display:block}
+.ai-grid span{color:#8a948b;font-size:9px;text-transform:uppercase;letter-spacing:.08em}
+.ai-grid b{margin-top:5px;color:#2a382e;font-size:11px;line-height:1.45;overflow-wrap:anywhere}
+.ai-analyst-panel>small{display:block;margin-top:14px;padding-top:12px;border-top:1px solid #e0e6e1;color:#7c877e;font-size:9px;line-height:1.55}
+@media(max-width:720px){.ai-grid{grid-template-columns:1fr}}
