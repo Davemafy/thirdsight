@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+// Stage 9 production deployment marker.\nimport { useCallback, useEffect, useState } from "react";
 import { BrainCircuit, CheckCircle2, RefreshCw } from "lucide-react";
 
 type LearningLabel="REVIEW"|"OBSERVE"|"ABSTAIN";
