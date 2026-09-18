@@ -8,6 +8,27 @@ import {
 } from "../domain/deterministic-verifier.js";
 import type { IntegrationResolutionResult } from "../domain/integration-identity.js";
 
+interface AmbiguousCaseSpec {
+  caseId: string;
+  family: string;
+  integrationId: string | null;
+  integrationResolution: "RESOLVED" | "UNRESOLVED";
+  pageOrigin: string;
+  destinationOrigin: string;
+  destinationPath: string;
+  originRelationship: "SAME_ORIGIN" | "CROSS_ORIGIN" | "UNKNOWN";
+  should: "KNOWN" | "UNKNOWN" | "PARTIAL";
+  could: "PARTIAL" | "UNKNOWN";
+  why: "KNOWN" | "PARTIAL" | "UNKNOWN";
+  coverageLabel: "BROWSER_ONLY" | "MULTI_BOUNDARY";
+  managedEnvironment: boolean;
+  inventoryComplete: boolean;
+  expectedRecommendations: readonly ("OBSERVE" | "REVIEW" | "ABSTAIN")[];
+  usefulReview: boolean;
+  shouldAbstain: boolean;
+  dataCategories?: readonly string[];
+}
+
 export interface AmbiguousBenchmarkCase {
   caseId: string;
   family: string;
@@ -341,7 +362,7 @@ function buildCase(
   };
 }
 
-function makeEvidence(spec: any, observedAt: string): EvidenceGraphRecord {
+function makeEvidence(spec: AmbiguousCaseSpec, observedAt: string): EvidenceGraphRecord {
   const browserProvenance = [{
     source: "browser" as const,
     sourceId: `stage8:${spec.caseId}`,
