@@ -284,7 +284,10 @@ export function buildHeldOutAmbiguousCases(): AmbiguousBenchmarkCase[] {
   return specs.map((spec, index) => buildCase(spec, index));
 }
 
-function buildCase(\n  spec: AmbiguousCaseSpec,\n  index: number,\n): AmbiguousBenchmarkCase {
+function buildCase(
+  spec: AmbiguousCaseSpec,
+  index: number,
+): AmbiguousBenchmarkCase {
   const observedAt = new Date(BASE_TIME + index * 10_000).toISOString();
   const observation: BrowserObservationV1 = {
     schemaVersion: "browser-observation.v1",
