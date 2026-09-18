@@ -18,7 +18,7 @@ export default async function handler(request:ApiRequest,response:ApiResponse):P
       recordId:entry.recordId,acceptedAt:entry.acceptedAt,observedAt:entry.evidence.observedAt,
       integrationId:entry.evidence.integrationId,integrationResolution:entry.evidence.integrationResolution,
       should:entry.evidence.should,could:entry.evidence.could,did:entry.evidence.did,why:entry.evidence.why,
-      findings:entry.findings??[], enforcement:entry.enforcement??null,
+      findings:entry.findings??[], enforcement:entry.enforcement??null, coverage:entry.evidence.coverage??inferCoverage(entry.evidence.did.value?.boundary),
       outcome:entry.outcome??derivePassiveOutcome(entry.evidence.did.value?.phase)
     }))});
   }catch{response.status(503).json({error:"EVIDENCE_READ_FAILED"});}
@@ -26,4 +26,9 @@ export default async function handler(request:ApiRequest,response:ApiResponse):P
 function derivePassiveOutcome(phase:string|undefined):"DETECTED"|null{
   // Only post-access evidence may be labelled DETECTED. ATTEMPTED is not transmission proof.
   return phase==="TRANSMITTED"||phase==="ACCESSED"?"DETECTED":null;
+}
+
+function inferCoverage(boundary:string|undefined){
+  if(boundary==="browser") return {label:"BROWSER_ONLY",boundaries:["browser"],limitations:["Only browser-visible request metadata is covered by this observation."]};
+  return {label:"MULTI_BOUNDARY",boundaries:boundary?[boundary]:[],limitations:[]};
 }
