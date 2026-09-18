@@ -21,10 +21,7 @@ const ANALYST_VERSION = "stage8-v2";
 const GROQ_EDGE_URL =
   "https://rxqlqirmmkhcavocbzcn.supabase.co/functions/v1/thirdsight-stage8-groq";
 
-const token = process.env.THIRDSIGHT_STAGE8_GROQ_TOKEN?.trim();
-if (!token) {
-  throw new Error("THIRDSIGHT_STAGE8_GROQ_TOKEN is required.");
-}
+const fallbackToken = process.env.THIRDSIGHT_STAGE8_GROQ_TOKEN?.trim();
 
 const cases = buildFreshAmbiguousCasesV2();
 const ineligible = cases.filter(
@@ -269,10 +266,11 @@ async function requestEdgeBatch(
     error?: string;
   }>;
 }> {
+  const authToken = await getGroqOidcToken();
   const edgeResponse = await fetch(GROQ_EDGE_URL, {
     method: "POST",
     headers: {
-      authorization: `Bearer ${token}`,
+      authorization: `Bearer ${authToken}`,
       "content-type": "application/json",
     },
     body: JSON.stringify({
@@ -315,6 +313,37 @@ async function requestEdgeBatch(
   }
 
   return { results: edgeBody.results };
+}
+
+async function getGroqOidcToken(): Promise<string> {
+  const requestUrl = process.env.ACTIONS_ID_TOKEN_REQUEST_URL?.trim();
+  const requestToken = process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN?.trim();
+
+  if (requestUrl && requestToken) {
+    const separator = requestUrl.includes("?") ? "&" : "?";
+    const response = await fetch(
+      `${requestUrl}${separator}audience=thirdsight-stage8-groq`,
+      {
+        headers: {
+          authorization: `bearer ${requestToken}`,
+        },
+      },
+    );
+    if (!response.ok) {
+      const detail = (await response.text()).slice(0, 600);
+      throw new Error(
+        `GitHub OIDC refresh failed (${response.status}): ${detail}`,
+      );
+    }
+    const body = (await response.json()) as { value?: string };
+    if (typeof body.value === "string" && body.value.length > 0) {
+      return body.value;
+    }
+    throw new Error("GitHub OIDC refresh returned no token.");
+  }
+
+  if (fallbackToken) return fallbackToken;
+  throw new Error("No GitHub OIDC credential is available for Groq evaluation.");
 }
 
 function normalizeAssessment(value: unknown): AiAnalystAssessment {
