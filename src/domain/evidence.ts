@@ -15,7 +15,8 @@ export type EvidenceSource =
   | "webhook"
   | "db-audit"
   | "credential-registry"
-  | "business-event";
+  | "business-event"
+  | "purpose-contract";
 
 export interface EvidenceRef {
   source: EvidenceSource;
