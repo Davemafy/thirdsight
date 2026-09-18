@@ -1,6 +1,6 @@
 # Stage 8 — AI Analyst Evaluation
 
-**Status:** COMPLETE — ADVISORY AI PROMOTED  \
+**Status:** CLOSED — GPT-OSS V2 REMAINS ACTIVE PROMOTED  \
 **Deterministic detector:** `stage7-v1-frozen` (unchanged)  \
 **AI analyst version:** `stage8-v2`  \
 **Evaluated model:** `openai/gpt-oss-120b@groq`  \
@@ -10,6 +10,24 @@
 Stage 8 tested whether an advisory AI layer improves genuinely ambiguous ThirdSight cases after the deterministic detector was frozen. The first small local-model experiment did not improve the product, so it was not promoted. A later provider experiment was evaluated on a new, separately frozen benchmark rather than reusing the already-seen cases. On that fresh benchmark, the Groq-hosted GPT-OSS 120B analyst cleared the existing promotion bar and is therefore allowed to surface as an advisory layer.
 
 It still has **no enforcement authority**.
+
+
+## Final closure note
+
+Stage 8 is closed on the validated `stage8-v2` GPT-OSS 120B result. Later model experiments did not replace the active promotion.
+
+A fresh Qwen 3.8 27B evaluation on `stage8-fresh-v3` completed without authority violations or harmful responses and achieved a 100% useful-review rate, but ambiguous-case handling fell from 50% AI OFF to 45% AI ON. Because the predeclared promotion bar requires ambiguous-case handling to improve, Qwen was correctly not promoted.
+
+A later `stage8-fresh-v4` Gemini 3.8 Flash / GPT-OSS comparison was operationally invalid as a model-quality comparison. Gemini exhausted the Google AI Studio free-tier request quota, while the parallel GPT-OSS run hit Groq token-per-minute throttling on a subset of cases. ThirdSight converted those transport failures into safe rejected assessments / `ABSTAIN` behavior and, critically, did not displace the previously promoted model.
+
+The active promoted evaluation therefore remains:
+
+- model: `openai/gpt-oss-120b@groq`
+- analyst version: `stage8-v2`
+- evaluation run: `stage8-groq-ai-1789753443925`
+- benchmark: `stage8-fresh-v2`
+
+The Stage 8 workflow is now manual-only for reproducibility. Any future rerun of the seen v4 benchmark must be described as a reproducibility run, not a fresh held-out evaluation.
 
 ## Frozen deterministic boundary
 
@@ -105,7 +123,7 @@ The definitive model path is:
 
 The Groq API key is stored only as a Supabase Edge secret. It is not present in React, Vite, the browser extension, GitHub, or the repository.
 
-The evaluation workflow:
+The evaluation workflow is frozen to manual `workflow_dispatch` for reproducibility. It:
 
 - verifies the Stage 7 freeze hashes;
 - runs the Stage 8 authority tests;
