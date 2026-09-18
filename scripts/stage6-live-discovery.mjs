@@ -28,12 +28,18 @@ try {
     throw new Error(`Public commerce page did not load normally (HTTP ${status}); no bypass attempted.`);
   }
 
-  await worker.evaluate(async ({ endpoint, tokenValue }) => {
-    await chrome.storage.local.set({
-      ingestionEndpoint: endpoint,
-      ingestionToken: tokenValue,
-    });
+  const extensionId = new URL(worker.url()).host;
+  const harness = await context.newPage();
+  await harness.goto(`chrome-extension://${extensionId}/harness.html`);
+
+  const configured = await harness.evaluate(async ({ endpoint, tokenValue }) => {
+    return await new Promise((resolve) => chrome.runtime.sendMessage({
+      type: "THIRDSIGHT_SET_INGESTION_CONFIG",
+      endpoint,
+      token: tokenValue,
+    }, resolve));
   }, { endpoint: `${base}/api/browser-observations`, tokenValue: token });
+  if (!configured?.ok) throw new Error(`ThirdSight ingestion configuration failed: ${configured?.error ?? "unknown"}`);
 
   const tabId = await worker.evaluate(async () => {
     const tabs = await chrome.tabs.query({});
@@ -42,13 +48,14 @@ try {
   });
   if (!tabId) throw new Error("Could not resolve the logged-out Konga tab.");
 
-  await worker.evaluate(async (id) => {
-    const target = { tabId: id };
-    const targets = await chrome.debugger.getTargets();
-    const alreadyAttached = targets.some((item) => item.tabId === id && item.attached);
-    if (!alreadyAttached) await chrome.debugger.attach(target, "1.3");
-    await chrome.debugger.sendCommand(target, "Network.enable");
+  const attached = await harness.evaluate(async (id) => {
+    return await new Promise((resolve) => chrome.runtime.sendMessage({
+      type: "THIRDSIGHT_ATTACH_TAB",
+      tabId: id,
+    }, resolve));
   }, tabId);
+  if (!attached?.ok) throw new Error(`ThirdSight extension failed to attach: ${attached?.error ?? "unknown"}`);
+  await harness.close();
 
   const reload = await page.reload({ waitUntil: "domcontentloaded", timeout: 60_000 });
   const reloadStatus = reload?.status() ?? 0;
