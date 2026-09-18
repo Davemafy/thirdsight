@@ -18,6 +18,8 @@ class FakeEvidenceHistoryStore implements EvidenceHistoryStore {
   async findCapabilities() { return []; }
   async findBusinessEvents() { return []; }
 
+  async appendBusinessEvent() { return; }
+
   async append(entry: EvidenceHistoryEntry): Promise<void> {
     this.entries.push(entry);
   }
