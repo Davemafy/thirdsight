@@ -16,13 +16,24 @@ export default async function handler(request:ApiRequest,response:ApiResponse):P
     const store=new SupabaseEvidenceHistoryStore({projectUrl:url,serviceRoleKey:key});
     const aiStore=new SupabaseAiAssessmentStore({projectUrl:url,serviceRoleKey:key});
     const history=selectRepresentativeHistory(await store.list(650));
-    const [aiByRecord,latestAiEvaluation]=await Promise.all([
-      aiStore.latestForRecords(history.map((entry)=>entry.recordId)),
+    const [latestAiEvaluation,promotedAiEvaluation]=await Promise.all([
       aiStore.latestEvaluationRun(),
+      aiStore.latestPromotedEvaluationRun(),
     ]);
+    const aiByRecord=promotedAiEvaluation
+      ? await aiStore.latestForRecords(
+          history.map((entry)=>entry.recordId),
+          {
+            analystVersion:promotedAiEvaluation.analystVersion,
+            model:promotedAiEvaluation.model,
+            acceptedOnly:true,
+          },
+        )
+      : new Map();
     response.status(200).json({
       aiAnalyst:{
-        promoted:latestAiEvaluation?.surfaceProminently??false,
+        promoted:Boolean(promotedAiEvaluation),
+        activePromotion:promotedAiEvaluation,
         latestEvaluation:latestAiEvaluation,
       },
       history:history.map(entry=>({

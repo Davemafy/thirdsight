@@ -128,11 +128,24 @@ export class SupabaseAiAssessmentStore {
   }
 
   async latestEvaluationRun(): Promise<PersistedAiEvaluationRun | null> {
+    return this.latestEvaluationRunMatching(false);
+  }
+
+  async latestPromotedEvaluationRun(): Promise<PersistedAiEvaluationRun | null> {
+    return this.latestEvaluationRunMatching(true);
+  }
+
+  private async latestEvaluationRunMatching(
+    promotedOnly: boolean,
+  ): Promise<PersistedAiEvaluationRun | null> {
     const url = this.restUrl("ai_evaluation_runs");
     url.searchParams.set(
       "select",
       "run_id,analyst_version,model,case_count,ai_off,ai_on,improvement,surface_prominently,surface_reason,created_at",
     );
+    if (promotedOnly) {
+      url.searchParams.set("surface_prominently", "eq.true");
+    }
     url.searchParams.set("order", "created_at.desc");
     url.searchParams.set("limit", "1");
     const rows = await this.requestJson<Array<{
@@ -166,6 +179,11 @@ export class SupabaseAiAssessmentStore {
 
   async latestForRecords(
     recordIds: readonly string[],
+    filter: {
+      analystVersion?: string;
+      model?: string;
+      acceptedOnly?: boolean;
+    } = {},
   ): Promise<Map<string, PersistedAiAssessment>> {
     if (recordIds.length === 0) return new Map();
     const url = this.restUrl("ai_assessments");
@@ -177,6 +195,15 @@ export class SupabaseAiAssessmentStore {
       "record_id",
       `in.(${recordIds.map(escapePostgrestValue).join(",")})`,
     );
+    if (filter.analystVersion) {
+      url.searchParams.set("analyst_version", `eq.${filter.analystVersion}`);
+    }
+    if (filter.model) {
+      url.searchParams.set("model", `eq.${filter.model}`);
+    }
+    if (filter.acceptedOnly) {
+      url.searchParams.set("accepted", "eq.true");
+    }
     url.searchParams.set("order", "created_at.desc");
 
     const rows = await this.requestJson<
