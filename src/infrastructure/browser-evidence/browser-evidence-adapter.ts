@@ -17,6 +17,13 @@ export interface BrowserObservationV1 {
   resourceType: string;
   initiatorType: string;
   hasPostData: boolean;
+  businessObjectRefs?: {
+    customerRefHash?: string;
+    orderRefHash?: string;
+    paymentRefHash?: string;
+    deliveryRefHash?: string;
+    campaignRef?: string;
+  };
 }
 
 export class BrowserObservationValidationError extends Error {
@@ -46,6 +53,7 @@ export function parseBrowserObservation(input: unknown): BrowserObservationV1 {
   const resourceType = readNonEmptyString(input, "resourceType");
   const initiatorType = readNonEmptyString(input, "initiatorType");
   const hasPostData = readBoolean(input, "hasPostData");
+  const businessObjectRefs = readBusinessObjectRefs(input.businessObjectRefs);
 
   return {
     schemaVersion: "browser-observation.v1",
@@ -58,6 +66,7 @@ export function parseBrowserObservation(input: unknown): BrowserObservationV1 {
     resourceType,
     initiatorType,
     hasPostData,
+    ...(businessObjectRefs ? { businessObjectRefs } : {}),
   };
 }
 
@@ -99,6 +108,7 @@ export function projectBrowserObservationToEvidenceGraph(
     initiatorType: observation.initiatorType,
     hasPostData: observation.hasPostData,
     originRelationship,
+    ...(observation.businessObjectRefs ? { businessObjectRefs: observation.businessObjectRefs } : {}),
   };
 
   const could: BrowserCapabilityLowerBound = {
@@ -221,4 +231,23 @@ function assertHttpUrl(value: string, key: string): void {
   if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
     throw new BrowserObservationValidationError(`${key} must use http or https.`);
   }
+}
+
+
+function readBusinessObjectRefs(value: unknown): BrowserObservationV1["businessObjectRefs"] | undefined {
+  if (value === undefined) return undefined;
+  if (!isRecord(value)) {
+    throw new BrowserObservationValidationError("businessObjectRefs must be an object when provided.");
+  }
+  const allowed = ["customerRefHash", "orderRefHash", "paymentRefHash", "deliveryRefHash", "campaignRef"] as const;
+  const result: Record<string, string> = {};
+  for (const key of allowed) {
+    const ref = value[key];
+    if (ref === undefined) continue;
+    if (typeof ref !== "string" || ref.trim().length === 0 || ref.length > 128) {
+      throw new BrowserObservationValidationError(`businessObjectRefs.${key} must be a non-empty string of at most 128 characters.`);
+    }
+    result[key] = ref.trim();
+  }
+  return Object.keys(result).length > 0 ? result : undefined;
 }
