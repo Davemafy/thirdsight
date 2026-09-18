@@ -4,7 +4,7 @@ import type {
   IntegrationResolutionResult,
 } from "../../domain/integration-identity.js";
 import type { PurposeContractEvidence, BusinessEventEvidence, CapabilityGrantEvidence } from "../../domain/evidence-sources.js";
-import type { VerificationFinding } from "../../domain/deterministic-verifier.js";
+import type { VerificationAction, VerificationFinding } from "../../domain/deterministic-verifier.js";
 import type { BrowserObservationV1 } from "../browser-evidence/browser-evidence-adapter.js";
 
 export interface EnforcementRecord {
@@ -28,6 +28,7 @@ export interface EvidenceHistoryEntry {
   findings?: readonly VerificationFinding[];
   enforcement?: EnforcementRecord | null;
   outcome?: "PREVENTED" | "DETECTED" | null;
+  decision?: VerificationAction;
 }
 
 export interface EvidenceHistoryStore {
