@@ -1,0 +1,60 @@
+name: Stage 6 Real-Site Discovery
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/stage6-live-discovery.yml"
+      - "scripts/stage6-live-discovery.mjs"
+      - "browser-extension/**"
+      - "api/browser-observations.ts"
+      - "api/console-events.ts"
+      - "src/infrastructure/auth/github-actions-oidc.ts"
+      - "src/infrastructure/browser-evidence/**"
+      - "src/domain/evidence.ts"
+      - "src/app/**"
+      - "src/styles/**"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  discovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Request short-lived GitHub OIDC credential
+        shell: bash
+        run: |
+          response=$(curl -fsSL -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=thirdsight-stage6")
+          token=$(printf '%s' "$response" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>process.stdout.write(JSON.parse(s).value))')
+          echo "::add-mask::$token"
+          echo "THIRDSIGHT_OIDC_TOKEN=$token" >> "$GITHUB_ENV"
+      - name: Wait for production OIDC ingestion
+        shell: bash
+        run: |
+          for i in {1..60}; do
+            code=$(curl -sS -o /tmp/oidc-check.json -w "%{http_code}" -H "Authorization: Bearer $THIRDSIGHT_OIDC_TOKEN" "https://thirdsight-five.vercel.app/api/browser-observations?limit=1" || true)
+            if [ "$code" = "200" ]; then exit 0; fi
+            sleep 10
+          done
+          cat /tmp/oidc-check.json || true
+          exit 1
+      - name: Install remote browser
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Run passive real-site discovery
+        run: xvfb-run -a node scripts/stage6-live-discovery.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stage6-real-site-discovery
+          path: |
+            stage6-real-site-discovery.png
+            stage6-real-site-discovery.json
