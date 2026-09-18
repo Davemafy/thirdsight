@@ -1,3 +1,4 @@
+import { verifyStage6GitHubOidc } from "../src/infrastructure/auth/github-actions-oidc.js";
 import { BrowserObservationValidationError } from "../src/infrastructure/browser-evidence/browser-evidence-adapter.js";
 import { ingestAndPersistBrowserObservation } from "../src/infrastructure/browser-evidence/browser-observation-pipeline.js";
 import {
@@ -53,7 +54,7 @@ export default async function handler(
     return;
   }
 
-  if (!isAuthorized(request, configuration.ingestionToken)) {
+  if (!(await isAuthorized(request, configuration.ingestionToken))) {
     response.status(401).json({ error: "UNAUTHORIZED_SENSOR" });
     return;
   }
@@ -140,11 +141,13 @@ function readEnv(name: string): string | null {
   return value ? value : null;
 }
 
-function isAuthorized(request: ApiRequest, expectedToken: string): boolean {
+async function isAuthorized(request: ApiRequest, expectedToken: string): Promise<boolean> {
   const header = request.headers?.authorization;
   const value = Array.isArray(header) ? header[0] : header;
   if (typeof value !== "string" || !value.startsWith("Bearer ")) return false;
-  return value.slice("Bearer ".length) === expectedToken;
+  const token = value.slice("Bearer ".length);
+  if (token === expectedToken) return true;
+  return verifyStage6GitHubOidc(token);
 }
 
 function readLimit(value: string | string[] | undefined): number {
