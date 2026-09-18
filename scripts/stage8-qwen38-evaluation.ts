@@ -19,7 +19,7 @@ const MODEL="qwen/qwen3.8-27b";
 const MODEL_LABEL=`${MODEL}@groq-high`;
 const ANALYST_VERSION="stage8-v3";
 const GROQ_EDGE_URL="https://rxqlqirmmkhcavocbzcn.supabase.co/functions/v1/thirdsight-stage8-groq";
-const CHUNK_SIZE=2;
+const CHUNK_SIZE=1;
 const COOLDOWN_MS=62_000;
 
 const cases=buildFreshAmbiguousCasesV3();
