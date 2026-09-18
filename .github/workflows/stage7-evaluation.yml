@@ -1,0 +1,66 @@
+name: Stage 7 Frozen Evaluation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/stage7-evaluation.yml"
+      - "src/evaluation/**"
+      - "docs/detector-freeze-v1.json"
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify frozen detector hashes
+        shell: bash
+        run: |
+          test "$(git hash-object src/domain/deterministic-verifier.ts)" = "bcb18f5fa7e41083aca4208fc7c95bbb3288fa84"
+          test "$(git hash-object src/domain/evidence-verification.ts)" = "8ddc19fe96fd73111e7d047bd8367209d2659dcb"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run unseen-seed evaluation
+        env:
+          NO_COLOR: "1"
+        shell: bash
+        run: |
+          npx vitest run src/evaluation/detector-evaluation.test.ts --reporter=verbose | tee stage7-evaluation.log
+
+      - name: Materialize metrics artifact
+        shell: bash
+        run: |
+          node - <<'NODE'
+          const fs=require("fs");
+          const log=fs.readFileSync("stage7-evaluation.log","utf8");
+          const line=log.split(/\r?\n/).find((value)=>value.includes("THIRDSIGHT_EVALUATION_JSON="));
+          if(!line) throw new Error("Evaluation JSON marker not found");
+          const json=line.slice(line.indexOf("THIRDSIGHT_EVALUATION_JSON=")+"THIRDSIGHT_EVALUATION_JSON=".length);
+          const report=JSON.parse(json);
+          const freeze=JSON.parse(fs.readFileSync("docs/detector-freeze-v1.json","utf8"));
+          report.freezeVerified=true;
+          report.frozenFiles=freeze.files;
+          if(report.detectorVersion!=="stage7-v1-frozen") throw new Error("Unexpected detector version");
+          if(report.seeds?.length!==5) throw new Error("Expected five unseen seeds");
+          if(!(report.totals?.cases>0)) throw new Error("Evaluation produced no cases");
+          if(!(report.metrics?.knownBlindSpotFalseNegatives>0)) throw new Error("Perfect-mimic blind spot disappeared unexpectedly");
+          if(report.metrics.unnecessaryAccessPrevented>report.metrics.preventableUnnecessaryAccess) throw new Error("Prevention count is inconsistent");
+          fs.writeFileSync("stage7-evaluation.json",JSON.stringify(report,null,2));
+          console.log(JSON.stringify(report.metrics));
+          NODE
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage7-frozen-evaluation
+          path: |
+            stage7-evaluation.json
+            stage7-evaluation.log
+            docs/detector-freeze-v1.json
