@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Activity, CircleAlert, Radio, ShieldCheck } from "lucide-react";
 import type { EvidenceClaim, PurposeEvidence, BrowserCapabilityLowerBound, RuntimeAccessEvidence, BusinessContextEvidence, EvidenceCoverage } from "../domain/evidence";
+import type { BlindSpotAssessment } from "../domain/blind-spot-assessment";
 
 type Finding={type:string;action:string;field?:string;reason?:string};
 type Enforcement={action:"CONSTRAIN"|"ISOLATE";outcome:"PREVENTED";removedFields:readonly string[];continuedFields:readonly string[];receiver:{receivedFields:readonly string[];forbiddenFieldReceived:boolean}};
 type Containment={action:"ISOLATE";credentialId:string;applied:boolean};
-type ConsoleEvent={recordId:string;observedAt:string;integrationId:string|null;integrationResolution:string;should:EvidenceClaim<PurposeEvidence>;could:EvidenceClaim<BrowserCapabilityLowerBound>;did:EvidenceClaim<RuntimeAccessEvidence>;why:EvidenceClaim<BusinessContextEvidence>;coverage:EvidenceCoverage;findings:readonly Finding[];enforcement:Enforcement|null;containment:Containment|null;decision:"ALLOW"|"OBSERVE"|"CONSTRAIN"|"ISOLATE"|null;outcome:"PREVENTED"|"DETECTED"|null};
+type ConsoleEvent={recordId:string;observedAt:string;integrationId:string|null;integrationResolution:string;should:EvidenceClaim<PurposeEvidence>;could:EvidenceClaim<BrowserCapabilityLowerBound>;did:EvidenceClaim<RuntimeAccessEvidence>;why:EvidenceClaim<BusinessContextEvidence>;coverage:EvidenceCoverage;findings:readonly Finding[];enforcement:Enforcement|null;containment:Containment|null;blindSpotAssessment:BlindSpotAssessment|null;decision:"ALLOW"|"OBSERVE"|"CONSTRAIN"|"ISOLATE"|null;outcome:"PREVENTED"|"DETECTED"|null};
 
 export default function App(){
   const [events,setEvents]=useState<ConsoleEvent[]>([]);
@@ -37,6 +38,7 @@ export default function App(){
       {error?<Empty text="Live evidence is unavailable. ThirdSight will not substitute mock data."/>:!event?<Empty text="Waiting for persisted evidence. No demonstration cards are generated."/>:<>
         <section className="event-head"><div><span className="eyebrow">Evidence record</span><strong>{event.integrationId??destination??"Identity unresolved"}</strong><small>{event.recordId}</small></div><Outcome value={event.outcome??event.decision}/></section>
         {discoveryOnly?<section className="discovery-note"><b>Discovery only — browser visibility</b><span>No merchant Purpose Contract or business justification is available. ThirdSight does not infer backend permissions, server-to-server activity, database access, or downstream vendor behavior from this record.</span></section>:null}
+        {event.blindSpotAssessment?<section className="blind-spot-note"><b>Known benchmark blind spot</b><span>{event.blindSpotAssessment.reason}</span></section>:null}
         <section className="questions">
           <Claim title="Should?" claim={event.should} summary={event.should.status==="UNKNOWN"?"Not provided":undefined}/>
           <Claim title="Could?" claim={event.could} summary={event.could.value?.kind==="BROWSER_REQUEST_EXECUTION"?"Partial / browser-visible":undefined}/>
