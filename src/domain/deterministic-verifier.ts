@@ -74,8 +74,9 @@ export function verifyObservedFields(
 
 
 export function decideVerification(findings: readonly VerificationFinding[]): VerificationAction {
-  if (findings.some((finding) => finding.action === "ISOLATE")) return "ISOLATE";
-  if (findings.some((finding) => finding.action === "CONSTRAIN")) return "CONSTRAIN";
-  if (findings.some((finding) => finding.action === "OBSERVE")) return "OBSERVE";
+  const actions = findings.map((finding) => finding.action as VerificationAction);
+  if (actions.includes("ISOLATE")) return "ISOLATE";
+  if (actions.includes("CONSTRAIN")) return "CONSTRAIN";
+  if (actions.includes("OBSERVE")) return "OBSERVE";
   return "ALLOW";
 }
