@@ -2,7 +2,7 @@ import type {
   IntegrationBindingConfidence,
   IntegrationOriginBinding,
 } from "../../domain/integration-identity.js";
-import { purposeContractEvidence, businessEventEvidence, capabilityGrantEvidence, type PurposeContract, type BusinessEvent, type CapabilityGrant } from "../../domain/evidence-sources.js";
+import { purposeContractEvidence, businessEventEvidence, capabilityGrantEvidence, type PurposeContract, type BusinessEvent, type CapabilityGrant, type BusinessEventEvidence } from "../../domain/evidence-sources.js";
 import type {
   EvidenceHistoryEntry,
   EvidenceHistoryStore,
@@ -93,6 +93,11 @@ export class SupabaseEvidenceHistoryStore implements EvidenceHistoryStore {
     return rows.map(r=>businessEventEvidence(r.payload)).filter(x=>{const d=at-Date.parse(x.event.timestamp);return d>=0&&d<=300000});
   }
 
+  async appendBusinessEvent(event: BusinessEventEvidence): Promise<void> {
+    const url=this.restUrl("business_events"); url.searchParams.set("on_conflict","event_id");
+    await this.request(url,{method:"POST",headers:{"content-type":"application/json",prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify({event_id:event.event.id,integration_id:event.event.integrationId??null,occurred_at:event.event.timestamp,payload:event.event})});
+  }
+
   async append(entry: EvidenceHistoryEntry): Promise<void> {
     const url = this.restUrl("browser_evidence_history");
     url.searchParams.set("on_conflict", "record_id");
@@ -101,7 +106,7 @@ export class SupabaseEvidenceHistoryStore implements EvidenceHistoryStore {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        prefer: "resolution=ignore-duplicates,return=minimal",
+        prefer: "resolution=merge-duplicates,return=minimal",
       },
       body: JSON.stringify({
         record_id: entry.recordId,
