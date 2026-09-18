@@ -6,6 +6,7 @@ import type {
 import type { PurposeContractEvidence, BusinessEventEvidence, CapabilityGrantEvidence } from "../../domain/evidence-sources.js";
 import type { VerificationAction, VerificationFinding } from "../../domain/deterministic-verifier.js";
 import type { BrowserObservationV1 } from "../browser-evidence/browser-evidence-adapter.js";
+import type { DbAuditObservationV1 } from "../db-audit/db-audit-adapter.js";
 
 export interface EnforcementRecord {
   action: "CONSTRAIN" | "ISOLATE";
@@ -18,17 +19,26 @@ export interface EnforcementRecord {
   };
 }
 
+export type EvidenceObservation = BrowserObservationV1 | DbAuditObservationV1;
+
+export interface ContainmentRecord {
+  action: "ISOLATE";
+  credentialId: string;
+  applied: boolean;
+}
+
 export interface EvidenceHistoryEntry {
   recordId: string;
   observationId: string;
   acceptedAt: string;
-  observation: BrowserObservationV1;
+  observation: EvidenceObservation;
   evidence: EvidenceGraphRecord;
   integrationResolution: IntegrationResolutionResult;
   findings?: readonly VerificationFinding[];
   enforcement?: EnforcementRecord | null;
   outcome?: "PREVENTED" | "DETECTED" | null;
   decision?: VerificationAction;
+  containment?: ContainmentRecord | null;
 }
 
 export interface EvidenceHistoryStore {
@@ -41,6 +51,9 @@ export interface EvidenceHistoryStore {
   findPurposeContracts(integrationId: string, environment: string, observedAt: string): Promise<readonly PurposeContractEvidence[]>;
   findCapabilities(integrationId: string, environment: string, observedAt: string): Promise<readonly CapabilityGrantEvidence[]>;
   findBusinessEvents(integrationId: string, observedAt: string): Promise<readonly BusinessEventEvidence[]>;
+  findIntegrationLifecycle(integrationId: string): Promise<import("../../domain/deterministic-verifier.js").IntegrationLifecycleState | null>;
+  findCredential(credentialId: string): Promise<{ credentialId: string; integrationId: string; status: "ACTIVE" | "REVOKED"; environment: string } | null>;
+  isolateCredential(credentialId: string): Promise<boolean>;
 
   appendBusinessEvent(event: BusinessEventEvidence): Promise<void>;
   appendBusinessEvents(events: readonly BusinessEventEvidence[]): Promise<void>;
