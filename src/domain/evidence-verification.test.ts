@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { EvidenceGraphRecord } from "./evidence.js";
-import { businessEventEvidence, purposeContractEvidence } from "./evidence-sources.js";
+import { businessEventEvidence, capabilityGrantEvidence, purposeContractEvidence } from "./evidence-sources.js";
 import { enrichEvidenceGraph } from "./evidence-verification.js";
 
 const base: EvidenceGraphRecord = {
@@ -40,9 +40,11 @@ describe("Gate 4 evidence projection", () => {
       integrationId: "analytics-partner",
     });
 
-    const result = enrichEvidenceGraph(base, { purposeContracts: [contract], businessEvents: [event] });
+    const result = enrichEvidenceGraph(base, { purposeContracts: [contract], businessEvents: [event], capabilities: [capabilityGrantEvidence({ capabilityId: "cap-1", integrationId: "analytics-partner", environment: "production", destinationOrigin: "https://analytics.example", resources: ["analytics.events"], fields: ["product.id", "customer.phone"], operations: ["send"], validFrom: "2026-09-18T00:00:00.000Z", validTo: null, authority: "DECLARED" })] });
 
     expect(result.should.status).toBe("KNOWN");
+    expect(result.could.status).toBe("PARTIAL");
+    expect(result.could.provenance[0]?.source).toBe("capability-registry");
     expect(result.should.value?.contractVersion).toBe("1");
     expect(result.should.provenance[0]?.source).toBe("purpose-contract");
     expect(result.why.status).toBe("PARTIAL");
@@ -51,13 +53,13 @@ describe("Gate 4 evidence projection", () => {
   });
 
   it("refuses to invent SHOULD or WHY when independent evidence is absent", () => {
-    const result = enrichEvidenceGraph(base, { purposeContracts: [], businessEvents: [] });
+    const result = enrichEvidenceGraph(base, { purposeContracts: [], businessEvents: [], capabilities: [] });
     expect(result.should.status).toBe("UNKNOWN");
     expect(result.why.status).toBe("UNKNOWN");
   });
 
   it("does not enrich unresolved integration identity", () => {
     const unresolved = { ...base, integrationId: null, integrationResolution: "UNRESOLVED" as const };
-    expect(enrichEvidenceGraph(unresolved, { purposeContracts: [], businessEvents: [] })).toEqual(unresolved);
+    expect(enrichEvidenceGraph(unresolved, { purposeContracts: [], businessEvents: [], capabilities: [] })).toEqual(unresolved);
   });
 });

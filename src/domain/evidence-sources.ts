@@ -69,3 +69,25 @@ export function businessEventEvidence(
     },
   };
 }
+
+export interface CapabilityGrant {
+  capabilityId: string;
+  integrationId: string;
+  environment: string;
+  destinationOrigin: string;
+  resources: readonly string[];
+  fields: readonly string[];
+  operations: readonly string[];
+  validFrom: string;
+  validTo: string | null;
+  authority: "AUTHORITATIVE" | "DECLARED";
+}
+
+export interface CapabilityGrantEvidence {
+  capability: CapabilityGrant;
+  provenance: EvidenceRef;
+}
+
+export function capabilityGrantEvidence(capability: CapabilityGrant, sourceId = capability.capabilityId): CapabilityGrantEvidence {
+  return { capability, provenance: { source: "capability-registry", sourceId, observedAt: capability.validFrom, confidence: capability.authority } };
+}
