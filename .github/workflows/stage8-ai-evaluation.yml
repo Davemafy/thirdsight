@@ -2,21 +2,13 @@ name: Stage 8 AI Evaluation
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/stage8-ai-evaluation.yml"
-      - "src/ai-analyst/fresh-ambiguous-v4.ts"
-      - "scripts/stage8-v4-model-selection.ts"
-      - "src/ai-analyst/ai-analyst.ts"
-      - "src/ai-analyst/ai-evaluation.ts"
 
 permissions:
   contents: read
   id-token: write
 
 jobs:
-  # Provider transport fixes do not change the frozen benchmark, prompt, labels, or promotion rule.
+  # Stage 8 is closed. This workflow is manual-only for reproducibility; reruns do not create a new "fresh" benchmark.
   evaluate:
     runs-on: ubuntu-latest
     timeout-minutes: 30
