@@ -113,6 +113,23 @@ export class SupabaseEvidenceHistoryStore implements EvidenceHistoryStore {
     return row?{credentialId:row.credential_id,integrationId:row.integration_id,status:row.status,environment:row.environment}:null;
   }
 
+  async registerCredential(input: { credentialId: string; integrationId: string; environment: string; validFrom: string }): Promise<void> {
+    const url=this.restUrl("integration_credentials");
+    url.searchParams.set("on_conflict","credential_id");
+    await this.request(url,{
+      method:"POST",
+      headers:{"content-type":"application/json",prefer:"resolution=merge-duplicates,return=minimal"},
+      body:JSON.stringify({
+        credential_id:input.credentialId,
+        integration_id:input.integrationId,
+        environment:input.environment,
+        status:"ACTIVE",
+        valid_from:input.validFrom,
+        revoked_at:null,
+      }),
+    });
+  }
+
   async isolateCredential(credentialId: string): Promise<boolean> {
     const url=this.restUrl("integration_credentials");
     url.searchParams.set("credential_id",`eq.${credentialId}`);
