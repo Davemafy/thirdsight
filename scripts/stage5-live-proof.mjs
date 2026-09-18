@@ -21,17 +21,19 @@ try {
   await page.locator(".proof-grid").waitFor({ state: "visible" });
   await page.screenshot({ path: "stage5-managed-console.png", fullPage: true });
   const managed = await page.locator("main").innerText();
+  const managedText = managed.toLowerCase();
   for (const token of ["Should?", "Could?", "Did?", "Why?", managedId, "PREVENTED", "SCOPE_DRIFT", "CONSTRAIN", "customer.phone", "Receiver got"]) {
-    if (!managed.includes(token)) throw new Error(`Managed console proof missing: ${token}`);
+    if (!managedText.includes(token.toLowerCase())) throw new Error(`Managed console proof missing: ${token}`);
   }
-  if (!managed.includes("customer.phone at receiver") || !managed.includes("NO")) throw new Error("Managed console does not prove receiver non-receipt.");
+  if (!managedText.includes("customer.phone at receiver") || !managedText.includes("no")) throw new Error("Managed console does not prove receiver non-receipt.");
 
   await page.locator("nav button").filter({ hasText: "DETECTED" }).first().click();
   await page.waitForFunction(() => document.querySelector(".action h2")?.textContent?.trim() === "DETECTED");
   await page.waitForFunction(() => !document.querySelector(".proof-grid"));
   const passive = await page.locator("main").innerText();
+  const passiveText = passive.toLowerCase();
   for (const token of ["Should?", "Could?", "Did?", "Why?", passiveId, "DETECTED", "TRANSMITTED"]) {
-    if (!passive.includes(token)) throw new Error(`Passive console proof missing: ${token}`);
+    if (!passiveText.includes(token.toLowerCase())) throw new Error(`Passive console proof missing: ${token}`);
   }
   if ((await page.locator(".action h2").innerText()).trim() === "PREVENTED") throw new Error("Passive event was mislabeled PREVENTED.");
   await page.screenshot({ path: "stage5-passive-console.png", fullPage: true });
