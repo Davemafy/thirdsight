@@ -1,0 +1,42 @@
+name: Stage 5 Live Proof
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/stage5-live-proof.yml"
+
+jobs:
+  live-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Trigger controlled Commerce Lab proof
+        run: |
+          for i in {1..60}; do
+            code=$(curl -sS -o stage5-proof.json -w "%{http_code}" https://thirdsight-five.vercel.app/api/stage5-proof || true)
+            if [ "$code" = "200" ] && grep -q '"PREVENTED"' stage5-proof.json && grep -q '"DETECTED"' stage5-proof.json; then
+              exit 0
+            fi
+            sleep 10
+          done
+          cat stage5-proof.json || true
+          exit 1
+      - name: Install remote browser
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Verify deployed console semantics
+        run: node scripts/stage5-live-proof.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stage5-live-console-proof
+          path: |
+            stage5-proof.json
+            stage5-managed-console.png
+            stage5-passive-console.png
