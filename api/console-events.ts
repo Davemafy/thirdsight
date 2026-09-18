@@ -18,7 +18,7 @@ export default async function handler(request:ApiRequest,response:ApiResponse):P
       recordId:entry.recordId,acceptedAt:entry.acceptedAt,observedAt:entry.evidence.observedAt,
       integrationId:entry.evidence.integrationId,integrationResolution:entry.evidence.integrationResolution,
       should:entry.evidence.should,could:entry.evidence.could,did:entry.evidence.did,why:entry.evidence.why,
-      findings:entry.findings??[], enforcement:entry.enforcement??null, containment:entry.containment??null, decision:entry.decision??null, coverage:entry.evidence.coverage??inferCoverage(entry.evidence.did.value?.boundary),
+      findings:entry.findings??[], enforcement:entry.enforcement??null, containment:entry.containment??null, blindSpotAssessment:entry.blindSpotAssessment??null, decision:entry.decision??null, coverage:entry.evidence.coverage??inferCoverage(entry.evidence.did.value?.boundary),
       outcome:entry.outcome??derivePassiveOutcome(entry.evidence.did.value?.phase)
     }))});
   }catch{response.status(503).json({error:"EVIDENCE_READ_FAILED"});}
