@@ -168,3 +168,18 @@ function sharesBusinessObject(
 function matchesRef(left: string | undefined, right: string | undefined): boolean {
   return typeof left === "string" && left.length > 0 && left === right;
 }
+
+
+export function selectPurposeContractAt(
+  integrationId: string,
+  environment: string,
+  observedAt: string,
+  contracts: readonly PurposeContractEvidence[],
+): PurposeContractEvidence | null {
+  const active = contracts
+    .filter(({ contract }) => contract.integrationId === integrationId)
+    .filter(({ contract }) => contract.environment === environment)
+    .filter(({ contract }) => isActiveAt(contract.validFrom, contract.expiresAt, observedAt))
+    .sort((a, b) => Date.parse(b.contract.validFrom) - Date.parse(a.contract.validFrom));
+  return active[0] ?? null;
+}
