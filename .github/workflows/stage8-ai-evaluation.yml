@@ -1,6 +1,7 @@
 name: Stage 8 AI Evaluation
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
