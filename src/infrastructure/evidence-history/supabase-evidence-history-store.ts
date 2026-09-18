@@ -94,11 +94,21 @@ export class SupabaseEvidenceHistoryStore implements EvidenceHistoryStore {
   }
 
   async appendBusinessEvent(event: BusinessEventEvidence): Promise<void> {
+    await this.appendBusinessEvents([event]);
+  }
+
+  async appendBusinessEvents(events: readonly BusinessEventEvidence[]): Promise<void> {
+    if (events.length === 0) return;
     const url=this.restUrl("business_events"); url.searchParams.set("on_conflict","event_id");
-    await this.request(url,{method:"POST",headers:{"content-type":"application/json",prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify({event_id:event.event.id,integration_id:event.event.integrationId??null,occurred_at:event.event.timestamp,payload:event.event})});
+    await this.request(url,{method:"POST",headers:{"content-type":"application/json",prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify(events.map((event)=>({event_id:event.event.id,integration_id:event.event.integrationId??null,occurred_at:event.event.timestamp,payload:event.event})))});
   }
 
   async append(entry: EvidenceHistoryEntry): Promise<void> {
+    await this.appendMany([entry]);
+  }
+
+  async appendMany(entries: readonly EvidenceHistoryEntry[]): Promise<void> {
+    if (entries.length === 0) return;
     const url = this.restUrl("browser_evidence_history");
     url.searchParams.set("on_conflict", "record_id");
 
@@ -108,7 +118,7 @@ export class SupabaseEvidenceHistoryStore implements EvidenceHistoryStore {
         "content-type": "application/json",
         prefer: "resolution=merge-duplicates,return=minimal",
       },
-      body: JSON.stringify({
+      body: JSON.stringify(entries.map((entry)=>({
         record_id: entry.recordId,
         observation_id: entry.observationId,
         accepted_at: entry.acceptedAt,
@@ -120,7 +130,7 @@ export class SupabaseEvidenceHistoryStore implements EvidenceHistoryStore {
         findings: entry.findings ?? [],
         enforcement: entry.enforcement ?? null,
         outcome: entry.outcome ?? null,
-      }),
+      }))),
     });
   }
 
