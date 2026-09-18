@@ -2,6 +2,7 @@ import {
   resolveIntegrationIdentity,
   type IntegrationResolutionResult,
 } from "../../domain/integration-identity.js";
+import { enrichEvidenceGraph } from "../../domain/evidence-verification.js";
 import type { EvidenceHistoryEntry, EvidenceHistoryStore } from "../evidence-history/evidence-history-store.js";
 import {
   ingestBrowserObservation,
@@ -34,12 +35,22 @@ export async function ingestAndPersistBrowserObservation(
     : [];
 
   const resolved = resolveIntegrationIdentity(base.evidence, bindings, environment);
+  let evidence = resolved.evidence;
+  if (evidence.integrationId) {
+    const [purposeContracts, capabilities, businessEvents] = await Promise.all([
+      store.findPurposeContracts(evidence.integrationId, environment, evidence.observedAt),
+      store.findCapabilities(evidence.integrationId, environment, evidence.observedAt),
+      store.findBusinessEvents(evidence.integrationId, evidence.observedAt),
+    ]);
+    evidence = enrichEvidenceGraph(evidence, { purposeContracts, capabilities, businessEvents });
+  }
+
   const entry: EvidenceHistoryEntry = {
     recordId: resolved.evidence.recordId,
     observationId: base.observation.observationId,
     acceptedAt,
     observation: base.observation,
-    evidence: resolved.evidence,
+    evidence,
     integrationResolution: resolved.resolution,
   };
 
@@ -48,7 +59,7 @@ export async function ingestAndPersistBrowserObservation(
   return {
     acceptedAt,
     observation: base.observation,
-    evidence: resolved.evidence,
+    evidence,
     integrationResolution: resolved.resolution,
     persisted: true,
   };
