@@ -2,18 +2,12 @@ name: Stage 9 Learning Evaluation
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/stage9-learning-evaluation.yml"
-      - "scripts/stage9-learning-evaluation.ts"
-      - "src/learning-loop/learning-loop.ts"
-      - "src/learning-loop/learning-loop.test.ts"
 
 permissions:
   contents: read
 
 jobs:
+  # Stage 9 is frozen. Manual reruns reproduce the seen benchmark; they are not new held-out evidence.
   evaluate:
     runs-on: ubuntu-latest
     timeout-minutes: 10
