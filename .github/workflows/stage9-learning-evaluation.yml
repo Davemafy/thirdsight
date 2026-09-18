@@ -1,0 +1,62 @@
+name: Stage 9 Learning Evaluation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/stage9-learning-evaluation.yml"
+      - "scripts/stage9-learning-evaluation.ts"
+      - "src/learning-loop/learning-loop.ts"
+      - "src/learning-loop/learning-loop.test.ts"
+
+permissions:
+  contents: read
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify Stage 7 deterministic detector is still frozen
+        shell: bash
+        run: |
+          test "$(git hash-object src/domain/deterministic-verifier.ts)" = "bcb18f5fa7e41083aca4208fc7c95bbb3288fa84"
+          test "$(git hash-object src/domain/evidence-verification.ts)" = "8ddc19fe96fd73111e7d047bd8367209d2659dcb"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.20.2
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Stage 9 learning tests
+        run: npx vitest run src/learning-loop/learning-loop.test.ts --reporter=verbose
+
+      - name: Install evaluation runner
+        run: npm install --no-save tsx
+
+      - name: Evaluate frozen learning benchmark
+        run: npx tsx scripts/stage9-learning-evaluation.ts
+
+      - name: Validate Stage 9 report
+        shell: bash
+        run: |
+          node - <<'NODE'
+          const fs=require("fs");
+          const body=JSON.parse(fs.readFileSync("stage9-learning-evaluation.json","utf8"));
+          if(!body.ok) throw new Error(JSON.stringify(body));
+          if(body.benchmarkId!=="stage9-learning-v1-frozen"||body.benchmarkCases!==96) throw new Error("Frozen Stage 9 benchmark invariant failed");
+          if(body.authority?.forbidden?.includes("CONSTRAIN")!==true) throw new Error("Authority boundary missing");
+          if(body.candidateMetrics?.authorityViolations!==0||body.candidateMetrics?.harmfulResponseRate!==0) throw new Error("Stage 9 authority safety gate failed");
+          if(body.promoted!==true) throw new Error("Seed learning candidate did not clear the predeclared gate");
+          console.log(JSON.stringify(body,null,2));
+          NODE
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage9-learning-evaluation
+          path: stage9-learning-evaluation.json
