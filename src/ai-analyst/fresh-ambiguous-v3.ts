@@ -57,7 +57,7 @@ export function buildFreshAmbiguousCasesV3(): AmbiguousBenchmarkCase[] {
     },
     {
       caseId:"v3-contract-no-business-event",family:"known-purpose-missing-why",
-      integrationId:"recommendation-partner-v3",integrationResolution:"RESOLVED",
+      integrationId:"recommendation-partner",integrationResolution:"RESOLVED",
       pageOrigin:"https://managed-shop.example",destinationOrigin:"https://recommend-v3.example",destinationPath:"/event",
       originRelationship:"CROSS_ORIGIN",method:"POST",resourceType:"Fetch",
       should:"KNOWN",could:"PARTIAL",why:"UNKNOWN",coverageLabel:"MULTI_BOUNDARY",
@@ -67,7 +67,7 @@ export function buildFreshAmbiguousCasesV3(): AmbiguousBenchmarkCase[] {
     },
     {
       caseId:"v3-weak-trigger-window",family:"weak-business-correlation",
-      integrationId:"recommendation-partner-v3",integrationResolution:"RESOLVED",
+      integrationId:"recommendation-partner",integrationResolution:"RESOLVED",
       pageOrigin:"https://managed-shop.example",destinationOrigin:"https://recommend-v3.example",destinationPath:"/batch",
       originRelationship:"CROSS_ORIGIN",method:"POST",resourceType:"Fetch",
       should:"KNOWN",could:"PARTIAL",why:"PARTIAL",coverageLabel:"MULTI_BOUNDARY",
@@ -77,7 +77,7 @@ export function buildFreshAmbiguousCasesV3(): AmbiguousBenchmarkCase[] {
     },
     {
       caseId:"v3-event-but-no-contract",family:"missing-purpose-contract",
-      integrationId:"recommendation-partner-v3",integrationResolution:"RESOLVED",
+      integrationId:"recommendation-partner",integrationResolution:"RESOLVED",
       pageOrigin:"https://managed-shop.example",destinationOrigin:"https://recommend-v3.example",destinationPath:"/context",
       originRelationship:"CROSS_ORIGIN",method:"POST",resourceType:"Fetch",
       should:"UNKNOWN",could:"PARTIAL",why:"KNOWN",coverageLabel:"MULTI_BOUNDARY",
@@ -87,7 +87,7 @@ export function buildFreshAmbiguousCasesV3(): AmbiguousBenchmarkCase[] {
     },
     {
       caseId:"v3-partial-purpose",family:"partial-purpose-evidence",
-      integrationId:"recommendation-partner-v3",integrationResolution:"RESOLVED",
+      integrationId:"recommendation-partner",integrationResolution:"RESOLVED",
       pageOrigin:"https://managed-shop.example",destinationOrigin:"https://recommend-v3.example",destinationPath:"/loyalty",
       originRelationship:"CROSS_ORIGIN",method:"POST",resourceType:"Fetch",
       should:"PARTIAL",could:"PARTIAL",why:"KNOWN",coverageLabel:"MULTI_BOUNDARY",
@@ -97,7 +97,7 @@ export function buildFreshAmbiguousCasesV3(): AmbiguousBenchmarkCase[] {
     },
     {
       caseId:"v3-known-context-opaque-body",family:"opaque-browser-payload",
-      integrationId:"recommendation-partner-v3",integrationResolution:"RESOLVED",
+      integrationId:"recommendation-partner",integrationResolution:"RESOLVED",
       pageOrigin:"https://managed-shop.example",destinationOrigin:"https://recommend-v3.example",destinationPath:"/opaque",
       originRelationship:"CROSS_ORIGIN",method:"POST",resourceType:"Fetch",
       should:"KNOWN",could:"PARTIAL",why:"KNOWN",coverageLabel:"BROWSER_ONLY",
@@ -115,7 +115,7 @@ export function buildFreshAmbiguousCasesV3(): AmbiguousBenchmarkCase[] {
     },
     {
       caseId:"v3-approved-object-match",family:"known-purpose-known-why",
-      integrationId:"recommendation-partner-v3",integrationResolution:"RESOLVED",
+      integrationId:"recommendation-partner",integrationResolution:"RESOLVED",
       pageOrigin:"https://managed-shop.example",destinationOrigin:"https://recommend-v3.example",destinationPath:"/view",
       originRelationship:"CROSS_ORIGIN",method:"POST",resourceType:"Fetch",
       should:"KNOWN",could:"PARTIAL",why:"KNOWN",coverageLabel:"MULTI_BOUNDARY",
@@ -144,7 +144,7 @@ export function buildFreshAmbiguousCasesV3(): AmbiguousBenchmarkCase[] {
     },
     {
       caseId:"v3-approved-empty-categories",family:"known-context-no-visible-categories",
-      integrationId:"recommendation-partner-v3",integrationResolution:"RESOLVED",
+      integrationId:"recommendation-partner",integrationResolution:"RESOLVED",
       pageOrigin:"https://managed-shop.example",destinationOrigin:"https://recommend-v3.example",destinationPath:"/summary",
       originRelationship:"CROSS_ORIGIN",method:"POST",resourceType:"Fetch",
       should:"KNOWN",could:"PARTIAL",why:"KNOWN",coverageLabel:"BROWSER_ONLY",
