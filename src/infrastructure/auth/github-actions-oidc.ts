@@ -7,19 +7,17 @@ interface Jwk { kid?: string; kty?: string; n?: string; e?: string; alg?: string
 interface Jwks { keys?: Jwk[] }
 
 const ISSUER = "https://token.actions.githubusercontent.com";
-const AUDIENCE = "thirdsight-stage6";
 const REPOSITORY = "Davemafy/thirdsight";
-const WORKFLOW_PATH = ".github/workflows/stage6-live-discovery.yml";
 let cachedJwks: { value: Jwks; expiresAt: number } | null = null;
 
-export async function verifyStage6GitHubOidc(token: string): Promise<boolean> {
+export async function verifyGitHubActionsOidc(token: string, audience: string, workflowPath: string): Promise<boolean> {
   try {
     const parts = token.split(".");
     if (parts.length !== 3) return false;
     const header = parseJson<GitHubOidcHeader>(parts[0]);
     const claims = parseJson<GitHubOidcClaims>(parts[1]);
     if (header.alg !== "RS256" || typeof header.kid !== "string") return false;
-    if (!validClaims(claims)) return false;
+    if (!validClaims(claims, audience, workflowPath)) return false;
 
     const jwks = await loadJwks();
     const jwk = jwks.keys?.find((key) => key.kid === header.kid);
@@ -43,16 +41,16 @@ export async function verifyStage6GitHubOidc(token: string): Promise<boolean> {
   }
 }
 
-function validClaims(claims: GitHubOidcClaims): boolean {
+function validClaims(claims: GitHubOidcClaims, audience: string, workflowPath: string): boolean {
   const now = Math.floor(Date.now() / 1000);
   if (claims.iss !== ISSUER) return false;
-  if (!hasAudience(claims.aud, AUDIENCE)) return false;
+  if (!hasAudience(claims.aud, audience)) return false;
   if (claims.repository !== REPOSITORY) return false;
   if (claims.ref !== "refs/heads/main") return false;
   if (claims.event_name !== "push") return false;
   if (
     typeof claims.workflow_ref !== "string" ||
-    !claims.workflow_ref.includes(`${REPOSITORY}/${WORKFLOW_PATH}@refs/heads/main`)
+    !claims.workflow_ref.includes(`${REPOSITORY}/${workflowPath}@refs/heads/main`)
   ) return false;
   if (typeof claims.exp !== "number" || claims.exp <= now - 30) return false;
   if (typeof claims.nbf === "number" && claims.nbf > now + 30) return false;
@@ -86,4 +84,9 @@ function decodeBase64Url(value: string): Uint8Array {
 
 function toArrayBuffer(value: Uint8Array): ArrayBuffer {
   return value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength) as ArrayBuffer;
+}
+
+
+export function verifyStage6GitHubOidc(token: string): Promise<boolean> {
+  return verifyGitHubActionsOidc(token, "thirdsight-stage6", ".github/workflows/stage6-live-discovery.yml");
 }
