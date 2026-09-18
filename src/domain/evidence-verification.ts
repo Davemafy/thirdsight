@@ -3,15 +3,18 @@ import type {
   EvidenceClaim,
   EvidenceGraphRecord,
   PurposeEvidence,
+  BrowserCapabilityLowerBound,
 } from "./evidence.js";
 import type {
   BusinessEventEvidence,
   PurposeContractEvidence,
+  CapabilityGrantEvidence,
 } from "./evidence-sources.js";
 
 export interface VerificationContext {
   purposeContracts: readonly PurposeContractEvidence[];
   businessEvents: readonly BusinessEventEvidence[];
+  capabilities: readonly CapabilityGrantEvidence[];
 }
 
 export function enrichEvidenceGraph(
@@ -23,6 +26,7 @@ export function enrichEvidenceGraph(
   return {
     ...evidence,
     should: projectShould(evidence, context.purposeContracts),
+    could: projectCould(evidence, context.capabilities),
     why: projectWhy(evidence, context.businessEvents),
   };
 }
@@ -102,4 +106,17 @@ function isActiveAt(validFrom: string, expiresAt: string | null, observedAt: str
   if (expiresAt === null) return true;
   const until = Date.parse(expiresAt);
   return Number.isFinite(until) && until > at;
+}
+
+function projectCould(evidence: EvidenceGraphRecord, capabilities: readonly CapabilityGrantEvidence[]): EvidenceClaim<BrowserCapabilityLowerBound> {
+  const active = capabilities.filter(({ capability }) => capability.integrationId === evidence.integrationId).filter(({ capability }) => isActiveAt(capability.validFrom, capability.validTo, evidence.observedAt));
+  if (active.length === 0) return evidence.could;
+  const selected = active.sort((a,b) => Date.parse(b.capability.validFrom)-Date.parse(a.capability.validFrom))[0];
+  return {
+    status: "PARTIAL",
+    confidence: selected.provenance.confidence,
+    value: { kind: "DECLARED_BROWSER_CAPABILITY", destinationOrigin: selected.capability.destinationOrigin, statement: `Configured capability permits fields [${selected.capability.fields.join(", ")}] and operations [${selected.capability.operations.join(", ")}]; this is not proof of transmitted values or the complete technical surface.` },
+    provenance: [selected.provenance],
+    reason: "Projected from an independently sourced capability grant; capability is kept separate from approved purpose and observed behavior.",
+  };
 }
