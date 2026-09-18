@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Activity, CircleAlert, Radio, ShieldCheck } from "lucide-react";
 import type { EvidenceClaim, PurposeEvidence, BrowserCapabilityLowerBound, RuntimeAccessEvidence, BusinessContextEvidence, EvidenceCoverage } from "../domain/evidence";
 import type { BlindSpotAssessment } from "../domain/blind-spot-assessment";
+import { LearningLoopPanel } from "./LearningLoopPanel";
 
 type Finding={type:string;action:string;field?:string;reason?:string};
 type Enforcement={action:"CONSTRAIN"|"ISOLATE";outcome:"PREVENTED";removedFields:readonly string[];continuedFields:readonly string[];receiver:{receivedFields:readonly string[];forbiddenFieldReceived:boolean}};
@@ -63,6 +64,7 @@ export default function App(){
         </section>
         <ActionPanel event={event} discoveryOnly={discoveryOnly}/>
         {aiPromoted&&event.aiAssessment?.accepted?<AiAnalystPanel assessment={event.aiAssessment}/>:null}
+        <LearningLoopPanel recordId={event.recordId}/>
       </>}
     </main>
   </div>;
