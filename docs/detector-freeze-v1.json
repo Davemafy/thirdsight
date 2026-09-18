@@ -1,0 +1,18 @@
+{
+  "freezeId": "stage7-v1",
+  "detectorVersion": "stage7-v1-frozen",
+  "frozenAtCommit": "838b5ab4f4860234a4a06d441e9fc98071f5bd0d",
+  "files": {
+    "src/domain/deterministic-verifier.ts": "bcb18f5fa7e41083aca4208fc7c95bbb3288fa84",
+    "src/domain/evidence-verification.ts": "8ddc19fe96fd73111e7d047bd8367209d2659dcb"
+  },
+  "scenariosPassedBeforeFreeze": [
+    "flash-sale-legitimate-spike",
+    "proportional-exfiltration-hidden-in-sale",
+    "stale-crm-direct-db-access",
+    "opaque-shadow-integration",
+    "contract-version-change",
+    "perfect-mimic-known-blind-spot"
+  ],
+  "rule": "Evaluation must not modify the frozen detector or evidence projector. Any hash mismatch invalidates the evaluation run."
+}
