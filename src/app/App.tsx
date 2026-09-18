@@ -25,7 +25,8 @@ type ConsoleEvent={recordId:string;observedAt:string;integrationId:string|null;i
 export default function App(){
   const [events,setEvents]=useState<ConsoleEvent[]>([]);
   const [selected,setSelected]=useState(0);
-  const [error,setError]=useState(false);\n  const [aiPromoted,setAiPromoted]=useState(false);
+  const [error,setError]=useState(false);
+  const [aiPromoted,setAiPromoted]=useState(false);
 
   useEffect(()=>{
     let live=true;
