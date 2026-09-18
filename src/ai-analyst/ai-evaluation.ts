@@ -84,7 +84,7 @@ export function evaluateAiOn(
         caseId: item.caseId,
         recommendation: "ABSTAIN" as const,
         accepted: false,
-        handled: item.expectedRecommendations.includes("ABSTAIN"),
+        handled: false,
         unsupportedClaim: false,
         authorityViolation: true,
       };
@@ -99,10 +99,11 @@ export function evaluateAiOn(
       caseId: item.caseId,
       recommendation,
       accepted: result.accepted,
-      handled: item.expectedRecommendations.includes(recommendation),
+      handled:
+        result.accepted &&
+        item.expectedRecommendations.includes(recommendation),
       unsupportedClaim,
       authorityViolation: result.authorityViolation,
-      accepted: result.accepted,
     };
   });
 
