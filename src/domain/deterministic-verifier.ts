@@ -1,7 +1,7 @@
 import type { EvidenceGraphRecord } from "./evidence.js";
 import type { PurposeContractEvidence } from "./evidence-sources.js";
 
-export type FindingType = "SCOPE_DRIFT" | "PURPOSE_MISMATCH" | "STALE_INTEGRATION";
+export type FindingType = "SCOPE_DRIFT" | "PURPOSE_MISMATCH" | "STALE_INTEGRATION" | "SHADOW_INTEGRATION";
 export type VerificationAction = "ALLOW" | "OBSERVE" | "CONSTRAIN" | "ISOLATE";
 
 export interface ScopeDriftFinding {
@@ -34,7 +34,16 @@ export interface StaleIntegrationFinding {
   reason: string;
 }
 
-export type VerificationFinding = ScopeDriftFinding | PurposeMismatchFinding | StaleIntegrationFinding;
+export interface ShadowIntegrationFinding {
+  type: "SHADOW_INTEGRATION";
+  action: "OBSERVE";
+  evidenceRecordId: string;
+  integrationId: null;
+  destinationOrigin: string;
+  reason: string;
+}
+
+export type VerificationFinding = ScopeDriftFinding | PurposeMismatchFinding | StaleIntegrationFinding | ShadowIntegrationFinding;
 
 export interface IntegrationLifecycleState {
   integrationId: string;
@@ -116,5 +125,27 @@ export function verifyIntegrationLifecycle(
     ...(integration.credentialId ? { credentialId: integration.credentialId } : {}),
     reason:
       `${integration.displayName} is retired, but runtime evidence shows access after retirement through the ${did.boundary} boundary. The observed access is historical evidence; isolation contains future use and is not described as preventing the access already seen.`,
+  }];
+}
+
+
+export function verifyShadowIntegration(
+  evidence: EvidenceGraphRecord,
+  context: { managedEnvironment: boolean; integrationInventoryComplete: boolean },
+): readonly VerificationFinding[] {
+  if (!context.managedEnvironment || !context.integrationInventoryComplete) return [];
+  if (evidence.integrationResolution !== "UNRESOLVED" || evidence.integrationId !== null) return [];
+  const did = evidence.did.value;
+  if (evidence.did.status !== "KNOWN" || !did) return [];
+  if (did.boundary !== "browser" || did.originRelationship !== "CROSS_ORIGIN") return [];
+
+  return [{
+    type: "SHADOW_INTEGRATION",
+    action: "OBSERVE",
+    evidenceRecordId: evidence.recordId,
+    integrationId: null,
+    destinationOrigin: did.destinationOrigin,
+    reason:
+      "A managed Commerce Lab browser session reached a cross-origin destination that has no valid registered integration identity. Payload semantics remain unknown, so ThirdSight observes and requests review rather than inventing data categories or claiming malicious intent.",
   }];
 }
