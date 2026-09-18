@@ -42,3 +42,11 @@ export function verifyObservedFields(
       reason: `${field} was observed at the managed boundary but is absent from Purpose Contract ${contract.contract.contractId} v${contract.contract.version}.`,
     }));
 }
+
+
+export function decideVerification(findings: readonly VerificationFinding[]): VerificationAction {
+  if (findings.some((finding) => finding.action === "ISOLATE")) return "ISOLATE";
+  if (findings.some((finding) => finding.action === "CONSTRAIN")) return "CONSTRAIN";
+  if (findings.some((finding) => finding.action === "OBSERVE")) return "OBSERVE";
+  return "ALLOW";
+}
