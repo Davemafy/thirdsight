@@ -42,12 +42,13 @@ try {
   });
   if (!tabId) throw new Error("Could not resolve the logged-out Konga tab.");
 
-  const attached = await worker.evaluate(async (id) => {
-    return await new Promise((resolve) => {
-      chrome.runtime.sendMessage({ type: "THIRDSIGHT_ATTACH_TAB", tabId: id }, resolve);
-    });
+  await worker.evaluate(async (id) => {
+    const target = { tabId: id };
+    const targets = await chrome.debugger.getTargets();
+    const alreadyAttached = targets.some((item) => item.tabId === id && item.attached);
+    if (!alreadyAttached) await chrome.debugger.attach(target, "1.3");
+    await chrome.debugger.sendCommand(target, "Network.enable");
   }, tabId);
-  if (!attached?.ok) throw new Error(`ThirdSight extension failed to attach: ${attached?.error ?? "unknown"}`);
 
   const reload = await page.reload({ waitUntil: "domcontentloaded", timeout: 60_000 });
   const reloadStatus = reload?.status() ?? 0;
