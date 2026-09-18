@@ -16,6 +16,19 @@ export interface PersistedAiAssessment {
   createdAt: string;
 }
 
+export interface PersistedAiEvaluationRun {
+  runId: string;
+  analystVersion: string;
+  model: string;
+  caseCount: number;
+  aiOff: unknown;
+  aiOn: unknown;
+  improvement: unknown;
+  surfaceProminently: boolean;
+  surfaceReason: string;
+  createdAt: string;
+}
+
 export class SupabaseAiAssessmentStore {
   constructor(
     private readonly config: {
@@ -66,6 +79,89 @@ export class SupabaseAiAssessmentStore {
       authorityViolation: result.authorityViolation,
       createdAt,
     };
+  }
+
+  async appendEvaluationRun(input: {
+    runId: string;
+    model: string;
+    caseCount: number;
+    aiOff: unknown;
+    aiOn: unknown;
+    improvement: unknown;
+    surfaceProminently: boolean;
+    surfaceReason: string;
+  }): Promise<PersistedAiEvaluationRun> {
+    const createdAt = new Date().toISOString();
+    const url = this.restUrl("ai_evaluation_runs");
+    url.searchParams.set("on_conflict", "run_id");
+    await this.request(url, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        prefer: "resolution=merge-duplicates,return=minimal",
+      },
+      body: JSON.stringify({
+        run_id: input.runId,
+        analyst_version: AI_ANALYST_VERSION,
+        model: input.model,
+        case_count: input.caseCount,
+        ai_off: input.aiOff,
+        ai_on: input.aiOn,
+        improvement: input.improvement,
+        surface_prominently: input.surfaceProminently,
+        surface_reason: input.surfaceReason,
+        created_at: createdAt,
+      }),
+    });
+    return {
+      runId: input.runId,
+      analystVersion: AI_ANALYST_VERSION,
+      model: input.model,
+      caseCount: input.caseCount,
+      aiOff: input.aiOff,
+      aiOn: input.aiOn,
+      improvement: input.improvement,
+      surfaceProminently: input.surfaceProminently,
+      surfaceReason: input.surfaceReason,
+      createdAt,
+    };
+  }
+
+  async latestEvaluationRun(): Promise<PersistedAiEvaluationRun | null> {
+    const url = this.restUrl("ai_evaluation_runs");
+    url.searchParams.set(
+      "select",
+      "run_id,analyst_version,model,case_count,ai_off,ai_on,improvement,surface_prominently,surface_reason,created_at",
+    );
+    url.searchParams.set("order", "created_at.desc");
+    url.searchParams.set("limit", "1");
+    const rows = await this.requestJson<Array<{
+      run_id: string;
+      analyst_version: string;
+      model: string;
+      case_count: number;
+      ai_off: unknown;
+      ai_on: unknown;
+      improvement: unknown;
+      surface_prominently: boolean;
+      surface_reason: string;
+      created_at: string;
+    }>>(url, { method: "GET" });
+    const row = rows[0];
+    return row
+      ? {
+          runId: row.run_id,
+          analystVersion: row.analyst_version,
+          model: row.model,
+          caseCount: row.case_count,
+          aiOff: row.ai_off,
+          aiOn: row.ai_on,
+          improvement: row.improvement,
+          surfaceProminently: row.surface_prominently,
+          surfaceReason: row.surface_reason,
+          createdAt: row.created_at,
+        }
+      : null;
   }
 
   async latestForRecords(
