@@ -89,6 +89,32 @@ function projectWhy(
     };
   }
 
+  const refs = evidence.did.value?.businessObjectRefs;
+  if (refs && Object.values(refs).some(Boolean)) {
+    const objectMatch = candidates.find(({ item }) => sharesBusinessObject(refs, item.event));
+    if (!objectMatch) {
+      return {
+        status: "UNKNOWN",
+        confidence: "UNKNOWN",
+        value: null,
+        provenance: candidates.map(({ item }) => item.provenance),
+        reason: "Business-object references were present in DID, but no trusted first-party BusinessEvent matched them. Temporal proximity is not accepted as justification when an object-level reference is available.",
+      };
+    }
+
+    return {
+      status: "KNOWN",
+      confidence: "OBSERVED",
+      value: {
+        eventId: objectMatch.item.event.id,
+        eventType: objectMatch.item.event.type,
+        correlationStrength: "BUSINESS_OBJECT_HASH",
+      },
+      provenance: [objectMatch.item.provenance],
+      reason: "A hashed business-object reference in DID matched a trusted first-party BusinessEvent inside the bounded correlation window.",
+    };
+  }
+
   const selected = candidates[0].item;
   return {
     status: "PARTIAL",
@@ -123,4 +149,22 @@ function projectCould(evidence: EvidenceGraphRecord, capabilities: readonly Capa
     provenance: [selected.provenance],
     reason: "Projected from an independently sourced capability grant; capability is kept separate from approved purpose and observed behavior.",
   };
+}
+
+
+function sharesBusinessObject(
+  refs: NonNullable<NonNullable<EvidenceGraphRecord["did"]["value"]>["businessObjectRefs"]>,
+  event: BusinessEventEvidence["event"],
+): boolean {
+  return (
+    matchesRef(refs.customerRefHash, event.customerRefHash) ||
+    matchesRef(refs.orderRefHash, event.orderRefHash) ||
+    matchesRef(refs.paymentRefHash, event.paymentRefHash) ||
+    matchesRef(refs.deliveryRefHash, event.deliveryRefHash) ||
+    matchesRef(refs.campaignRef, event.campaignRef)
+  );
+}
+
+function matchesRef(left: string | undefined, right: string | undefined): boolean {
+  return typeof left === "string" && left.length > 0 && left === right;
 }
