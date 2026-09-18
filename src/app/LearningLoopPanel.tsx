@@ -53,7 +53,7 @@ export function LearningLoopPanel({recordId}:{recordId:string}){
 
   const load=useCallback(async()=>{
     try{
-      const response=await fetch(`/api/learning-status?recordId=${encodeURIComponent(recordId)}`,{cache:"no-store"});
+      const response=await fetch(`/api/learning?recordId=${encodeURIComponent(recordId)}`,{cache:"no-store"});
       if(!response.ok)throw new Error("Learning status unavailable");
       const next=await response.json() as LearningStatus;
       setStatus(next);
@@ -75,10 +75,10 @@ export function LearningLoopPanel({recordId}:{recordId:string}){
     setBusy("review");
     setNotice("");
     try{
-      const response=await fetch("/api/learning-review",{
+      const response=await fetch("/api/learning",{
         method:"POST",
         headers:{"content-type":"application/json"},
-        body:JSON.stringify({recordId,label}),
+        body:JSON.stringify({action:"review",recordId,label}),
       });
       const body=await response.json();
       if(!response.ok)throw new Error(body?.reason??body?.error??"Review failed");
@@ -95,10 +95,10 @@ export function LearningLoopPanel({recordId}:{recordId:string}){
     setBusy("train");
     setNotice("");
     try{
-      const response=await fetch("/api/learning-train",{
+      const response=await fetch("/api/learning",{
         method:"POST",
         headers:{"content-type":"application/json"},
-        body:"{}",
+        body:JSON.stringify({action:"train"}),
       });
       const body=await response.json();
       if(!response.ok)throw new Error(body?.message??body?.error??"Training failed");
