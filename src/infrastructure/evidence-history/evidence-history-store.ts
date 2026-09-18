@@ -43,8 +43,10 @@ export interface EvidenceHistoryStore {
   findBusinessEvents(integrationId: string, observedAt: string): Promise<readonly BusinessEventEvidence[]>;
 
   appendBusinessEvent(event: BusinessEventEvidence): Promise<void>;
+  appendBusinessEvents(events: readonly BusinessEventEvidence[]): Promise<void>;
 
   append(entry: EvidenceHistoryEntry): Promise<void>;
+  appendMany(entries: readonly EvidenceHistoryEntry[]): Promise<void>;
 
   list(limit?: number): Promise<readonly EvidenceHistoryEntry[]>;
 }
