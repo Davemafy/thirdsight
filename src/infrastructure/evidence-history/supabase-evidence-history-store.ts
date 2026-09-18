@@ -93,6 +93,37 @@ export class SupabaseEvidenceHistoryStore implements EvidenceHistoryStore {
     return rows.map(r=>businessEventEvidence(r.payload)).filter(x=>{const d=at-Date.parse(x.event.timestamp);return d>=0&&d<=300000});
   }
 
+  async findIntegrationLifecycle(integrationId: string) {
+    const url=this.restUrl("integration_registry");
+    url.searchParams.set("select","integration_id,display_name,lifecycle_status,owner");
+    url.searchParams.set("integration_id",`eq.${integrationId}`);
+    url.searchParams.set("limit","1");
+    const rows=await this.requestJson<Array<{integration_id:string;display_name:string;lifecycle_status:"ACTIVE"|"RETIRED";owner:string|null}>>(url,{method:"GET"});
+    const row=rows[0];
+    return row?{integrationId:row.integration_id,displayName:row.display_name,lifecycleStatus:row.lifecycle_status,owner:row.owner}:null;
+  }
+
+  async findCredential(credentialId: string) {
+    const url=this.restUrl("integration_credentials");
+    url.searchParams.set("select","credential_id,integration_id,status,environment");
+    url.searchParams.set("credential_id",`eq.${credentialId}`);
+    url.searchParams.set("limit","1");
+    const rows=await this.requestJson<Array<{credential_id:string;integration_id:string;status:"ACTIVE"|"REVOKED";environment:string}>>(url,{method:"GET"});
+    const row=rows[0];
+    return row?{credentialId:row.credential_id,integrationId:row.integration_id,status:row.status,environment:row.environment}:null;
+  }
+
+  async isolateCredential(credentialId: string): Promise<boolean> {
+    const url=this.restUrl("integration_credentials");
+    url.searchParams.set("credential_id",`eq.${credentialId}`);
+    const rows=await this.requestJson<Array<{credential_id:string}>>(url,{
+      method:"PATCH",
+      headers:{"content-type":"application/json",prefer:"return=representation"},
+      body:JSON.stringify({status:"REVOKED",revoked_at:new Date().toISOString()}),
+    });
+    return rows.some((row)=>row.credential_id===credentialId);
+  }
+
   async appendBusinessEvent(event: BusinessEventEvidence): Promise<void> {
     await this.appendBusinessEvents([event]);
   }
