@@ -5,6 +5,7 @@ import type {
 } from "../../domain/integration-identity.js";
 import type { PurposeContractEvidence, BusinessEventEvidence, CapabilityGrantEvidence } from "../../domain/evidence-sources.js";
 import type { VerificationAction, VerificationFinding } from "../../domain/deterministic-verifier.js";
+import type { BlindSpotAssessment } from "../../domain/blind-spot-assessment.js";
 import type { BrowserObservationV1 } from "../browser-evidence/browser-evidence-adapter.js";
 import type { DbAuditObservationV1 } from "../db-audit/db-audit-adapter.js";
 
@@ -39,6 +40,7 @@ export interface EvidenceHistoryEntry {
   outcome?: "PREVENTED" | "DETECTED" | null;
   decision?: VerificationAction;
   containment?: ContainmentRecord | null;
+  blindSpotAssessment?: BlindSpotAssessment | null;
 }
 
 export interface EvidenceHistoryStore {
