@@ -4,6 +4,8 @@ import {
   buildFrozenBenchmarkV3,
   buildSyntheticTrainingSet,
   humanOutcomeToPriority,
+  isLearningEligible,
+  learningEntryReasons,
   predictReviewPriority,
   trainStage9Candidate,
 } from "./learning-loop.js";
@@ -41,6 +43,12 @@ describe("Stage 9 — verified residual learning", () => {
       expect(prediction.reviewScore).toBeGreaterThanOrEqual(0);
       expect(prediction.reviewScore).toBeLessThanOrEqual(100);
     }
+  });
+
+  it("keeps deterministic ALLOW outside Verified Learning", () => {
+    const allowed = { decision: "ALLOW", outcome: null } as any;
+    expect(learningEntryReasons(allowed)).toEqual([]);
+    expect(isLearningEligible(allowed)).toBe(false);
   });
 
   it("maps immutable human outcomes onto residual review priority without adding authority", () => {
