@@ -69,6 +69,7 @@ function selectRepresentativeHistory<T extends {
     integrationResolution:string;
     should:{value?:{contractVersion?:string}|null};
     why:{value?:{correlationStrength?:string}|null};
+    did:{value?:{originRelationship?:string;method?:string}|null};
     coverage?:{label?:string};
   };
 }>(entries:readonly T[]):readonly T[]{
@@ -83,7 +84,12 @@ function selectRepresentativeHistory<T extends {
   add((entry)=>entry.evidence.should.value?.contractVersion==="5"&&entry.decision==="ALLOW");
   add((entry)=>entry.outcome==="PREVENTED");
   add((entry)=>entry.outcome==="DETECTED");
-  add((entry)=>entry.evidence.coverage?.label==="BROWSER_ONLY"&&entry.evidence.integrationId===null);
+  add((entry)=>
+    entry.evidence.coverage?.label==="BROWSER_ONLY"&&
+    entry.evidence.integrationId===null&&
+    entry.evidence.did.value?.originRelationship==="CROSS_ORIGIN"&&
+    entry.evidence.did.value?.method==="POST"
+  );
   add((entry)=>entry.decision==="ALLOW"&&entry.evidence.why.value?.correlationStrength==="BUSINESS_OBJECT_HASH");
   return selected;
 }
