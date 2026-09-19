@@ -1,16 +1,17 @@
 import type {
+  HumanReviewOutcome,
   LearningCandidate,
   LearningExample,
   LearningFeatures,
-  LearningLabel,
   LearningMetrics,
   LinearAdvisoryModel,
 } from "./learning-loop.js";
+import { humanOutcomeToPriority } from "./learning-loop.js";
 
 export interface PersistedLearningFeedback {
   feedbackId: string;
   recordId: string;
-  label: LearningLabel;
+  label: HumanReviewOutcome;
   features: LearningFeatures;
   source: "HUMAN_VERIFIED";
   createdAt: string;
@@ -41,7 +42,7 @@ export class SupabaseLearningStore {
 
   async appendFeedback(input: {
     recordId: string;
-    label: LearningLabel;
+    label: HumanReviewOutcome;
     features: LearningFeatures;
   }): Promise<{ feedback: PersistedLearningFeedback; inserted: boolean }> {
     const existing = await this.feedbackForRecord(input.recordId);
@@ -54,7 +55,7 @@ export class SupabaseLearningStore {
     const rows = await this.requestJson<Array<{
       feedback_id:string;
       record_id:string;
-      label:LearningLabel;
+      label:HumanReviewOutcome;
       features:LearningFeatures;
       source:"HUMAN_VERIFIED";
       created_at:string;
@@ -102,18 +103,22 @@ export class SupabaseLearningStore {
     return rows.map(parseFeedback);
   }
 
-  async latestRun(): Promise<PersistedLearningModelRun | null> {
-    return this.latestRunMatching(false);
+  async latestRun(benchmarkId?: string): Promise<PersistedLearningModelRun | null> {
+    return this.latestRunMatching(false, benchmarkId);
   }
 
-  async latestPromotedRun(): Promise<PersistedLearningModelRun | null> {
-    return this.latestRunMatching(true);
+  async latestPromotedRun(benchmarkId?: string): Promise<PersistedLearningModelRun | null> {
+    return this.latestRunMatching(true, benchmarkId);
   }
 
-  async latestRunForHumanCount(humanVerifiedExamples: number): Promise<PersistedLearningModelRun | null> {
+  async latestRunForHumanCount(
+    humanVerifiedExamples: number,
+    benchmarkId?: string,
+  ): Promise<PersistedLearningModelRun | null> {
     const url = this.restUrl("learning_model_runs");
     url.searchParams.set("select", RUN_SELECT);
     url.searchParams.set("human_verified_examples", `eq.${humanVerifiedExamples}`);
+    if (benchmarkId) url.searchParams.set("benchmark_id", `eq.${benchmarkId}`);
     url.searchParams.set("order", "created_at.desc");
     url.searchParams.set("limit", "1");
     const rows = await this.requestJson<Array<any>>(url, { method: "GET" });
@@ -156,16 +161,21 @@ export class SupabaseLearningStore {
   toLearningExamples(feedback: readonly PersistedLearningFeedback[]): LearningExample[] {
     return feedback.map((row) => ({
       exampleId: row.feedbackId,
-      label: row.label,
+      target: humanOutcomeToPriority(row.label),
+      confirmedOutcome: row.label,
       features: row.features,
       source: "HUMAN_VERIFIED" as const,
     }));
   }
 
-  private async latestRunMatching(promotedOnly: boolean): Promise<PersistedLearningModelRun | null> {
+  private async latestRunMatching(
+    promotedOnly: boolean,
+    benchmarkId?: string,
+  ): Promise<PersistedLearningModelRun | null> {
     const url = this.restUrl("learning_model_runs");
     url.searchParams.set("select", RUN_SELECT);
     if (promotedOnly) url.searchParams.set("promoted", "eq.true");
+    if (benchmarkId) url.searchParams.set("benchmark_id", `eq.${benchmarkId}`);
     url.searchParams.set("order", "created_at.desc");
     url.searchParams.set("limit", "1");
     const rows = await this.requestJson<Array<any>>(url, { method: "GET" });
@@ -206,7 +216,7 @@ function parseFeedback(row: any): PersistedLearningFeedback {
   return {
     feedbackId: String(row.feedback_id),
     recordId: String(row.record_id),
-    label: row.label as LearningLabel,
+    label: row.label as HumanReviewOutcome,
     features: row.features as LearningFeatures,
     source: "HUMAN_VERIFIED",
     createdAt: String(row.created_at),

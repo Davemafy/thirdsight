@@ -1,11 +1,13 @@
 import { SupabaseEvidenceHistoryStore } from "../src/infrastructure/evidence-history/supabase-evidence-history-store.js";
 import {
   STAGE9_ALGORITHM,
+  STAGE9_BENCHMARK_ID,
   extractLearningFeatures,
   isLearningEligible,
-  predictLearningLabel,
+  learningEntryReasons,
+  predictReviewPriority,
   trainStage9Candidate,
-  type LearningLabel,
+  type HumanReviewOutcome,
 } from "../src/learning-loop/learning-loop.js";
 import { SupabaseLearningStore } from "../src/learning-loop/supabase-learning-store.js";
 
@@ -63,14 +65,15 @@ async function status(
   try{
     const [feedback,latestRun,activePromotion]=await Promise.all([
       learningStore.listFeedback(),
-      learningStore.latestRun(),
-      learningStore.latestPromotedRun(),
+      learningStore.latestRun(STAGE9_BENCHMARK_ID),
+      learningStore.latestPromotedRun(STAGE9_BENCHMARK_ID),
     ]);
 
     const recordId=queryValue(request.query?.recordId);
     let recordFeedback=null;
-    let prediction:null|LearningLabel=null;
+    let prediction=null;
     let eligible=false;
+    let reasons:readonly string[]=[];
 
     if(recordId){
       recordFeedback=await learningStore.feedbackForRecord(recordId);
@@ -78,28 +81,34 @@ async function status(
       const history=await evidenceStore.list(750);
       const entry=history.find((item)=>item.recordId===recordId);
       if(entry){
+        reasons=learningEntryReasons(entry);
         eligible=isLearningEligible(entry);
         if(activePromotion&&eligible){
-          prediction=predictLearningLabel(activePromotion.model,extractLearningFeatures(entry));
+          prediction=predictReviewPriority(activePromotion.model,extractLearningFeatures(entry));
         }
       }
     }
 
     response.status(200).json({
       ok:true,
-      benchmark:"stage9-learning-v1-frozen",
+      layer:"VERIFIED_LEARNING",
+      thesis:"ThirdSight proves what can be proven, and learns where proof stops.",
+      benchmark:STAGE9_BENCHMARK_ID,
       verifiedExamples:feedback.length,
       latestRun:latestRun?publicRun(latestRun):null,
       activePromotion:activePromotion?publicRun(activePromotion):null,
       record:{
         recordId:recordId||null,
         eligible,
+        reasons,
         feedback:recordFeedback,
         activePrediction:prediction,
       },
       authority:{
-        allowed:["REVIEW","OBSERVE","ABSTAIN"],
-        forbidden:["CONSTRAIN","ISOLATE","rewrite evidence","change Purpose Contract"],
+        learnedOutput:["HIGH","MEDIUM","LOW"],
+        humanOutcomes:["REVIEW","OBSERVE","ABSTAIN"],
+        forbidden:["CONSTRAIN","ISOLATE","rewrite evidence","change Purpose Contract","change deterministic result"],
+        statement:"Advisory only — deterministic enforcement unchanged.",
       },
     });
   }catch(error){
@@ -119,7 +128,7 @@ async function review(
 ){
   const recordId=typeof body?.recordId==="string"?body.recordId.trim():"";
   const label=body?.label;
-  if(!recordId||!isLearningLabel(label)){
+  if(!recordId||!isHumanOutcome(label)){
     response.status(400).json({error:"INVALID_REVIEW"});return;
   }
 
@@ -129,7 +138,11 @@ async function review(
     const entry=history.find((item)=>item.recordId===recordId);
     if(!entry){response.status(404).json({error:"EVIDENCE_RECORD_NOT_FOUND"});return;}
     if(!isLearningEligible(entry)){
-      response.status(409).json({error:"NOT_LEARNING_ELIGIBLE",reason:"Only ambiguous advisory cases can become human-verified learning examples."});return;
+      response.status(409).json({
+        error:"NOT_LEARNING_ELIGIBLE",
+        reason:"Verified Learning only accepts unresolved third-party cases after deterministic verification stops without CONSTRAIN / ISOLATE authority.",
+      });
+      return;
     }
 
     const features=extractLearningFeatures(entry);
@@ -141,9 +154,9 @@ async function review(
       feedback:result.feedback,
       verifiedExamples:feedback.length,
       immutability:result.inserted
-        ?"Verified outcome appended. This record cannot be silently relabelled."
-        :"This record already had a verified outcome; the original label was preserved.",
-      storedFields:"PII-minimized structured features + advisory label only",
+        ?"Verified human outcome appended. This evidence record cannot be silently relabelled."
+        :"This evidence record already had a verified human outcome; the original was preserved.",
+      storedFields:"PII-minimized residual-evidence features + human-confirmed advisory outcome only",
     });
   }catch(error){
     response.status(503).json({
@@ -159,15 +172,15 @@ async function train(
 ){
   try{
     const feedback=await learningStore.listFeedback();
-    const existing=await learningStore.latestRunForHumanCount(feedback.length);
+    const existing=await learningStore.latestRunForHumanCount(feedback.length,STAGE9_BENCHMARK_ID);
     if(existing){
-      const active=await learningStore.latestPromotedRun();
+      const active=await learningStore.latestPromotedRun(STAGE9_BENCHMARK_ID);
       response.status(200).json({
         ok:true,
         reused:true,
         run:publicRun(existing),
         activePromotion:active?publicRun(active):null,
-        note:"No new verified examples were available, so ThirdSight reused the existing candidate for this dataset version.",
+        note:"No new verified outcomes were available for this benchmark version, so ThirdSight reused the existing candidate.",
       });
       return;
     }
@@ -175,13 +188,13 @@ async function train(
     const candidate=trainStage9Candidate(learningStore.toLearningExamples(feedback));
     const runId=`stage9-learning-${candidate.modelVersion}`;
     const persisted=await learningStore.appendRun(runId,candidate,STAGE9_ALGORITHM);
-    const active=await learningStore.latestPromotedRun();
+    const active=await learningStore.latestPromotedRun(STAGE9_BENCHMARK_ID);
     response.status(201).json({
       ok:true,
       reused:false,
       run:publicRun(persisted),
       activePromotion:active?publicRun(active):null,
-      boundary:"Candidate training is advisory-only. Stage 7 deterministic verification and Stage 8 authority rules are unchanged.",
+      boundary:"Verified Learning only prioritizes unresolved review. Stage 7 deterministic verification and Stage 8 AI authority remain unchanged.",
     });
   }catch(error){
     response.status(503).json({
@@ -207,7 +220,7 @@ function publicRun(run:any){
   };
 }
 
-function isLearningLabel(value:unknown):value is LearningLabel{
+function isHumanOutcome(value:unknown):value is HumanReviewOutcome{
   return value==="REVIEW"||value==="OBSERVE"||value==="ABSTAIN";
 }
 

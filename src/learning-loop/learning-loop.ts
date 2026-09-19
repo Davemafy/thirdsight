@@ -1,35 +1,35 @@
 import type { EvidenceHistoryEntry } from "../infrastructure/evidence-history/evidence-history-store.js";
 
-export type LearningLabel = "REVIEW" | "OBSERVE" | "ABSTAIN";
+export type HumanReviewOutcome = "REVIEW" | "OBSERVE" | "ABSTAIN";
+export type ReviewPriority = "HIGH" | "MEDIUM" | "LOW";
 
 export interface LearningFeatures {
   managedEnvironment: 0 | 1;
   crossOrigin: 0 | 1;
-  sameOrigin: 0 | 1;
-  purposeKnown: 0 | 1;
+  purposeUnknown: 0 | 1;
   purposePartial: 0 | 1;
-  whyKnown: 0 | 1;
+  whyUnknown: 0 | 1;
   whyPartial: 0 | 1;
-  integrationResolved: 0 | 1;
+  integrationUnresolved: 0 | 1;
   browserOnly: 0 | 1;
   staticAsset: 0 | 1;
-  newDestination: 0 | 1;
   hasDataCategories: 0 | 1;
   strongCorrelation: 0 | 1;
-  hasFinding: 0 | 1;
+  deterministicObserve: 0 | 1;
   postRequest: 0 | 1;
 }
 
 export interface LearningExample {
   exampleId: string;
-  label: LearningLabel;
+  target: ReviewPriority;
   features: LearningFeatures;
   source: "SYNTHETIC_SEED" | "HUMAN_VERIFIED" | "FROZEN_BENCHMARK";
+  confirmedOutcome?: HumanReviewOutcome;
 }
 
 export interface LinearAdvisoryModel {
   modelType: "MULTICLASS_LOGISTIC_REGRESSION";
-  labels: readonly LearningLabel[];
+  labels: readonly ReviewPriority[];
   featureNames: readonly (keyof LearningFeatures)[];
   weights: readonly (readonly number[])[];
   bias: readonly number[];
@@ -37,11 +37,17 @@ export interface LinearAdvisoryModel {
 
 export interface LearningMetrics {
   cases: number;
-  accuracy: number;
-  reviewRecall: number;
-  benignFalseReviewRate: number;
+  priorityAccuracy: number;
+  highPriorityRecall: number;
+  lowPriorityFalseHighRate: number;
   authorityViolations: 0;
   harmfulResponseRate: 0;
+}
+
+export interface ReviewPriorityPrediction {
+  priority: ReviewPriority;
+  reviewScore: number;
+  probabilities: Readonly<Record<ReviewPriority, number>>;
 }
 
 export interface LearningCandidate {
@@ -56,35 +62,57 @@ export interface LearningCandidate {
   promotionReason: string;
 }
 
-export const STAGE9_BENCHMARK_ID = "stage9-learning-v1-frozen";
-export const STAGE9_ALGORITHM = "multiclass-logistic-regression-v1";
+export const STAGE9_BENCHMARK_ID = "stage9-review-priority-v2-frozen";
+export const STAGE9_ALGORITHM = "multiclass-logistic-regression-review-priority-v2";
 export const FEATURE_NAMES: readonly (keyof LearningFeatures)[] = [
   "managedEnvironment",
   "crossOrigin",
-  "sameOrigin",
-  "purposeKnown",
+  "purposeUnknown",
   "purposePartial",
-  "whyKnown",
+  "whyUnknown",
   "whyPartial",
-  "integrationResolved",
+  "integrationUnresolved",
   "browserOnly",
   "staticAsset",
-  "newDestination",
   "hasDataCategories",
   "strongCorrelation",
-  "hasFinding",
+  "deterministicObserve",
   "postRequest",
 ];
-const LABELS: readonly LearningLabel[] = ["REVIEW", "OBSERVE", "ABSTAIN"];
+const PRIORITIES: readonly ReviewPriority[] = ["HIGH", "MEDIUM", "LOW"];
+
+export function learningEntryReasons(entry: EvidenceHistoryEntry): readonly string[] {
+  if (entry.decision === "CONSTRAIN" || entry.decision === "ISOLATE") return [];
+  if (entry.outcome === "PREVENTED" || entry.outcome === "DETECTED") return [];
+
+  const evidence = entry.evidence;
+  const did = evidence.did.value;
+  const isThirdPartyCandidate =
+    did?.originRelationship === "CROSS_ORIGIN" ||
+    entry.decision === "OBSERVE";
+  if (!isThirdPartyCandidate) return [];
+
+  const reasons: string[] = [];
+  if (evidence.should.status === "UNKNOWN") reasons.push("Approved purpose is unknown.");
+  else if (evidence.should.status === "PARTIAL") reasons.push("Approved purpose is only partially established.");
+
+  if (evidence.why.status === "UNKNOWN") reasons.push("Business justification is unknown.");
+  else if (evidence.why.status === "PARTIAL") reasons.push("Business justification is only partially correlated.");
+
+  if (evidence.integrationResolution !== "RESOLVED") reasons.push("Integration identity is unresolved.");
+  if (evidence.coverage?.label === "BROWSER_ONLY") reasons.push("Visibility is browser-only.");
+  if (evidence.could.status === "UNKNOWN" || evidence.could.status === "PARTIAL") {
+    reasons.push("Technical capability is only a lower bound.");
+  }
+  if (entry.decision === "OBSERVE") {
+    reasons.push("Deterministic verification stopped at OBSERVE; no enforcement conclusion was justified.");
+  }
+
+  return reasons;
+}
 
 export function isLearningEligible(entry: EvidenceHistoryEntry): boolean {
-  if (entry.decision === "CONSTRAIN" || entry.decision === "ISOLATE") return false;
-  if (entry.outcome === "PREVENTED" || entry.outcome === "DETECTED") return false;
-  if (entry.decision === "OBSERVE") return true;
-  const evidence = entry.evidence;
-  return [evidence.should.status, evidence.could.status, evidence.why.status].some(
-    (status) => status === "UNKNOWN" || status === "PARTIAL",
-  );
+  return learningEntryReasons(entry).length > 0;
 }
 
 export function extractLearningFeatures(entry: EvidenceHistoryEntry): LearningFeatures {
@@ -92,49 +120,52 @@ export function extractLearningFeatures(entry: EvidenceHistoryEntry): LearningFe
   const did = evidence.did.value;
   const resourceType = did?.resourceType?.toLowerCase() ?? "";
   const path = did?.destinationPath?.toLowerCase() ?? "";
-  const staticAsset = resourceType === "image" || resourceType === "font" ||
+  const staticAsset =
+    resourceType === "image" ||
+    resourceType === "font" ||
     /\.(?:css|js|mjs|woff2?|ttf|otf|png|jpe?g|gif|webp|svg|ico)(?:$|\?)/.test(path) ||
     /(?:\/assets\/|\/static\/|\/fonts?\/|favicon)/.test(path);
-  const managedEnvironment = evidence.coverage?.label === "MULTI_BOUNDARY" ||
+  const managedEnvironment =
+    evidence.coverage?.label === "MULTI_BOUNDARY" ||
     Boolean(evidence.integrationId) ||
     (entry.observation && "environment" in entry.observation && entry.observation.environment === "production");
-  const crossOrigin = did?.originRelationship === "CROSS_ORIGIN";
-  const sameOrigin = did?.originRelationship === "SAME_ORIGIN";
-  const integrationResolved = evidence.integrationResolution === "RESOLVED";
-  const newDestination = managedEnvironment && crossOrigin && !integrationResolved;
-  const strongCorrelation = evidence.why.value?.correlationStrength === "BUSINESS_OBJECT_HASH" ||
+  const strongCorrelation =
+    evidence.why.value?.correlationStrength === "BUSINESS_OBJECT_HASH" ||
     evidence.why.value?.correlationStrength === "EXACT_REFERENCE";
 
   return {
     managedEnvironment: bit(managedEnvironment),
-    crossOrigin: bit(crossOrigin),
-    sameOrigin: bit(sameOrigin),
-    purposeKnown: bit(evidence.should.status === "KNOWN"),
+    crossOrigin: bit(did?.originRelationship === "CROSS_ORIGIN"),
+    purposeUnknown: bit(evidence.should.status === "UNKNOWN"),
     purposePartial: bit(evidence.should.status === "PARTIAL"),
-    whyKnown: bit(evidence.why.status === "KNOWN"),
+    whyUnknown: bit(evidence.why.status === "UNKNOWN"),
     whyPartial: bit(evidence.why.status === "PARTIAL"),
-    integrationResolved: bit(integrationResolved),
+    integrationUnresolved: bit(evidence.integrationResolution !== "RESOLVED"),
     browserOnly: bit(evidence.coverage?.label === "BROWSER_ONLY"),
     staticAsset: bit(staticAsset),
-    newDestination: bit(newDestination),
     hasDataCategories: bit((did?.dataCategories?.length ?? 0) > 0),
     strongCorrelation: bit(strongCorrelation),
-    hasFinding: bit((entry.findings?.length ?? 0) > 0),
+    deterministicObserve: bit(entry.decision === "OBSERVE"),
     postRequest: bit(did?.method?.toUpperCase() === "POST"),
   };
 }
 
-export function baselinePredict(features: LearningFeatures): LearningLabel {
-  if (features.staticAsset || features.sameOrigin) return "ABSTAIN";
-  if (features.newDestination) return "REVIEW";
-  if (
-    features.managedEnvironment &&
-    features.crossOrigin &&
-    !features.purposeKnown &&
-    !features.purposePartial
-  ) return "REVIEW";
-  if (features.crossOrigin) return "OBSERVE";
-  return "ABSTAIN";
+export function humanOutcomeToPriority(outcome: HumanReviewOutcome): ReviewPriority {
+  if (outcome === "REVIEW") return "HIGH";
+  if (outcome === "OBSERVE") return "MEDIUM";
+  return "LOW";
+}
+
+export function baselinePriority(features: LearningFeatures): ReviewPriority {
+  let score = 0;
+  score += 2 * features.purposeUnknown + features.purposePartial;
+  score += 2 * features.whyUnknown + features.whyPartial;
+  score += features.integrationUnresolved + 0.75 * features.crossOrigin;
+  score += features.hasDataCategories + 0.5 * features.postRequest + 0.5 * features.deterministicObserve;
+  score -= 1.25 * features.strongCorrelation + 3 * features.staticAsset + 0.25 * features.browserOnly;
+  if (score >= 5.75) return "HIGH";
+  if (score >= 2.25) return "MEDIUM";
+  return "LOW";
 }
 
 export function trainStage9Candidate(
@@ -147,19 +178,22 @@ export function trainStage9Candidate(
     ...cleanHuman.flatMap((example) => [example, example, example]),
   ];
   const model = trainMulticlassLogisticRegression(training);
-  const benchmark = buildFrozenBenchmarkV1();
-  const baselineMetrics = evaluatePredictor(benchmark, baselinePredict);
-  const candidateMetrics = evaluatePredictor(benchmark, (features) => predictLearningLabel(model, features));
+  const benchmark = buildFrozenBenchmarkV2();
+  const baselineMetrics = evaluatePriorityPredictor(benchmark, baselinePriority);
+  const candidateMetrics = evaluatePriorityPredictor(
+    benchmark,
+    (features) => predictReviewPriority(model, features).priority,
+  );
   const promoted =
-    candidateMetrics.accuracy > baselineMetrics.accuracy &&
-    candidateMetrics.reviewRecall >= baselineMetrics.reviewRecall &&
-    candidateMetrics.benignFalseReviewRate <= baselineMetrics.benignFalseReviewRate &&
+    candidateMetrics.priorityAccuracy > baselineMetrics.priorityAccuracy &&
+    candidateMetrics.highPriorityRecall >= baselineMetrics.highPriorityRecall &&
+    candidateMetrics.lowPriorityFalseHighRate <= baselineMetrics.lowPriorityFalseHighRate &&
     candidateMetrics.authorityViolations === 0 &&
     candidateMetrics.harmfulResponseRate === 0;
 
   return {
     model,
-    modelVersion: `stage9-linear-v1-h${cleanHuman.length}`,
+    modelVersion: `stage9-priority-v2-h${cleanHuman.length}`,
     benchmarkId: STAGE9_BENCHMARK_ID,
     trainingExamples: training.length,
     humanVerifiedExamples: cleanHuman.length,
@@ -167,66 +201,83 @@ export function trainStage9Candidate(
     candidateMetrics,
     promoted,
     promotionReason: promoted
-      ? "Candidate improved frozen held-out accuracy without increasing benign false reviews, preserved review recall, and retained zero authority/harmful responses."
-      : "Candidate did not clear the predeclared Stage 9 promotion gate. Keep the previously promoted learned model, if any.",
+      ? "Candidate improved frozen residual-case priority accuracy, preserved or improved high-priority recall, did not increase false HIGH priority on LOW cases, and retained zero authority/harmful responses."
+      : "Candidate did not clear the predeclared residual-learning gate. Keep the previously promoted priority model, if any.",
   };
 }
 
-export function predictLearningLabel(
+export function predictReviewPriority(
   model: LinearAdvisoryModel,
   features: LearningFeatures,
-): LearningLabel {
+): ReviewPriorityPrediction {
   const x = vectorize(features);
-  let bestIndex = 0;
-  let bestScore = Number.NEGATIVE_INFINITY;
-  for (let labelIndex = 0; labelIndex < model.labels.length; labelIndex += 1) {
+  const scores = model.labels.map((_, labelIndex) => {
     let score = model.bias[labelIndex] ?? 0;
     const row = model.weights[labelIndex] ?? [];
     for (let featureIndex = 0; featureIndex < x.length; featureIndex += 1) {
       score += (row[featureIndex] ?? 0) * x[featureIndex];
     }
-    if (score > bestScore) {
-      bestScore = score;
-      bestIndex = labelIndex;
-    }
+    return score;
+  });
+  const values = softmax(scores);
+  let bestIndex = 0;
+  for (let index = 1; index < values.length; index += 1) {
+    if ((values[index] ?? 0) > (values[bestIndex] ?? 0)) bestIndex = index;
   }
-  return model.labels[bestIndex] ?? "ABSTAIN";
+  const probability = (priority: ReviewPriority) => {
+    const index = model.labels.indexOf(priority);
+    return index >= 0 ? values[index] ?? 0 : 0;
+  };
+  const high = probability("HIGH");
+  const medium = probability("MEDIUM");
+  return {
+    priority: model.labels[bestIndex] ?? "LOW",
+    reviewScore: Math.round((high + 0.5 * medium) * 100),
+    probabilities: {
+      HIGH: round(high),
+      MEDIUM: round(medium),
+      LOW: round(probability("LOW")),
+    },
+  };
 }
 
-export function buildFrozenBenchmarkV1(): LearningExample[] {
+export function buildFrozenBenchmarkV2(): LearningExample[] {
   const rows: LearningExample[] = [];
-  const push = (id: string, label: LearningLabel, features: LearningFeatures) =>
-    rows.push({ exampleId: `benchmark:${id}`, label, features, source: "FROZEN_BENCHMARK" });
+  const push = (id: string, target: ReviewPriority, features: LearningFeatures) =>
+    rows.push({ exampleId: `benchmark-v2:${id}`, target, features, source: "FROZEN_BENCHMARK" });
 
   for (let i = 0; i < 12; i += 1) {
-    push(`review-new-destination-${i}`, "REVIEW", feature({
-      managedEnvironment:1,crossOrigin:1,newDestination:1,browserOnly:1,postRequest:i%2 as 0|1,
-      purposePartial:(i%3===0?1:0),whyPartial:(i%4===0?1:0),
+    push(`high-unresolved-data-post-${i}`, "HIGH", feature({
+      managedEnvironment:1,crossOrigin:1,integrationUnresolved:1,purposeUnknown:1,whyUnknown:1,
+      hasDataCategories:1,postRequest:1,
     }));
-    push(`review-known-purpose-missing-why-${i}`, "REVIEW", feature({
-      managedEnvironment:1,crossOrigin:1,integrationResolved:1,purposeKnown:1,browserOnly:i%2 as 0|1,
-      postRequest:1,hasDataCategories:1,
+    push(`high-known-purpose-no-why-${i}`, "HIGH", feature({
+      managedEnvironment:1,crossOrigin:1,whyUnknown:1,hasDataCategories:1,postRequest:1,
+      browserOnly:i%3===0?1:0,
     }));
-    push(`review-event-without-contract-${i}`, "REVIEW", feature({
-      managedEnvironment:1,crossOrigin:1,integrationResolved:1,whyKnown:1,postRequest:1,
-      hasDataCategories:i%2 as 0|1,
+    push(`high-observe-purpose-gap-${i}`, "HIGH", feature({
+      managedEnvironment:1,crossOrigin:1,purposeUnknown:1,whyPartial:1,deterministicObserve:1,
+      hasDataCategories:1,postRequest:1,
     }));
-    push(`observe-public-runtime-${i}`, "OBSERVE", feature({
-      crossOrigin:1,browserOnly:1,postRequest:i%2 as 0|1,
+    push(`medium-unresolved-browser-${i}`, "MEDIUM", feature({
+      managedEnvironment:1,crossOrigin:1,integrationUnresolved:1,browserOnly:1,whyUnknown:1,
+      hasDataCategories:0,postRequest:0,
     }));
-    push(`observe-approved-opaque-${i}`, "OBSERVE", feature({
-      managedEnvironment:1,crossOrigin:1,purposeKnown:1,whyKnown:1,integrationResolved:1,
-      browserOnly:1,strongCorrelation:i%2 as 0|1,postRequest:1,
+    push(`medium-partial-both-${i}`, "MEDIUM", feature({
+      managedEnvironment:1,crossOrigin:1,purposePartial:1,whyPartial:1,browserOnly:1,postRequest:1,
+      hasDataCategories:i%4===0?1:0,
     }));
-    push(`observe-partial-purpose-${i}`, "OBSERVE", feature({
-      managedEnvironment:1,crossOrigin:1,purposePartial:1,whyKnown:1,integrationResolved:1,
-      postRequest:1,hasDataCategories:i%2 as 0|1,
+    push(`medium-public-cross-${i}`, "MEDIUM", feature({
+      crossOrigin:1,purposeUnknown:1,whyUnknown:1,browserOnly:1,hasDataCategories:0,
+      postRequest:0,
     }));
-    push(`abstain-first-party-static-${i}`, "ABSTAIN", feature({
-      managedEnvironment:1,sameOrigin:1,staticAsset:1,integrationResolved:i%2 as 0|1,
+    push(`low-static-unknown-${i}`, "LOW", feature({
+      crossOrigin:1,purposeUnknown:1,whyUnknown:1,browserOnly:1,staticAsset:1,
+      hasDataCategories:0,postRequest:0,
     }));
-    push(`abstain-public-static-${i}`, "ABSTAIN", feature({
-      crossOrigin:1,browserOnly:1,staticAsset:1,
+    push(`low-strong-correlation-partial-${i}`, "LOW", feature({
+      managedEnvironment:1,crossOrigin:1,purposePartial:1,whyPartial:1,strongCorrelation:1,
+      browserOnly:1,hasDataCategories:0,postRequest:0,
     }));
   }
   return rows;
@@ -236,7 +287,7 @@ export function buildSyntheticTrainingSet(): LearningExample[] {
   const rows: LearningExample[] = [];
   const add = (
     family: string,
-    label: LearningLabel,
+    target: ReviewPriority,
     base: Partial<LearningFeatures>,
     count = 18,
   ) => {
@@ -244,60 +295,84 @@ export function buildSyntheticTrainingSet(): LearningExample[] {
       const features = feature({
         ...base,
         postRequest: base.postRequest ?? ((i + family.length) % 2 as 0 | 1),
-        hasDataCategories: base.hasDataCategories ?? ((i % 3 === 0) ? 1 : 0),
-        browserOnly: base.browserOnly ?? ((i % 4 === 0) ? 1 : 0),
+        hasDataCategories: base.hasDataCategories ?? (i % 3 === 0 ? 1 : 0),
+        browserOnly: base.browserOnly ?? (i % 4 === 0 ? 1 : 0),
       });
       rows.push({
-        exampleId: `seed:${family}:${i}`,
-        label,
+        exampleId: `seed-v2:${family}:${i}`,
+        target,
         features,
         source: "SYNTHETIC_SEED",
       });
     }
   };
 
-  add("managed-new-destination", "REVIEW", { managedEnvironment:1,crossOrigin:1,newDestination:1 });
-  add("known-purpose-missing-why", "REVIEW", { managedEnvironment:1,crossOrigin:1,purposeKnown:1,integrationResolved:1 });
-  add("event-without-contract", "REVIEW", { managedEnvironment:1,crossOrigin:1,whyKnown:1,integrationResolved:1 });
-  add("partial-contract-gap", "REVIEW", { managedEnvironment:1,crossOrigin:1,purposePartial:1,integrationResolved:1,whyPartial:1 });
-  add("public-runtime", "OBSERVE", { crossOrigin:1,browserOnly:1 });
-  add("approved-opaque", "OBSERVE", { managedEnvironment:1,crossOrigin:1,purposeKnown:1,whyKnown:1,integrationResolved:1,browserOnly:1,strongCorrelation:1 });
-  add("partial-purpose-known-context", "OBSERVE", { managedEnvironment:1,crossOrigin:1,purposePartial:1,whyKnown:1,integrationResolved:1 });
-  add("first-party-static", "ABSTAIN", { managedEnvironment:1,sameOrigin:1,staticAsset:1 });
-  add("public-static", "ABSTAIN", { crossOrigin:1,browserOnly:1,staticAsset:1 });
-  add("first-party-health", "ABSTAIN", { managedEnvironment:1,sameOrigin:1,staticAsset:1,browserOnly:1 });
+  add("managed-unknown-purpose-why-data", "HIGH", {
+    managedEnvironment:1,crossOrigin:1,purposeUnknown:1,whyUnknown:1,hasDataCategories:1,postRequest:1,
+  });
+  add("managed-unresolved-post", "HIGH", {
+    managedEnvironment:1,crossOrigin:1,integrationUnresolved:1,whyUnknown:1,postRequest:1,
+  });
+  add("known-purpose-missing-why-data", "HIGH", {
+    managedEnvironment:1,crossOrigin:1,whyUnknown:1,hasDataCategories:1,postRequest:1,
+  });
+  add("partial-purpose-known-context", "MEDIUM", {
+    managedEnvironment:1,crossOrigin:1,purposePartial:1,whyPartial:1,postRequest:1,
+  });
+  add("unresolved-no-visible-data", "MEDIUM", {
+    managedEnvironment:1,crossOrigin:1,integrationUnresolved:1,browserOnly:1,whyUnknown:1,
+    hasDataCategories:0,postRequest:0,
+  });
+  add("public-cross-origin-runtime", "MEDIUM", {
+    crossOrigin:1,purposeUnknown:1,whyUnknown:1,browserOnly:1,hasDataCategories:0,
+  });
+  add("known-context-browser-gap", "MEDIUM", {
+    managedEnvironment:1,crossOrigin:1,purposePartial:1,whyPartial:1,browserOnly:1,strongCorrelation:1,
+  });
+  add("static-cdn-unknown", "LOW", {
+    crossOrigin:1,purposeUnknown:1,whyUnknown:1,browserOnly:1,staticAsset:1,
+    postRequest:0,hasDataCategories:0,
+  });
+  add("strong-correlation-partial", "LOW", {
+    managedEnvironment:1,crossOrigin:1,purposePartial:1,whyPartial:1,strongCorrelation:1,browserOnly:1,
+    postRequest:0,hasDataCategories:0,
+  });
+  add("known-purpose-low-signal-gap", "LOW", {
+    managedEnvironment:1,crossOrigin:1,purposePartial:1,whyPartial:1,strongCorrelation:1,browserOnly:1,
+    postRequest:0,hasDataCategories:0,
+  });
 
   return rows;
 }
 
-export function evaluatePredictor(
+export function evaluatePriorityPredictor(
   benchmark: readonly LearningExample[],
-  predictor: (features: LearningFeatures) => LearningLabel,
+  predictor: (features: LearningFeatures) => ReviewPriority,
 ): LearningMetrics {
   let correct = 0;
-  let reviewTotal = 0;
-  let reviewCorrect = 0;
-  let benignTotal = 0;
-  let benignFalseReview = 0;
+  let highTotal = 0;
+  let highCorrect = 0;
+  let lowTotal = 0;
+  let lowFalseHigh = 0;
 
   for (const example of benchmark) {
     const predicted = predictor(example.features);
-    if (predicted === example.label) correct += 1;
-    if (example.label === "REVIEW") {
-      reviewTotal += 1;
-      if (predicted === "REVIEW") reviewCorrect += 1;
+    if (predicted === example.target) correct += 1;
+    if (example.target === "HIGH") {
+      highTotal += 1;
+      if (predicted === "HIGH") highCorrect += 1;
     }
-    if (example.label === "ABSTAIN") {
-      benignTotal += 1;
-      if (predicted === "REVIEW") benignFalseReview += 1;
+    if (example.target === "LOW") {
+      lowTotal += 1;
+      if (predicted === "HIGH") lowFalseHigh += 1;
     }
   }
 
   return {
     cases: benchmark.length,
-    accuracy: round(correct / Math.max(1, benchmark.length)),
-    reviewRecall: round(reviewCorrect / Math.max(1, reviewTotal)),
-    benignFalseReviewRate: round(benignFalseReview / Math.max(1, benignTotal)),
+    priorityAccuracy: round(correct / Math.max(1, benchmark.length)),
+    highPriorityRecall: round(highCorrect / Math.max(1, highTotal)),
+    lowPriorityFalseHighRate: round(lowFalseHigh / Math.max(1, lowTotal)),
     authorityViolations: 0,
     harmfulResponseRate: 0,
   };
@@ -307,8 +382,8 @@ function trainMulticlassLogisticRegression(
   examples: readonly LearningExample[],
 ): LinearAdvisoryModel {
   const dimensions = FEATURE_NAMES.length;
-  const weights = LABELS.map(() => Array(dimensions).fill(0) as number[]);
-  const bias = LABELS.map(() => 0);
+  const weights = PRIORITIES.map(() => Array(dimensions).fill(0) as number[]);
+  const bias = PRIORITIES.map(() => 0);
   const learningRate = 0.08;
   const l2 = 0.0008;
   const epochs = 420;
@@ -317,7 +392,7 @@ function trainMulticlassLogisticRegression(
     const rate = learningRate / (1 + epoch * 0.002);
     for (const example of examples) {
       const x = vectorize(example.features);
-      const scores = LABELS.map((_, labelIndex) => {
+      const scores = PRIORITIES.map((_, labelIndex) => {
         let score = bias[labelIndex];
         for (let featureIndex = 0; featureIndex < dimensions; featureIndex += 1) {
           score += weights[labelIndex][featureIndex] * x[featureIndex];
@@ -325,9 +400,9 @@ function trainMulticlassLogisticRegression(
         return score;
       });
       const probabilities = softmax(scores);
-      const expectedIndex = LABELS.indexOf(example.label);
+      const expectedIndex = PRIORITIES.indexOf(example.target);
 
-      for (let labelIndex = 0; labelIndex < LABELS.length; labelIndex += 1) {
+      for (let labelIndex = 0; labelIndex < PRIORITIES.length; labelIndex += 1) {
         const error = (labelIndex === expectedIndex ? 1 : 0) - probabilities[labelIndex];
         bias[labelIndex] += rate * error;
         for (let featureIndex = 0; featureIndex < dimensions; featureIndex += 1) {
@@ -341,7 +416,7 @@ function trainMulticlassLogisticRegression(
 
   return {
     modelType: "MULTICLASS_LOGISTIC_REGRESSION",
-    labels: LABELS,
+    labels: PRIORITIES,
     featureNames: FEATURE_NAMES,
     weights: weights.map((row) => row.map((value) => roundWeight(value))),
     bias: bias.map((value) => roundWeight(value)),
@@ -354,9 +429,9 @@ function vectorize(features: LearningFeatures): number[] {
 
 function feature(overrides: Partial<LearningFeatures>): LearningFeatures {
   return {
-    managedEnvironment:0,crossOrigin:0,sameOrigin:0,purposeKnown:0,purposePartial:0,
-    whyKnown:0,whyPartial:0,integrationResolved:0,browserOnly:0,staticAsset:0,
-    newDestination:0,hasDataCategories:0,strongCorrelation:0,hasFinding:0,postRequest:0,
+    managedEnvironment:0,crossOrigin:0,purposeUnknown:0,purposePartial:0,
+    whyUnknown:0,whyPartial:0,integrationUnresolved:0,browserOnly:0,staticAsset:0,
+    hasDataCategories:0,strongCorrelation:0,deterministicObserve:0,postRequest:0,
     ...overrides,
   };
 }

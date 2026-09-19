@@ -9,7 +9,7 @@ This directory contains the canonical product and implementation documents for T
 - [`browser-evidence-adapter-v0.md`](browser-evidence-adapter-v0.md) — browser observation contract, feasibility results, privacy reduction, and evidence projection semantics.
 - [`evidence-persistence-v0.md`](evidence-persistence-v0.md) — durable browser evidence history, exact-origin integration identity resolution, sensor authentication, and persistence failure semantics.
 - [`stage7-evaluation.md`](stage7-evaluation.md) — completed controlled attack scenarios, frozen detector manifest, unseen-seed evaluation metrics, and declared perfect-mimic blind spot.
-- [`stage8-ai-evaluation.md`](stage8-ai-evaluation.md) — AI authority boundary, the rejected local-model experiment, the fresh Groq AI OFF / AI ON evaluation, separate persistence, and the evidence-based advisory promotion decision.
+- [`stage8-ai-evaluation.md`](stage8-ai-evaluation.md) — AI authority boundary, the rejected local-model experiment, the fresh Groq AI OFF / AI ON evaluation, separate persistence, and the evidence-based advisory promotion decision.\n- [`stage9-learning-loop.md`](stage9-learning-loop.md) — Verified Learning as the residual advisory layer: human-confirmed outcomes, review-priority learning, frozen promotion gate, and explicit separation from deterministic enforcement.
 
 ## Document discipline
 

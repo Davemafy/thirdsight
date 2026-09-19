@@ -1,143 +1,182 @@
-# Stage 9 — Verified Learning Loop
+# Stage 9 — Verified Learning
 
-**Status:** COMPLETE — VERIFIED LEARNING CANDIDATE PASSES FROZEN GATE  
+**Status:** IMPLEMENTED — RESIDUAL REVIEW-PRIORITY TARGET, PRODUCTION SEED PROMOTION PENDING  
+**Product thesis:** **ThirdSight proves what can be proven, and learns where proof stops.**  
 **Deterministic detector:** `stage7-v1-frozen` (unchanged)  
-**Stage 8 analyst:** `stage8-v2` GPT-OSS 120B (unchanged)  
-**Learning benchmark:** `stage9-learning-v1-frozen`  
+**Stage 8 analyst authority:** unchanged  
+**Learning benchmark:** `stage9-review-priority-v2-frozen`  
 **Model family:** multiclass logistic regression  
-**Advisory labels only:** `REVIEW / OBSERVE / ABSTAIN`
+**Learned output only:** `HIGH / MEDIUM / LOW REVIEW PRIORITY`
 
-Stage 9 adds a controlled learning loop without turning ThirdSight into a self-modifying enforcement system.
+Verified Learning is not a second detector and it is not part of deterministic enforcement.
 
-The loop is:
+The product is intentionally split into two layers:
 
-`ambiguous evidence -> human verified label -> PII-minimized learning row -> offline candidate training -> frozen held-out evaluation -> promote or reject`
+- **Proof layer** — reconstructs SHOULD / COULD / DID / WHY, produces deterministic findings, and retains all `ALLOW / CONSTRAIN / ISOLATE` authority plus the existing `PREVENTED / DETECTED` semantics.
+- **Verified Learning layer** — activates only after deterministic verification stops with materially incomplete third-party evidence. It learns how strongly past verified outcomes suggest that the unresolved case deserves human review.
 
-The learned model never acquires `CONSTRAIN` or `ISOLATE` authority and cannot modify SHOULD / COULD / DID / WHY, Purpose Contracts, evidence history, or Stage 7 deterministic findings.
+The product path is:
 
-## Why this exists
+`Evidence -> Deterministic verification -> if unresolved -> Verified Learning -> Human review`
 
-ThirdSight already distinguishes deterministic enforcement from advisory reasoning. Stage 9 asks a narrower question:
+## What changed from Stage 9 v1
 
-> Can verified operational feedback improve advisory triage while preserving the deterministic safety boundary?
+The first Stage 9 target classified `REVIEW / OBSERVE / ABSTAIN`. That was safe, but it was too close to imitating rule-like triage already encoded elsewhere in ThirdSight.
 
-The implementation deliberately trains a small interpretable classifier rather than another LLM. This makes the learning loop fast enough to demonstrate live and simple enough to inspect.
+Stage 9 v2 changes only the learning target. It asks:
 
-## Data boundary
+> Given that ThirdSight cannot prove this third-party case either safe or unjustified, how strongly does verified past experience suggest that a human should review it?
 
-Human feedback stores only:
+The model now outputs a review priority:
+
+- **HIGH** — verified experience suggests this unresolved case deserves prompt human review;
+- **MEDIUM** — the case remains unresolved and worth monitoring/review, but evidence does not support high urgency;
+- **LOW** — the evidence is still incomplete, but verified patterns suggest low review priority.
+
+A 0–100 advisory review score is derived from the learned HIGH / MEDIUM / LOW probabilities for display. It has no enforcement meaning.
+
+## Eligibility boundary
+
+Verified Learning is downstream of the proof layer.
+
+A record is excluded when deterministic authority has already produced `CONSTRAIN`, `ISOLATE`, `PREVENTED`, or `DETECTED`.
+
+A record may enter Verified Learning only when it is third-party-like (`CROSS_ORIGIN` or deterministic `OBSERVE`) and proof remains incomplete, for example:
+
+- Purpose Contract is UNKNOWN or PARTIAL;
+- business justification is UNKNOWN or PARTIAL;
+- integration identity is unresolved;
+- visibility is browser-only;
+- technical capability is only a lower bound;
+- deterministic verification stops at OBSERVE because semantics cannot be proven.
+
+This means the model is trained on the **residual uncertainty**, not on the deterministic cases ThirdSight already knows how to handle.
+
+## Human feedback contract
+
+Human review remains immutable by evidence record ID and stores only:
 
 - evidence record ID;
-- one advisory label: `REVIEW`, `OBSERVE`, or `ABSTAIN`;
-- a structured feature vector derived from ThirdSight evidence;
+- one human-confirmed advisory outcome: `REVIEW`, `OBSERVE`, or `ABSTAIN`;
+- a PII-minimized residual-evidence feature vector;
 - timestamp and source `HUMAN_VERIFIED`.
 
-It does **not** persist raw customer payloads, cookies, request bodies, business-object hashes, or PII values.
+For learning, these confirmed outcomes map to review priority:
 
-A review is immutable by record ID. A second submission returns the original verified outcome instead of silently relabelling it.
+- `REVIEW -> HIGH`
+- `OBSERVE -> MEDIUM`
+- `ABSTAIN -> LOW`
 
-## Feature space
+No raw request body, customer value, cookie, business-object hash, or PII value is persisted as a learning feature.
 
-The learning model uses boolean features derived from evidence semantics:
+## Residual feature space
+
+The model uses only coarse evidence-state features:
 
 - managed environment;
-- cross-origin / same-origin;
-- authoritative or partial purpose evidence;
-- authoritative or partial WHY evidence;
-- integration identity resolved;
+- cross-origin observation;
+- purpose UNKNOWN / PARTIAL;
+- WHY UNKNOWN / PARTIAL;
+- integration identity unresolved;
 - browser-only coverage;
-- static asset;
-- new unresolved destination;
-- visible data categories;
+- static-resource signal;
+- presence of visible data categories;
 - strong first-party correlation;
-- deterministic finding present;
+- deterministic OBSERVE;
 - POST request.
 
-Raw URLs and raw customer values are not model features.
+These features describe evidence completeness and review context. They do not widen the Purpose Contract or infer facts that are absent from evidence.
 
 ## Training and benchmark separation
 
 Synthetic seed corpus:
 
-- **180** examples;
-- scenario families include managed new destinations, missing WHY, missing contracts, partial purpose evidence, public runtime observations, approved opaque requests, first-party static traffic, and public static assets.
+- **180** residual third-party examples;
+- target is review priority, not enforcement action;
+- all seed examples remain outside Stage 7 deterministic authority.
 
 Frozen held-out benchmark:
 
-- **96** cases;
-- benchmark ID: `stage9-learning-v1-frozen`;
-- never used as training data.
+- **96** residual third-party cases;
+- benchmark ID: `stage9-review-priority-v2-frozen`;
+- never used as training data;
+- evaluates HIGH / MEDIUM / LOW review priority only.
 
-Human-verified feedback is appended to the seed corpus with a small weight increase so reviewer-confirmed outcomes can influence later candidates without dominating the seed distribution.
+Human-verified feedback is appended to the seed corpus with limited extra weight so confirmed outcomes can influence later candidates without dominating the synthetic prior.
 
 ## Predeclared promotion gate
 
 A candidate is promoted only when all conditions hold:
 
-1. held-out accuracy improves over the fixed baseline;
-2. review recall does not decline;
-3. benign false-review rate does not increase;
+1. held-out priority accuracy improves over the fixed non-learning review-priority baseline;
+2. HIGH-priority recall does not decline;
+3. LOW-priority cases falsely escalated to HIGH do not increase;
 4. authority violations remain zero;
 5. harmful-response rate remains zero.
 
-If a candidate fails, the latest previously promoted learned model remains active.
+A failed candidate is persisted as **REJECTED** and never displaces the latest promoted model.
 
-## First frozen evaluation
+## Authority boundary
 
-Workflow run: `35399106503`
+Verified Learning may:
 
-| Metric | Baseline | Learned candidate |
-| --- | ---: | ---: |
-| Held-out cases | 96 | 96 |
-| Accuracy | 87.50% | **90.625%** |
-| Review recall | 66.67% | **91.67%** |
-| Benign false-review rate | 0.00% | **0.00%** |
-| Authority violations | 0 | **0** |
-| Harmful-response rate | 0.00% | **0.00%** |
+- output HIGH / MEDIUM / LOW review priority;
+- rank unresolved cases for human attention;
+- learn from immutable human-confirmed outcomes;
+- train candidates offline;
+- pass or fail a frozen promotion gate.
 
-Result: **promotion gate passed**.
+Verified Learning may never:
 
-The improvement is intentionally described as held-out advisory classification performance, not as a generic security-detection accuracy claim.
+- output or execute `CONSTRAIN` or `ISOLATE`;
+- change the deterministic result;
+- change SHOULD / COULD / DID / WHY;
+- invent Purpose Contracts or permissions;
+- relabel `PREVENTED` / `DETECTED`;
+- rewrite persisted evidence;
+- override Stage 7 or Stage 8 authority rules.
+
+**Advisory only — deterministic enforcement unchanged.**
 
 ## Product interaction
 
-For an eligible ambiguous evidence record, the console now exposes:
+For an eligible unresolved record the console shows:
 
-1. **Verify outcome** — operator selects `REVIEW`, `OBSERVE`, or `ABSTAIN`;
-2. **Train candidate** — server-side training combines the synthetic seed with verified feedback;
-3. **Promotion gate** — candidate is evaluated on the frozen benchmark;
-4. **Active learned advisory** — only a promoted model may surface a prediction.
+- the unchanged deterministic result;
+- why proof stopped and the record entered Verified Learning;
+- learned review priority and 0–100 advisory score;
+- human-confirmed outcome;
+- human-verified example count;
+- candidate model version;
+- frozen benchmark result;
+- `PROMOTED` or `REJECTED`;
+- the explicit advisory-only authority statement.
 
-Training is off the live deterministic decision path. The Stage 7 detector remains frozen and the Stage 8 AI authority boundary remains unchanged.
+The intended judge flow is:
 
-## Persistence
+`normal legitimate traffic -> deterministic ALLOW`
 
-Supabase tables:
+`scope violation -> deterministic CONSTRAIN / PREVENTED`
+
+`ambiguous third-party evidence -> Verified Learning priority -> human confirmation -> verified example append -> offline retrain -> frozen gate -> promote/reject`
+
+## Persistence and reproducibility
+
+Existing Stage 9 persistence is retained:
 
 - `public.learning_feedback`
 - `public.learning_model_runs`
 
-Both have RLS enabled. Server-side access uses the existing ThirdSight service-role path; the browser never receives the service-role key.
-
-## Reproducibility
+No schema expansion was required for the v2 target. Existing model-run rows are versioned by benchmark ID, so the v1 classifier cannot be mistaken for an active v2 priority model.
 
 Core implementation:
 
 - `src/learning-loop/learning-loop.ts`
 - `src/learning-loop/learning-loop.test.ts`
 - `src/learning-loop/supabase-learning-store.ts`
-
-Product API:
-
-- `api/learning.ts` — consolidated status / verified-review / candidate-training endpoint (kept to one serverless function for Hobby-plan deployment limits).
-
-UI:
-
+- `api/learning.ts`
 - `src/app/LearningLoopPanel.tsx`
-
-Evaluation:
-
 - `scripts/stage9-learning-evaluation.ts`
 - `.github/workflows/stage9-learning-evaluation.yml`
 
-The evaluation workflow verifies the frozen Stage 7 detector hashes before running Stage 9 tests and benchmark evaluation.
+The Stage 9 evaluation workflow verifies the frozen Stage 7 Git blob hashes before evaluating Verified Learning.

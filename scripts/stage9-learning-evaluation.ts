@@ -2,7 +2,7 @@ import { writeFile } from "node:fs/promises";
 import {
   STAGE9_ALGORITHM,
   STAGE9_BENCHMARK_ID,
-  buildFrozenBenchmarkV1,
+  buildFrozenBenchmarkV2,
   buildSyntheticTrainingSet,
   trainStage9Candidate,
 } from "../src/learning-loop/learning-loop.js";
@@ -10,15 +10,17 @@ import {
 const candidate=trainStage9Candidate([]);
 const report={
   ok:true,
-  stage:"Stage 9 — verified learning loop",
+  stage:"Stage 9 — Verified Learning / residual review priority",
+  thesis:"ThirdSight proves what can be proven, and learns where proof stops.",
   benchmarkId:STAGE9_BENCHMARK_ID,
-  benchmarkCases:buildFrozenBenchmarkV1().length,
+  benchmarkCases:buildFrozenBenchmarkV2().length,
   syntheticSeedExamples:buildSyntheticTrainingSet().length,
   humanVerifiedExamples:0,
   algorithm:STAGE9_ALGORITHM,
   authority:{
-    allowed:["REVIEW","OBSERVE","ABSTAIN"],
-    forbidden:["CONSTRAIN","ISOLATE","rewrite evidence","change Purpose Contract"],
+    learnedOutput:["HIGH","MEDIUM","LOW"],
+    humanOutcomes:["REVIEW","OBSERVE","ABSTAIN"],
+    forbidden:["CONSTRAIN","ISOLATE","rewrite evidence","change Purpose Contract","change deterministic result"],
   },
   baselineMetrics:candidate.baselineMetrics,
   candidateMetrics:candidate.candidateMetrics,
@@ -27,4 +29,4 @@ const report={
   completedAt:new Date().toISOString(),
 };
 await writeFile("stage9-learning-evaluation.json",JSON.stringify(report,null,2));
-console.log("THIRDSIGHT_STAGE9_LEARNING="+JSON.stringify(report));
+console.log("THIRDSIGHT_STAGE9_VERIFIED_LEARNING="+JSON.stringify(report));

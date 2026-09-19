@@ -50,7 +50,7 @@ export default function App(){
       <nav><span>LIVE EVIDENCE</span>{events.map((item,index)=><button className={index===selected?"active":""} onClick={()=>setSelected(index)} key={item.recordId}><Activity size={14}/><div><strong>{item.integrationId??item.did.value?.destinationOrigin??"Unresolved destination"}</strong><small>{item.outcome??item.decision??(item.coverage.label==="BROWSER_ONLY"?"DISCOVERY":"NO OUTCOME")} · {new Date(item.observedAt).toLocaleTimeString()}</small></div></button>)}</nav>
     </aside>
     <main>
-      <header><div><span className="eyebrow">Continuous access verification</span><h1>What happened, and what can we prove?</h1><p>Every answer below comes from persisted ThirdSight evidence. Unknown stays unknown.</p></div><span className="live"><Radio size={14}/> Live</span></header>
+      <header><div><span className="eyebrow">ThirdSight · proof + verified learning</span><h1>Prove what can be proven. Learn where proof stops.</h1><p>Deterministic evidence keeps enforcement authority. Verified Learning only prioritizes genuinely unresolved cases for human review.</p></div><span className="live"><Radio size={14}/> Live</span></header>
       {error?<Empty text="Live evidence is unavailable. ThirdSight will not substitute mock data."/>:!event?<Empty text="Waiting for persisted evidence. No demonstration cards are generated."/>:<>
         <section className="event-head"><div><span className="eyebrow">Evidence record</span><strong>{event.integrationId??destination??"Identity unresolved"}</strong><small>{event.recordId}</small></div><Outcome value={event.outcome??event.decision}/></section>
         {discoveryOnly?<section className="discovery-note"><b>Discovery only — browser visibility</b><span>No merchant Purpose Contract or business justification is available. ThirdSight does not infer backend permissions, server-to-server activity, database access, or downstream vendor behavior from this record.</span></section>:null}
@@ -63,8 +63,8 @@ export default function App(){
           <Coverage coverage={event.coverage}/>
         </section>
         <ActionPanel event={event} discoveryOnly={discoveryOnly}/>
+        <LearningLoopPanel recordId={event.recordId} deterministicResult={event.outcome??event.decision??"UNRESOLVED"}/>
         {aiPromoted&&event.aiAssessment?.accepted?<AiAnalystPanel assessment={event.aiAssessment}/>:null}
-        <LearningLoopPanel recordId={event.recordId}/>
       </>}
     </main>
   </div>;
