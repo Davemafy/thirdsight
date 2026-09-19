@@ -1,10 +1,10 @@
 # Stage 9 — Verified Learning
 
-**Status:** IMPLEMENTED — RESIDUAL REVIEW-PRIORITY TARGET, PRODUCTION SEED PROMOTION PENDING  
+**Status:** IMPLEMENTED — v2 SEED CANDIDATE REJECTED; v3 FRESH BENCHMARK EVALUATION PENDING  
 **Product thesis:** **ThirdSight proves what can be proven, and learns where proof stops.**  
 **Deterministic detector:** `stage7-v1-frozen` (unchanged)  
 **Stage 8 analyst authority:** unchanged  
-**Learning benchmark:** `stage9-review-priority-v2-frozen`  
+**Learning benchmark:** `stage9-review-priority-v3-frozen`  
 **Model family:** multiclass logistic regression  
 **Learned output only:** `HIGH / MEDIUM / LOW REVIEW PRIORITY`
 
@@ -91,18 +91,28 @@ These features describe evidence completeness and review context. They do not wi
 
 Synthetic seed corpus:
 
-- **180** residual third-party examples;
+- **180** residual third-party examples;\n- includes explicit deterministic-OBSERVE residual cases so every retained feature has training coverage;
 - target is review priority, not enforcement action;
 - all seed examples remain outside Stage 7 deterministic authority.
 
 Frozen held-out benchmark:
 
 - **96** residual third-party cases;
-- benchmark ID: `stage9-review-priority-v2-frozen`;
+- benchmark ID: `stage9-review-priority-v3-frozen`;
 - never used as training data;
 - evaluates HIGH / MEDIUM / LOW review priority only.
 
 Human-verified feedback is appended to the seed corpus with limited extra weight so confirmed outcomes can influence later candidates without dominating the synthetic prior.
+
+## v2 failure retained
+
+The first residual-priority seed candidate was evaluated in Quality workflow run `35414672524`.
+
+It **did not pass** the v2 promotion gate. The learned candidate tied the fixed review-priority baseline on the frozen v2 benchmark, so the strict requirement that priority accuracy improve was not met. ThirdSight therefore rejected the candidate.
+
+The failure exposed a training-coverage defect: `deterministicObserve` was present in the residual feature space but absent from every synthetic seed family, so the model could not learn from that signal.
+
+The gate was not loosened and the v2 benchmark is now considered seen. The seed corpus was corrected by replacing a duplicate LOW-priority family with a HIGH-priority deterministic-OBSERVE residual family. Promotion is evaluated only on the new `stage9-review-priority-v3-frozen` benchmark.
 
 ## Predeclared promotion gate
 

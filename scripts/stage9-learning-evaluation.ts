@@ -2,7 +2,7 @@ import { writeFile } from "node:fs/promises";
 import {
   STAGE9_ALGORITHM,
   STAGE9_BENCHMARK_ID,
-  buildFrozenBenchmarkV2,
+  buildFrozenBenchmarkV3,
   buildSyntheticTrainingSet,
   trainStage9Candidate,
 } from "../src/learning-loop/learning-loop.js";
@@ -13,7 +13,7 @@ const report={
   stage:"Stage 9 — Verified Learning / residual review priority",
   thesis:"ThirdSight proves what can be proven, and learns where proof stops.",
   benchmarkId:STAGE9_BENCHMARK_ID,
-  benchmarkCases:buildFrozenBenchmarkV2().length,
+  benchmarkCases:buildFrozenBenchmarkV3().length,
   syntheticSeedExamples:buildSyntheticTrainingSet().length,
   humanVerifiedExamples:0,
   algorithm:STAGE9_ALGORITHM,

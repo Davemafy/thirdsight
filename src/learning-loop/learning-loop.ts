@@ -62,8 +62,9 @@ export interface LearningCandidate {
   promotionReason: string;
 }
 
-export const STAGE9_BENCHMARK_ID = "stage9-review-priority-v2-frozen";
-export const STAGE9_ALGORITHM = "multiclass-logistic-regression-review-priority-v2";
+export const STAGE9_V2_REJECTED_BENCHMARK_ID = "stage9-review-priority-v2-frozen";
+export const STAGE9_BENCHMARK_ID = "stage9-review-priority-v3-frozen";
+export const STAGE9_ALGORITHM = "multiclass-logistic-regression-review-priority-v3";
 export const FEATURE_NAMES: readonly (keyof LearningFeatures)[] = [
   "managedEnvironment",
   "crossOrigin",
@@ -178,7 +179,7 @@ export function trainStage9Candidate(
     ...cleanHuman.flatMap((example) => [example, example, example]),
   ];
   const model = trainMulticlassLogisticRegression(training);
-  const benchmark = buildFrozenBenchmarkV2();
+  const benchmark = buildFrozenBenchmarkV3();
   const baselineMetrics = evaluatePriorityPredictor(benchmark, baselinePriority);
   const candidateMetrics = evaluatePriorityPredictor(
     benchmark,
@@ -193,7 +194,7 @@ export function trainStage9Candidate(
 
   return {
     model,
-    modelVersion: `stage9-priority-v2-h${cleanHuman.length}`,
+    modelVersion: `stage9-priority-v3-h${cleanHuman.length}`,
     benchmarkId: STAGE9_BENCHMARK_ID,
     trainingExamples: training.length,
     humanVerifiedExamples: cleanHuman.length,
@@ -241,41 +242,41 @@ export function predictReviewPriority(
   };
 }
 
-export function buildFrozenBenchmarkV2(): LearningExample[] {
+export function buildFrozenBenchmarkV3(): LearningExample[] {
   const rows: LearningExample[] = [];
   const push = (id: string, target: ReviewPriority, features: LearningFeatures) =>
-    rows.push({ exampleId: `benchmark-v2:${id}`, target, features, source: "FROZEN_BENCHMARK" });
+    rows.push({ exampleId: `benchmark-v3:${id}`, target, features, source: "FROZEN_BENCHMARK" });
 
   for (let i = 0; i < 12; i += 1) {
-    push(`high-unresolved-data-post-${i}`, "HIGH", feature({
-      managedEnvironment:1,crossOrigin:1,integrationUnresolved:1,purposeUnknown:1,whyUnknown:1,
-      hasDataCategories:1,postRequest:1,
-    }));
-    push(`high-known-purpose-no-why-${i}`, "HIGH", feature({
-      managedEnvironment:1,crossOrigin:1,whyUnknown:1,hasDataCategories:1,postRequest:1,
-      browserOnly:i%3===0?1:0,
-    }));
-    push(`high-observe-purpose-gap-${i}`, "HIGH", feature({
+    push(`high-observe-partial-why-${i}`, "HIGH", feature({
       managedEnvironment:1,crossOrigin:1,purposeUnknown:1,whyPartial:1,deterministicObserve:1,
+      hasDataCategories:1,postRequest:1,browserOnly:i%4===0?1:0,
+    }));
+    push(`high-resolved-purpose-partial-no-why-${i}`, "HIGH", feature({
+      managedEnvironment:1,crossOrigin:1,purposePartial:1,whyUnknown:1,
+      hasDataCategories:1,postRequest:1,browserOnly:i%3===0?1:0,
+    }));
+    push(`high-unresolved-partial-purpose-${i}`, "HIGH", feature({
+      managedEnvironment:1,crossOrigin:1,integrationUnresolved:1,purposePartial:1,whyUnknown:1,
       hasDataCategories:1,postRequest:1,
     }));
-    push(`medium-unresolved-browser-${i}`, "MEDIUM", feature({
+    push(`medium-unresolved-browser-get-${i}`, "MEDIUM", feature({
       managedEnvironment:1,crossOrigin:1,integrationUnresolved:1,browserOnly:1,whyUnknown:1,
       hasDataCategories:0,postRequest:0,
     }));
-    push(`medium-partial-both-${i}`, "MEDIUM", feature({
-      managedEnvironment:1,crossOrigin:1,purposePartial:1,whyPartial:1,browserOnly:1,postRequest:1,
-      hasDataCategories:i%4===0?1:0,
+    push(`medium-partial-contract-trigger-window-${i}`, "MEDIUM", feature({
+      managedEnvironment:1,crossOrigin:1,purposePartial:1,whyPartial:1,browserOnly:i%2===0?1:0,
+      postRequest:1,hasDataCategories:i%5===0?1:0,
     }));
-    push(`medium-public-cross-${i}`, "MEDIUM", feature({
-      crossOrigin:1,purposeUnknown:1,whyUnknown:1,browserOnly:1,hasDataCategories:0,
-      postRequest:0,
+    push(`medium-public-opaque-runtime-${i}`, "MEDIUM", feature({
+      crossOrigin:1,purposeUnknown:1,whyUnknown:1,browserOnly:1,
+      hasDataCategories:0,postRequest:i%3===0?1:0,
     }));
-    push(`low-static-unknown-${i}`, "LOW", feature({
+    push(`low-static-third-party-${i}`, "LOW", feature({
       crossOrigin:1,purposeUnknown:1,whyUnknown:1,browserOnly:1,staticAsset:1,
       hasDataCategories:0,postRequest:0,
     }));
-    push(`low-strong-correlation-partial-${i}`, "LOW", feature({
+    push(`low-correlated-partial-context-${i}`, "LOW", feature({
       managedEnvironment:1,crossOrigin:1,purposePartial:1,whyPartial:1,strongCorrelation:1,
       browserOnly:1,hasDataCategories:0,postRequest:0,
     }));
@@ -337,9 +338,9 @@ export function buildSyntheticTrainingSet(): LearningExample[] {
     managedEnvironment:1,crossOrigin:1,purposePartial:1,whyPartial:1,strongCorrelation:1,browserOnly:1,
     postRequest:0,hasDataCategories:0,
   });
-  add("known-purpose-low-signal-gap", "LOW", {
-    managedEnvironment:1,crossOrigin:1,purposePartial:1,whyPartial:1,strongCorrelation:1,browserOnly:1,
-    postRequest:0,hasDataCategories:0,
+  add("observe-purpose-gap", "HIGH", {
+    managedEnvironment:1,crossOrigin:1,purposeUnknown:1,whyPartial:1,deterministicObserve:1,
+    hasDataCategories:1,postRequest:1,
   });
 
   return rows;

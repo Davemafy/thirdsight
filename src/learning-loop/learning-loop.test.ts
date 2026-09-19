@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   STAGE9_BENCHMARK_ID,
-  buildFrozenBenchmarkV2,
+  buildFrozenBenchmarkV3,
   buildSyntheticTrainingSet,
   humanOutcomeToPriority,
   predictReviewPriority,
@@ -11,9 +11,9 @@ import {
 describe("Stage 9 — verified residual learning", () => {
   it("freezes a residual-only held-out benchmark separately from synthetic training data", () => {
     const training = buildSyntheticTrainingSet();
-    const benchmark = buildFrozenBenchmarkV2();
+    const benchmark = buildFrozenBenchmarkV3();
 
-    expect(STAGE9_BENCHMARK_ID).toBe("stage9-review-priority-v2-frozen");
+    expect(STAGE9_BENCHMARK_ID).toBe("stage9-review-priority-v3-frozen");
     expect(training).toHaveLength(180);
     expect(benchmark).toHaveLength(96);
     expect(new Set(training.map((row) => row.exampleId)).size).toBe(training.length);
@@ -35,7 +35,7 @@ describe("Stage 9 — verified residual learning", () => {
     expect(candidate.candidateMetrics.authorityViolations).toBe(0);
     expect(candidate.candidateMetrics.harmfulResponseRate).toBe(0);
 
-    for (const row of buildFrozenBenchmarkV2()) {
+    for (const row of buildFrozenBenchmarkV3()) {
       const prediction = predictReviewPriority(candidate.model, row.features);
       expect(["HIGH", "MEDIUM", "LOW"]).toContain(prediction.priority);
       expect(prediction.reviewScore).toBeGreaterThanOrEqual(0);
