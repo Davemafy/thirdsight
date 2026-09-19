@@ -66,6 +66,7 @@ const browser = await chromium.launch({
 });
 
 const runId = `ng40-${Date.now()}`;
+let cachedToken = process.env.THIRDSIGHT_OIDC_TOKEN?.trim() || null;
 const results = new Array(SITES.length);
 let cursor = 0;
 
@@ -227,7 +228,6 @@ function dedupeRepresentative(items) {
   return [...byOrigin.values()];
 }
 
-let cachedToken = process.env.THIRDSIGHT_OIDC_TOKEN?.trim() || null;
 
 async function persistObservation(observation) {
   let response = await postWithToken(observation, await getToken(false));
