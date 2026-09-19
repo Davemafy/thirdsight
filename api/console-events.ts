@@ -208,7 +208,7 @@ function buildChallengeProof(entries:readonly EvidenceHistoryEntry[]){
   const responses=[...new Set(entries.flatMap((entry)=>[
     entry.decision,
     entry.outcome,
-  ].filter((value):value is string=>Boolean(value))))];
+  ].filter((value):value is NonNullable<typeof value>=>value!==null&&value!==undefined)))];
   const scopePrevention=entries.find((entry)=>
     entry.outcome==="PREVENTED"&&
     (entry.findings??[]).some((finding)=>finding.type==="SCOPE_DRIFT")
