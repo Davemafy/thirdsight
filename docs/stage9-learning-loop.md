@@ -1,6 +1,6 @@
 # Stage 9 — Verified Learning
 
-**Status:** IMPLEMENTED — v2 SEED CANDIDATE REJECTED; v3 FRESH BENCHMARK EVALUATION PENDING  
+**Status:** COMPLETE — VERIFIED LEARNING REVIEW-PRIORITY MODEL PROMOTED; v2 FAILURE RETAINED  
 **Product thesis:** **ThirdSight proves what can be proven, and learns where proof stops.**  
 **Deterministic detector:** `stage7-v1-frozen` (unchanged)  
 **Stage 8 analyst authority:** unchanged  
@@ -91,7 +91,8 @@ These features describe evidence completeness and review context. They do not wi
 
 Synthetic seed corpus:
 
-- **180** residual third-party examples;\n- includes explicit deterministic-OBSERVE residual cases so every retained feature has training coverage;
+- **180** residual third-party examples;
+- includes explicit deterministic-OBSERVE residual cases so every retained feature has training coverage;
 - target is review priority, not enforcement action;
 - all seed examples remain outside Stage 7 deterministic authority.
 
@@ -125,6 +126,31 @@ A candidate is promoted only when all conditions hold:
 5. harmful-response rate remains zero.
 
 A failed candidate is persisted as **REJECTED** and never displaces the latest promoted model.
+
+## Fresh v3 evaluation
+
+Quality workflow run `35414867673` evaluated the corrected seed learner on the separately frozen `stage9-review-priority-v3-frozen` benchmark.
+
+| Metric | Fixed non-learning baseline | Learned candidate |
+| --- | ---: | ---: |
+| Held-out residual cases | 96 | 96 |
+| Review-priority accuracy | 84.375% | **87.50%** |
+| HIGH-priority recall | 58.3333% | **66.6667%** |
+| LOW falsely escalated to HIGH | 0.00% | **0.00%** |
+| Authority violations | 0 | **0** |
+| Harmful-response rate | 0.00% | **0.00%** |
+
+Result: **PROMOTED**.
+
+Production active seed model:
+
+- model version: `stage9-priority-v3-h0`;
+- algorithm: `multiclass-logistic-regression-review-priority-v3`;
+- training rows: **180 synthetic residual cases**;
+- human-verified rows: **0** at promotion time;
+- benchmark: `stage9-review-priority-v3-frozen`.
+
+The zero human count is intentional. ThirdSight does not fabricate reviewer feedback to make the learning loop look more mature. The first real operator confirmation can be appended during the judge demo, producing the next versioned candidate.
 
 ## Authority boundary
 
@@ -177,7 +203,7 @@ Existing Stage 9 persistence is retained:
 - `public.learning_feedback`
 - `public.learning_model_runs`
 
-No schema expansion was required for the v2 target. Existing model-run rows are versioned by benchmark ID, so the v1 classifier cannot be mistaken for an active v2 priority model.
+No schema expansion was required for the review-priority target. Existing model-run rows are versioned by benchmark ID, so the old v1 triage classifier and rejected v2 experiment cannot be mistaken for the active v3 priority model.
 
 Core implementation:
 

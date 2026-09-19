@@ -1,4 +1,5 @@
 name: Stage 7 Flash Sale
+# QA refresh: repopulate current production ALLOW evidence without changing the frozen detector.
 
 on:
   push:
