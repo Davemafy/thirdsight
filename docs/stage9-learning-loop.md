@@ -39,7 +39,7 @@ A 0–100 advisory review score is derived from the learned HIGH / MEDIUM / LOW 
 
 Verified Learning is downstream of the proof layer.
 
-A record is excluded when deterministic authority has already produced `CONSTRAIN`, `ISOLATE`, `PREVENTED`, or `DETECTED`.
+A record is excluded when deterministic verification has already produced `ALLOW`, `CONSTRAIN`, `ISOLATE`, `PREVENTED`, or `DETECTED`. Verified Learning begins only when the deterministic layer stops unresolved (or explicitly at `OBSERVE`).
 
 A record may enter Verified Learning only when it is third-party-like (`CROSS_ORIGIN` or deterministic `OBSERVE`) and proof remains incomplete, for example:
 

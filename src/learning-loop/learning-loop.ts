@@ -83,7 +83,7 @@ export const FEATURE_NAMES: readonly (keyof LearningFeatures)[] = [
 const PRIORITIES: readonly ReviewPriority[] = ["HIGH", "MEDIUM", "LOW"];
 
 export function learningEntryReasons(entry: EvidenceHistoryEntry): readonly string[] {
-  if (entry.decision === "CONSTRAIN" || entry.decision === "ISOLATE") return [];
+  if (entry.decision === "ALLOW" || entry.decision === "CONSTRAIN" || entry.decision === "ISOLATE") return [];
   if (entry.outcome === "PREVENTED" || entry.outcome === "DETECTED") return [];
 
   const evidence = entry.evidence;
