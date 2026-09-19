@@ -195,6 +195,20 @@ export class SupabaseEvidenceHistoryStore implements EvidenceHistoryStore {
       .filter(isEvidenceHistoryEntry);
   }
 
+  async findByRecordId(recordId: string): Promise<EvidenceHistoryEntry | null> {
+    const id = recordId.trim();
+    if (!id) return null;
+
+    const url = this.restUrl("browser_evidence_history");
+    url.searchParams.set("select", "payload");
+    url.searchParams.set("record_id", `eq.${id}`);
+    url.searchParams.set("limit", "1");
+
+    const rows = await this.requestJson<EvidenceHistoryRow[]>(url, { method: "GET" });
+    const payload = rows[0]?.payload;
+    return isEvidenceHistoryEntry(payload) ? payload : null;
+  }
+
   private restUrl(table: string): URL {
     return new URL(`/rest/v1/${table}`, `${this.projectUrl}/`);
   }

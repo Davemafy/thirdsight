@@ -78,8 +78,7 @@ async function status(
     if(recordId){
       recordFeedback=await learningStore.feedbackForRecord(recordId);
       const evidenceStore=new SupabaseEvidenceHistoryStore({projectUrl:url,serviceRoleKey:key});
-      const history=await evidenceStore.list(750);
-      const entry=history.find((item)=>item.recordId===recordId);
+      const entry=await evidenceStore.findByRecordId(recordId);
       if(entry){
         reasons=learningEntryReasons(entry);
         eligible=isLearningEligible(entry);
@@ -134,8 +133,7 @@ async function review(
 
   try{
     const evidenceStore=new SupabaseEvidenceHistoryStore({projectUrl:url,serviceRoleKey:key});
-    const history=await evidenceStore.list(750);
-    const entry=history.find((item)=>item.recordId===recordId);
+    const entry=await evidenceStore.findByRecordId(recordId);
     if(!entry){response.status(404).json({error:"EVIDENCE_RECORD_NOT_FOUND"});return;}
     if(!isLearningEligible(entry)){
       response.status(409).json({
