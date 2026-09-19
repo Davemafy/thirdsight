@@ -1,6 +1,6 @@
 # Stage 9 — Verified Learning
 
-**Status:** COMPLETE — VERIFIED LEARNING REVIEW-PRIORITY MODEL PROMOTED; v2 FAILURE RETAINED  
+**Status:** COMPLETE — FIRST HUMAN-VERIFIED LEARNING LOOP PASSED; v2 FAILURE RETAINED  
 **Product thesis:** **ThirdSight proves what can be proven, and learns where proof stops.**  
 **Deterministic detector:** `stage7-v1-frozen` (unchanged)  
 **Stage 8 analyst authority:** unchanged  
@@ -150,7 +150,48 @@ Production active seed model:
 - human-verified rows: **0** at promotion time;
 - benchmark: `stage9-review-priority-v3-frozen`.
 
-The zero human count is intentional. ThirdSight does not fabricate reviewer feedback to make the learning loop look more mature. The first real operator confirmation can be appended during the judge demo, producing the next versioned candidate.
+The seed model was intentionally promoted with zero human feedback. ThirdSight did not fabricate reviewer input.
+
+## First human-verified learning loop
+
+The first real operator-confirmed example used the controlled Commerce Lab opaque-shadow scenario:
+
+- record: `browser:commerce-lab:shadow-pixel:shadow-pixel-1789732087645`;
+- deterministic finding: `SHADOW_INTEGRATION`;
+- deterministic result: `OBSERVE`;
+- integration identity: `UNRESOLVED`;
+- SHOULD: `UNKNOWN`;
+- COULD: `PARTIAL`;
+- DID: `KNOWN`;
+- WHY: `UNKNOWN`;
+- human-confirmed outcome: **REVIEW**;
+- stored learning target: **HIGH REVIEW PRIORITY**.
+
+The verified example was appended immutably as `HUMAN_VERIFIED`, raising the human-feedback count from **0 to 1**.
+
+A new candidate, `stage9-priority-v3-h1`, was trained with the same algorithm and evaluated against the unchanged `stage9-review-priority-v3-frozen` 96-case benchmark. No threshold, label, benchmark, or promotion rule was changed after seeing the result.
+
+| Metric | Fixed non-learning baseline | h0 seed model | h1 after 1 verified review |
+| --- | ---: | ---: | ---: |
+| Review-priority accuracy | 84.375% | 87.50% | **95.8333%** |
+| HIGH-priority recall | 58.3333% | 66.6667% | **88.8889%** |
+| LOW falsely escalated to HIGH | 0.00% | 0.00% | **0.00%** |
+| Authority violations | 0 | 0 | **0** |
+| Harmful-response rate | 0.00% | 0.00% | **0.00%** |
+
+Result: **PROMOTED**.
+
+For the reviewed shadow case itself, the active advisory score moved from approximately **81/100 HIGH** under `h0` to **97/100 HIGH** under `h1`. The deterministic result remained `OBSERVE`; only review priority changed.
+
+The active production model is now:
+
+- `stage9-priority-v3-h1`;
+- **183 weighted training rows** = 180 synthetic seed rows + one human-verified row with the pre-existing 3× human-example weight;
+- **1 human-verified example**;
+- benchmark: `stage9-review-priority-v3-frozen`;
+- status: **PROMOTED**.
+
+This is the first end-to-end proof of the intended loop: deterministic proof stopped, Verified Learning prioritized the unresolved case, a human confirmed the outcome, a new candidate retrained offline, the same frozen gate evaluated it, and promotion occurred without changing deterministic enforcement.
 
 ## Authority boundary
 

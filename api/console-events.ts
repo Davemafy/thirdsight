@@ -1,6 +1,7 @@
 import { SupabaseEvidenceHistoryStore } from "../src/infrastructure/evidence-history/supabase-evidence-history-store.js";
 import type { EvidenceHistoryEntry } from "../src/infrastructure/evidence-history/evidence-history-store.js";
 import { SupabaseAiAssessmentStore } from "../src/ai-analyst/ai-assessment-store.js";
+import { SupabaseLearningStore } from "../src/learning-loop/supabase-learning-store.js";
 
 interface ApiRequest { method?: string }
 interface ApiResponse { status(code:number):ApiResponse; setHeader(name:string,value:string):void; json(body:unknown):void; end():void }
@@ -18,8 +19,19 @@ export default async function handler(request:ApiRequest,response:ApiResponse):P
   try{
     const store=new SupabaseEvidenceHistoryStore({projectUrl:url,serviceRoleKey:key});
     const aiStore=new SupabaseAiAssessmentStore({projectUrl:url,serviceRoleKey:key});
-    const allHistory=await store.list(900);
-    const history=selectRepresentativeHistory(allHistory);
+    const learningStore=new SupabaseLearningStore({projectUrl:url,serviceRoleKey:key});
+    const [allHistory,learningFeedback]=await Promise.all([
+      store.list(900),
+      learningStore.listFeedback(5),
+    ]);
+    const reviewedEntries=(await Promise.all(
+      [...learningFeedback].reverse().map((feedback)=>store.findByRecordId(feedback.recordId)),
+    )).filter((entry):entry is EvidenceHistoryEntry=>entry!==null);
+    const representative=selectRepresentativeHistory(allHistory);
+    const history=[
+      ...reviewedEntries,
+      ...representative.filter((entry)=>!reviewedEntries.some((reviewed)=>reviewed.recordId===entry.recordId)),
+    ];
     const [latestAiEvaluation,promotedAiEvaluation]=await Promise.all([
       aiStore.latestEvaluationRun(),
       aiStore.latestPromotedEvaluationRun(),
@@ -36,7 +48,7 @@ export default async function handler(request:ApiRequest,response:ApiResponse):P
       : new Map();
 
     response.status(200).json({
-      productThesis:"See what every integration can reach, what it actually touches, and whether that access still makes sense.",
+      productThesis:"ThirdSight proves what can be proven, and learns where proof stops.",
       exposureMap:buildExposureMap(allHistory),
       challengeProof:buildChallengeProof(allHistory),
       aiAnalyst:{
