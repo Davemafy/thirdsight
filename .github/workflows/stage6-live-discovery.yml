@@ -6,6 +6,7 @@ on:
     paths:
       - ".github/workflows/stage6-live-discovery.yml"
       - "scripts/stage6-live-discovery.mjs"
+      - "scripts/stage6-ng40-discovery.mjs"
       - "browser-extension/**"
       - "api/browser-observations.ts"
       - "api/console-events.ts"
@@ -58,3 +59,61 @@ jobs:
           path: |
             stage6-real-site-discovery.png
             stage6-real-site-discovery.json
+
+
+  benchmark40:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Request short-lived GitHub OIDC credential
+        shell: bash
+        run: |
+          response=$(curl -fsSL -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=thirdsight-stage6")
+          token=$(printf '%s' "$response" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>process.stdout.write(JSON.parse(s).value))')
+          echo "::add-mask::$token"
+          echo "THIRDSIGHT_OIDC_TOKEN=$token" >> "$GITHUB_ENV"
+
+      - name: Verify production ingestion accepts the benchmark credential
+        shell: bash
+        run: |
+          code=$(curl -sS -o /tmp/oidc-check.json -w "%{http_code}" -H "Authorization: Bearer $THIRDSIGHT_OIDC_TOKEN" "https://thirdsight-five.vercel.app/api/browser-observations?limit=1" || true)
+          cat /tmp/oidc-check.json
+          test "$code" = "200"
+
+      - name: Install headless browser
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Run safe Nigeria-facing 40-site passive discovery benchmark
+        env:
+          THIRDSIGHT_URL: https://thirdsight-five.vercel.app
+        run: node scripts/stage6-ng40-discovery.mjs
+
+      - name: Validate aggregate report
+        shell: bash
+        run: |
+          node - <<'NODE'
+          const fs=require("fs");
+          const body=JSON.parse(fs.readFileSync("stage6-ng40-discovery.json","utf8"));
+          if(body?.schemaVersion!=="thirdsight-ng40-discovery.v1") throw new Error("Unexpected benchmark schema");
+          if(body?.summary?.sitesAttempted!==40) throw new Error("Benchmark must attempt exactly 40 sites");
+          if(body?.safety?.formsSubmitted!==false||body?.safety?.authenticationUsed!==false) throw new Error("Passive benchmark safety boundary failed");
+          if(body?.safety?.controlsBypassed!==false||body?.safety?.requestMutationUsed!==false) throw new Error("Benchmark attempted an unsafe action");
+          if(body?.safety?.requestBodiesInspected!==false||body?.safety?.piiPersisted!==false) throw new Error("Privacy boundary failed");
+          if(body?.evidenceSemantics?.coverage!=="Browser only") throw new Error("Coverage semantics changed");
+          console.log(JSON.stringify(body.summary,null,2));
+          NODE
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stage6-ng40-passive-discovery
+          path: |
+            stage6-ng40-discovery.json
+            stage6-ng40-discovery.md
