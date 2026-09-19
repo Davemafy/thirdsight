@@ -3,6 +3,7 @@ import { Activity, CircleAlert, Radio, ShieldCheck } from "lucide-react";
 import type { EvidenceClaim, PurposeEvidence, BrowserCapabilityLowerBound, RuntimeAccessEvidence, BusinessContextEvidence, EvidenceCoverage } from "../domain/evidence";
 import type { BlindSpotAssessment } from "../domain/blind-spot-assessment";
 import { LearningLoopPanel } from "./LearningLoopPanel";
+import { IntegrationExposureMap, type ChallengeProof, type ExposureRow } from "./IntegrationExposureMap";
 
 type Finding={type:string;action:string;field?:string;reason?:string};
 type Enforcement={action:"CONSTRAIN"|"ISOLATE";outcome:"PREVENTED";removedFields:readonly string[];continuedFields:readonly string[];receiver:{receivedFields:readonly string[];forbiddenFieldReceived:boolean}};
@@ -28,12 +29,14 @@ export default function App(){
   const [selected,setSelected]=useState(0);
   const [error,setError]=useState(false);
   const [aiPromoted,setAiPromoted]=useState(false);
+  const [exposureMap,setExposureMap]=useState<ExposureRow[]>([]);
+  const [challengeProof,setChallengeProof]=useState<ChallengeProof|null>(null);
 
   useEffect(()=>{
     let live=true;
     const load=()=>fetch("/api/console-events",{cache:"no-store"})
       .then(r=>{if(!r.ok)throw new Error("evidence unavailable");return r.json()})
-      .then(d=>{if(!live)return;const history=(d.history??[]) as ConsoleEvent[];setEvents(history);setAiPromoted(Boolean(d.aiAnalyst?.promoted));setSelected(current=>current<history.length?current:0);setError(false)})
+      .then(d=>{if(!live)return;const history=(d.history??[]) as ConsoleEvent[];setEvents(history);setExposureMap((d.exposureMap??[]) as ExposureRow[]);setChallengeProof((d.challengeProof??null) as ChallengeProof|null);setAiPromoted(Boolean(d.aiAnalyst?.promoted));setSelected(current=>current<history.length?current:0);setError(false)})
       .catch(()=>live&&setError(true));
     load();
     const id=window.setInterval(load,5000);
@@ -46,13 +49,14 @@ export default function App(){
 
   return <div className="console-shell">
     <aside>
-      <div className="brand"><span className="brandmark"><ShieldCheck size={19}/></span><div><strong>ThirdSight</strong><small>Evidence console</small></div></div>
-      <nav><span>LIVE EVIDENCE</span>{events.map((item,index)=><button className={index===selected?"active":""} onClick={()=>setSelected(index)} key={item.recordId}><Activity size={14}/><div><strong>{item.integrationId??item.did.value?.destinationOrigin??"Unresolved destination"}</strong><small>{item.outcome??item.decision??(item.coverage.label==="BROWSER_ONLY"?"DISCOVERY":"NO OUTCOME")} · {new Date(item.observedAt).toLocaleTimeString()}</small></div></button>)}</nav>
+      <div className="brand"><span className="brandmark"><ShieldCheck size={19}/></span><div><strong>ThirdSight</strong><small>Integration exposure</small></div></div>
+      <nav><span>LIVE INTEGRATIONS</span>{events.map((item,index)=><button className={index===selected?"active":""} onClick={()=>setSelected(index)} key={item.recordId}><Activity size={14}/><div><strong>{item.integrationId??item.did.value?.destinationOrigin??"Unresolved destination"}</strong><small>{item.outcome??item.decision??(item.coverage.label==="BROWSER_ONLY"?"DISCOVERY":"NO OUTCOME")} · {new Date(item.observedAt).toLocaleTimeString()}</small></div></button>)}</nav>
     </aside>
     <main>
-      <header><div><span className="eyebrow">ThirdSight · proof + verified learning</span><h1>Prove what can be proven. Learn where proof stops.</h1><p>Deterministic evidence keeps enforcement authority. Verified Learning only prioritizes genuinely unresolved cases for human review.</p></div><span className="live"><Radio size={14}/> Live</span></header>
+      <header><div><span className="eyebrow">Track G · commerce & consumer protection</span><h1>See what every integration can reach — and what it actually touches.</h1><p>ThirdSight compares approved purpose, technical reach, runtime behaviour and business context. Legitimate spikes pass; unjustified access is constrained.</p></div><span className="live"><Radio size={14}/> Live</span></header>
+      <IntegrationExposureMap rows={exposureMap} proof={challengeProof}/>
       {error?<Empty text="Live evidence is unavailable. ThirdSight will not substitute mock data."/>:!event?<Empty text="Waiting for persisted evidence. No demonstration cards are generated."/>:<>
-        <section className="event-head"><div><span className="eyebrow">Evidence record</span><strong>{event.integrationId??destination??"Identity unresolved"}</strong><small>{event.recordId}</small></div><Outcome value={event.outcome??event.decision}/></section>
+        <section className="event-head"><div><span className="eyebrow">Selected integration evidence · SHOULD / COULD / DID / WHY</span><strong>{event.integrationId??destination??"Identity unresolved"}</strong><small>{event.recordId}</small></div><Outcome value={event.outcome??event.decision}/></section>
         {discoveryOnly?<section className="discovery-note"><b>Discovery only — browser visibility</b><span>No merchant Purpose Contract or business justification is available. ThirdSight does not infer backend permissions, server-to-server activity, database access, or downstream vendor behavior from this record.</span></section>:null}
         {event.blindSpotAssessment?<section className="blind-spot-note"><b>Known benchmark blind spot</b><span>{event.blindSpotAssessment.reason}</span></section>:null}
         <section className="questions">
