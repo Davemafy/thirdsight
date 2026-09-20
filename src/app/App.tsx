@@ -13,6 +13,7 @@ import {
   Globe2,
   Layers3,
   Network,
+  MoreHorizontal,
   PlugZap,
   Radio,
   Search,
@@ -93,6 +94,7 @@ export default function App(){
   const [exposureMap,setExposureMap]=useState<ExposureRow[]>([]);
   const [challengeProof,setChallengeProof]=useState<ChallengeProof|null>(null);
   const [query,setQuery]=useState("");
+  const [mobileMenuOpen,setMobileMenuOpen]=useState(false);
 
   useEffect(()=>{
     let live=true;
@@ -173,13 +175,18 @@ export default function App(){
 
     <div className="ts-workspace">
       <div className="ts-topbar">
-        <div>
+        <div className="ts-mobile-product">
+          <span><ShieldCheck size={17}/></span>
+          <div><b>ThirdSight</b><small>{current.title}</small></div>
+        </div>
+        <div className="ts-desktop-context">
           <strong>{current.title}</strong>
           <span>{current.subtitle}</span>
         </div>
         <div className="ts-topbar-actions">
           <span className="ts-env"><span/> Commerce Lab</span>
           <button className="ts-connect-button" onClick={()=>setView("connections")}><PlugZap size={14}/> Connect platform</button>
+          <button className="ts-mobile-more" onClick={()=>setMobileMenuOpen(true)} aria-label="More navigation"><MoreHorizontal size={19}/></button>
         </div>
       </div>
 
@@ -213,6 +220,16 @@ export default function App(){
         {view==="validation"?<Validation rows={exposureMap} proof={challengeProof}/>:null}
       </div>
     </div>
+
+    {mobileMenuOpen?<div className="ts-mobile-menu-layer">
+      <button className="ts-mobile-menu-backdrop" aria-label="Close menu" onClick={()=>setMobileMenuOpen(false)}/>
+      <div className="ts-mobile-menu">
+        <div className="ts-mobile-menu-head"><div><span className="ts-kicker">Workspace</span><strong>More in ThirdSight</strong></div><button onClick={()=>setMobileMenuOpen(false)} aria-label="Close"><X size={18}/></button></div>
+        <button onClick={()=>{setView("policies");setMobileMenuOpen(false)}}><BookOpenCheck size={18}/><div><b>Policies</b><span>Approved purpose and data scope</span></div><ChevronRight size={16}/></button>
+        <button onClick={()=>{setView("connections");setMobileMenuOpen(false)}}><Network size={18}/><div><b>Connections</b><span>Connect browser, backend and audit evidence</span></div><ChevronRight size={16}/></button>
+        <button onClick={()=>{setView("validation");setMobileMenuOpen(false)}}><CircleCheck size={18}/><div><b>Validation</b><span>Controlled proof and public-site breadth</span></div><ChevronRight size={16}/></button>
+      </div>
+    </div>:null}
 
     {detailOpen&&selectedEvent?<EvidenceDrawer
       event={selectedEvent}
