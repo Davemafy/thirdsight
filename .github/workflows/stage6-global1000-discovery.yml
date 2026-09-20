@@ -34,12 +34,20 @@ jobs:
           echo "::add-mask::$token"
           echo "THIRDSIGHT_OIDC_TOKEN=$token" >> "$GITHUB_ENV"
 
-      - name: Verify production ingestion accepts benchmark credential
+      - name: Wait for production ingestion to authorize benchmark workflow
         shell: bash
         run: |
-          code=$(curl -sS -o /tmp/oidc-check.json -w "%{http_code}" -H "Authorization: Bearer $THIRDSIGHT_OIDC_TOKEN" "https://thirdsight-five.vercel.app/api/browser-observations?limit=1" || true)
-          cat /tmp/oidc-check.json
-          test "$code" = "200"
+          for i in {1..60}; do
+            code=$(curl -sS -o /tmp/oidc-check.json -w "%{http_code}" -H "Authorization: Bearer $THIRDSIGHT_OIDC_TOKEN" "https://thirdsight-five.vercel.app/api/browser-observations?limit=1" || true)
+            if [ "$code" = "200" ]; then
+              echo "Production ingestion accepted the benchmark credential."
+              exit 0
+            fi
+            echo "Attempt $i: production returned HTTP $code; waiting for deployment."
+            sleep 10
+          done
+          cat /tmp/oidc-check.json || true
+          exit 1
 
       - name: Install headless Chromium
         run: |

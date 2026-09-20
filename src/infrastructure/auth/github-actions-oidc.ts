@@ -87,6 +87,16 @@ function toArrayBuffer(value: Uint8Array): ArrayBuffer {
 }
 
 
-export function verifyStage6GitHubOidc(token: string): Promise<boolean> {
-  return verifyGitHubActionsOidc(token, "thirdsight-stage6", ".github/workflows/stage6-live-discovery.yml");
+const STAGE6_WORKFLOW_PATHS = [
+  ".github/workflows/stage6-live-discovery.yml",
+  ".github/workflows/stage6-global1000-discovery.yml",
+] as const;
+
+export async function verifyStage6GitHubOidc(token: string): Promise<boolean> {
+  for (const workflowPath of STAGE6_WORKFLOW_PATHS) {
+    if (await verifyGitHubActionsOidc(token, "thirdsight-stage6", workflowPath)) {
+      return true;
+    }
+  }
+  return false;
 }
