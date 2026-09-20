@@ -11,7 +11,6 @@ import {
   Database,
   Eye,
   Globe2,
-  KeyRound,
   Layers3,
   Network,
   PlugZap,
