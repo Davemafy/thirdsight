@@ -737,18 +737,6 @@ function IntelFact({label,value,source}:{label:string;value:string;source:string
   return <div className="ts-intel-fact"><span>{label}</span><p><b>{value}</b><small>{source}</small></p></div>;
 }
 
-function IntelCell({values,blocked=[],fallback,source,muted=false}:{values:readonly string[];blocked?:readonly string[];fallback:string;source:string;muted?:boolean}){
-  return <div className={"ts-intel-cell "+(muted?"muted":"")}>
-    <div className="ts-intel-cell-values">
-      {values.length>0
-        ?values.slice(0,2).map(value=><span className={blocked.includes(value)?"blocked":""} key={value}>{value}{blocked.includes(value)?" · blocked":""}</span>)
-        :<span>{fallback}</span>}
-      {values.length>2?<small>+{values.length-2} more</small>:null}
-    </div>
-    <em>{source}</em>
-  </div>;
-}
-
 function DecisionCard({event}:{event:ConsoleEvent}){
   const value=eventStatus(event);
   return <div className={"ts-decision-card "+responseClass(value)}>
@@ -796,10 +784,6 @@ function SimpleMetric({
     <span>{label}</span>
     <small>{detail}</small>
   </div>;
-}
-
-function StatCard({label,value,detail,icon}:{label:string;value:string;detail:string;icon:React.ReactNode}){
-  return <div className="ts-stat-card"><div><span>{icon}</span><small>{label}</small></div><strong>{value}</strong><p>{detail}</p></div>;
 }
 
 function ConnectorCard({icon,title,badge,tone,summary,bullets}:{icon:React.ReactNode;title:string;badge:string;tone:"strong"|"neutral";summary:string;bullets:readonly string[]}){
