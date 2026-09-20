@@ -473,6 +473,154 @@ export const VENDOR_INTELLIGENCE_PROFILES: readonly VendorIntelligenceProfile[] 
     ],
   },
   {
+    id:"microsoft-uet",
+    vendor:"Microsoft",
+    family:"Microsoft Advertising UET",
+    category:"AD_MEASUREMENT",
+    matchers:[
+      {type:"EXACT",value:"bat.bing.com"},
+    ],
+    expectedPurposes:[
+      "Measure website activity and conversions for Microsoft Advertising and support remarketing/audience workflows.",
+    ],
+    documentedCapabilities:[
+      "Record customer actions on tagged website pages.",
+      "Track conversion goals and custom events.",
+      "Provide signals used for remarketing audiences and campaign optimization.",
+    ],
+    documentedDataOrEvents:[
+      "Page visits",
+      "Conversion goals",
+      "Custom events",
+      "Revenue/value when configured",
+    ],
+    sources:[
+      source("Microsoft","Conversion Tracking","https://about.ads.microsoft.com/en/tools/performance/conversion-tracking"),
+    ],
+    limitations:[
+      "Microsoft documentation describes UET product behavior; the bat.bing.com request alone does not reveal the merchant's conversion goals or configured event parameters.",
+    ],
+  },
+  {
+    id:"adobe-demdex-identity",
+    vendor:"Adobe",
+    family:"Adobe Experience Cloud identity / Audience Manager Demdex",
+    category:"AD_MEASUREMENT",
+    matchers:[
+      {type:"EXACT",value:"dpm.demdex.net"},
+      {type:"EXACT",value:"adobedc.demdex.net"},
+    ],
+    expectedPurposes:[
+      "Support Adobe identity synchronization, Experience Cloud identity and Audience Manager data collection flows.",
+    ],
+    documentedCapabilities:[
+      "Exchange or synchronize identifiers with Adobe data collection services.",
+      "Return Experience Cloud identity and region/state information.",
+      "Support Audience Manager and Web SDK identity/data-collection flows.",
+    ],
+    documentedDataOrEvents:[
+      "Experience Cloud ID / MID",
+      "Partner or customer identifiers when configured",
+      "Identity-sync parameters",
+      "Consent/state parameters when configured",
+    ],
+    sources:[
+      source("Adobe","Direct integration with the Adobe Visitor ID Service","https://experienceleague.adobe.com/en/docs/id-service/using/implementation/direct-integration"),
+      source("Adobe","ID Synchronization for Inbound Data Transfers","https://experienceleague.adobe.com/en/docs/audience-manager/user-guide/implementation-integration-guides/sending-audience-data/batch-data-transfer-process/id-sync-http"),
+    ],
+    limitations:[
+      "Demdex endpoints serve several Adobe identity and audience workflows; hostname recognition does not identify the merchant's Adobe products, partner IDs or exact payload.",
+    ],
+  },
+  {
+    id:"akamai-mpulse",
+    vendor:"Akamai",
+    family:"Akamai mPulse / Boomerang",
+    category:"PERFORMANCE_ANALYTICS",
+    matchers:[
+      {type:"EXACT",value:"c.go-mpulse.net"},
+      {type:"EXACT",value:"s.go-mpulse.net"},
+      {type:"EXACT",value:"s2.go-mpulse.net"},
+    ],
+    expectedPurposes:[
+      "Measure real-user web performance through Akamai mPulse and the Boomerang browser library.",
+    ],
+    documentedCapabilities:[
+      "Load Boomerang and mPulse configuration in the browser.",
+      "Instrument page and SPA navigation performance.",
+      "Send performance beacons to configured mPulse collection endpoints.",
+    ],
+    documentedDataOrEvents:[
+      "Page performance",
+      "SPA navigation timing",
+      "Real-user monitoring beacons",
+    ],
+    sources:[
+      source("Akamai","mPulse and Boomerang blocked as tracker","https://techdocs.akamai.com/mpulse-boomerang/docs/mpulse-and-boomerang-blocked-as-tracker"),
+      source("Akamai","Single page apps","https://techdocs.akamai.com/mpulse-boomerang/docs/single-page-apps"),
+    ],
+    limitations:[
+      "mPulse configuration controls what is instrumented; the loader/config endpoints do not reveal the site's complete beacon payload or privacy settings.",
+    ],
+  },
+  {
+    id:"hubspot-tracking",
+    vendor:"HubSpot",
+    family:"HubSpot tracking code",
+    category:"MARKETING_AUTOMATION",
+    matchers:[
+      {type:"EXACT",value:"js.hs-scripts.com"},
+      {type:"EXACT",value:"js.hs-analytics.net"},
+      {type:"EXACT",value:"js.hubspot.com"},
+    ],
+    expectedPurposes:[
+      "Load HubSpot website tracking code for traffic, analytics and marketing/customer-journey measurement.",
+    ],
+    documentedCapabilities:[
+      "Load the HubSpot tracking-code script and analytics script in the browser.",
+      "Record website traffic and page activity for HubSpot reporting and marketing workflows.",
+    ],
+    documentedDataOrEvents:[
+      "Page visits",
+      "Website analytics activity",
+      "HubSpot tracking identifiers when configured",
+    ],
+    sources:[
+      source("HubSpot","Troubleshoot the HubSpot tracking code","https://knowledge.hubspot.com/reports/how-do-i-know-if-my-hubspot-tracking-code-is-working"),
+    ],
+    limitations:[
+      "HubSpot's browser hosts do not reveal which HubSpot hubs, forms, chatflows or custom events the merchant configured.",
+    ],
+  },
+  {
+    id:"trustarc-consent-manager",
+    vendor:"TrustArc",
+    family:"TrustArc Cookie Consent Manager",
+    category:"CONSENT_MANAGEMENT",
+    matchers:[
+      {type:"EXACT",value:"consent.trustarc.com"},
+    ],
+    expectedPurposes:[
+      "Render and operate website cookie consent and preference-management controls.",
+    ],
+    documentedCapabilities:[
+      "Load the Consent Manager script on website pages.",
+      "Render consent banners and cookie-preference controls.",
+      "Apply consent-manager configuration identified by the site's Consent Manager ID.",
+    ],
+    documentedDataOrEvents:[
+      "Consent-manager configuration",
+      "Cookie preference interactions",
+      "Consent state",
+    ],
+    sources:[
+      source("TrustArc","Cookie Consent Manager Professional Implementation Guide","https://consent.trustarc.com/asset/TrustArc_Cookie_Consent_Manager_Implementation_Guide.pdf"),
+    ],
+    limitations:[
+      "The TrustArc script host does not reveal the merchant's configured categories, vendors, consent model or downstream enforcement.",
+    ],
+  },
+  {
     id:"x-pixel",
     vendor:"X",
     family:"X Pixel",
