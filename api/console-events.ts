@@ -2,6 +2,10 @@ import { SupabaseEvidenceHistoryStore } from "../src/infrastructure/evidence-his
 import type { EvidenceHistoryEntry } from "../src/infrastructure/evidence-history/evidence-history-store.js";
 import { SupabaseAiAssessmentStore } from "../src/ai-analyst/ai-assessment-store.js";
 import { SupabaseLearningStore } from "../src/learning-loop/supabase-learning-store.js";
+import {
+  VENDOR_INTELLIGENCE_VERSION,
+  resolveVendorIntelligence,
+} from "../src/vendor-intelligence/vendor-intelligence.js";
 
 interface ApiRequest { method?: string }
 interface ApiResponse { status(code:number):ApiResponse; setHeader(name:string,value:string):void; json(body:unknown):void; end():void }
@@ -52,6 +56,10 @@ export default async function handler(request:ApiRequest,response:ApiResponse):P
       productThesis:"ThirdSight proves what can be proven, and learns where proof stops.",
       exposureMap:buildExposureMap(operationalHistory),
       challengeProof:buildChallengeProof(operationalHistory),
+      vendorIntelligence:{
+        registryVersion:VENDOR_INTELLIGENCE_VERSION,
+        authorityBoundary:resolveVendorIntelligence([]).authorityBoundary,
+      },
       aiAnalyst:{
         promoted:Boolean(promotedAiEvaluation),
         activePromotion:promotedAiEvaluation,
@@ -75,6 +83,11 @@ export default async function handler(request:ApiRequest,response:ApiResponse):P
         coverage:entry.evidence.coverage??inferCoverage(entry.evidence.did.value?.boundary),
         outcome:entry.outcome??derivePassiveOutcome(entry.evidence.did.value?.phase),
         aiAssessment:aiByRecord.get(entry.recordId)??null,
+        vendorIntelligence:resolveVendorIntelligence(
+          entry.evidence.did.value?.destinationOrigin
+            ?[entry.evidence.did.value.destinationOrigin]
+            :[],
+        ),
       })),
     });
   }catch{
@@ -229,6 +242,7 @@ function buildExposureMap(entries:readonly EvidenceHistoryEntry[]){
       lastSeen:row.lastSeen,
       latestResponse:row.latestResponse,
       reachSource:row.reachSource,
+      vendorIntelligence:resolveVendorIntelligence([...row.destinations]),
     }));
 }
 
