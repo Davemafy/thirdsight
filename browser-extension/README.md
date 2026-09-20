@@ -2,7 +2,7 @@
 
 This directory contains the product browser sensor promoted from the feasibility spike.
 
-It is intentionally small. The extension attaches only after an explicit action, enables Chrome DevTools Protocol network observation for that tab, emits `browser-observation.v1` records, removes query strings and fragments before storage or delivery, redacts obviously identifier-like path segments, and can forward those records to a configured ThirdSight ingestion endpoint.
+It is intentionally small. The extension attaches only after an explicit action, enables Chrome DevTools Protocol network observation for that tab, emits `browser-observation.v1` records for cross-origin requests, removes query strings and fragments before storage or delivery, redacts obviously identifier-like path segments, and can forward those records to a configured ThirdSight ingestion endpoint. Same-origin traffic and the configured ThirdSight ingestion transport itself are excluded so the sensor does not mistake the monitored application's own requests—or its own telemetry delivery—for third-party activity.
 
 ## Important semantics
 
