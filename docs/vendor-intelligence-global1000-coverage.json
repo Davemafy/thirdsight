@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "thirdsight-global1000-origin-coverage.v1",
+  "generatedAt": "2026-09-20T14:27:18.396Z",
+  "benchmarkRunId": "global1000-1789914020306",
+  "source": {
+    "name": "Tranco Top 1M snapshot mirror",
+    "url": "https://raw.githubusercontent.com/wangmm001/tranco-top1m-cache/main/data/current.csv.gz",
+    "version": "PY96J",
+    "selectedRange": "ranks 1-1000",
+    "selectedSha256": "2524c9601b6f9b959dd1e521cf9e8d253b312ac02978e848a2de20260e2e8820"
+  },
+  "inventorySha256": "e4f830cd1138949abe202cb571bd13d90d3435ba759f9aca3c9ceb1871581e64",
+  "uniqueOriginsExpected": 3354,
+  "uniqueOriginsIndexed": 3354,
+  "inventoryCoveragePct": 100,
+  "relationshipCounts": {
+    "sourceNamespaceOnly": 1232,
+    "mixedSourceAndExternal": 127,
+    "sharedExternal": 595,
+    "singleExternal": 1400
+  },
+  "claimBoundary": "100% inventory coverage means every observed origin has a reproducible disposition. It does not mean every origin has a verified vendor identity, documented product purpose or merchant authorization."
+}
