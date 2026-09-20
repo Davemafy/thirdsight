@@ -130,21 +130,29 @@ export function HackathonControlRoom({exposure,proof}:Props){
 
   return <div className="hcr-app">
     <header className="hcr-topbar">
-      <div className="hcr-brand"><span><ShieldCheck size={17}/></span><strong>ThirdSight</strong></div>
-      <div className="hcr-mode"><i/> Digital trust infrastructure · Commerce Lab</div>
-      <span className="hcr-track">Commerce & Consumer Protection</span>
+      <div className="hcr-brand"><span><ShieldCheck size={17}/></span><div><strong>ThirdSight</strong><small>Digital Trust Assurance</small></div></div>
+      <div className="hcr-mode"><i/> Controlled Commerce Lab · live evidence</div>
+      <span className="hcr-track">Pilot-grade prototype</span>
     </header>
 
     <main className="hcr-main">
       <section className="hcr-intro">
         <div>
-          <span>Third-party digital infrastructure assurance</span>
-          <h1>Trust infrastructure for third-party access.</h1>
-          <div className="hcr-positioning"><b>Built for businesses.</b><i/><b>Designed for regulators.</b></div>
+          <span>Continuous assurance for third-party access</span>
+          <h1>Know what partners can reach. Prove what they actually do.</h1>
+          <div className="hcr-positioning"><b>Operational for businesses.</b><i/><b>Auditable for oversight.</b></div>
         </div>
-        <p>ThirdSight gives organisations a live record of what integrations are allowed to do, what they can reach, what they actually touched, and the smallest justified response when those things diverge.</p>
+        <p>ThirdSight continuously reconciles approved purpose, technical reach, observed access and business context — producing evidence-backed findings and the smallest justified intervention when those signals diverge.</p>
       </section>
 
+      <section className="hcr-assurance-band" aria-label="Assurance capabilities">
+        <div><span>01</span><p><b>Discover</b><small>Map third-party exposure</small></p></div>
+        <div><span>02</span><p><b>Verify</b><small>Compare purpose to behaviour</small></p></div>
+        <div><span>03</span><p><b>Constrain</b><small>Stop only unjustified access</small></p></div>
+        <div><span>04</span><p><b>Evidence</b><small>Preserve an auditable record</small></p></div>
+      </section>
+
+      <div className="hcr-demo-label"><span>Controlled proof sequence</span><small>Five cases · same verifier · persisted evidence</small></div>
       <nav className="hcr-scenarios" aria-label="Demo scenarios">
         {scenarios.map(item=><button
           key={item.id}
@@ -232,8 +240,8 @@ export function HackathonControlRoom({exposure,proof}:Props){
       <section className="hcr-scale-proof">
         <div className="hcr-scale-copy">
           <span>Beyond the controlled lab</span>
-          <h3>External breadth, with the evidence boundary kept explicit.</h3>
-          <p>ThirdSight has also been exercised against a reproducible 1,000-site high-traffic public-web sample. That run proves browser-visible discovery breadth — not merchant approval, backend reach or business justification.</p>
+          <h3>Tested beyond the lab without overstating what browser evidence can prove.</h3>
+          <p>A reproducible 1,000-site high-traffic public-web benchmark demonstrates discovery breadth while preserving the evidence boundary: browser visibility does not become merchant approval, backend reach or business justification.</p>
         </div>
         <div className="hcr-scale-stats">
           <div><strong>1,000</strong><span>public sites attempted</span></div>
@@ -250,7 +258,7 @@ export function HackathonControlRoom({exposure,proof}:Props){
       </section>
 
       <footer className="hcr-footer">
-        <div><ShieldCheck size={15}/><strong>ThirdSight</strong></div>
+        <div><ShieldCheck size={15}/><strong>ThirdSight</strong><small>Digital Trust Assurance</small></div>
         <span>Prove what can be proven. Keep uncertainty visible.</span>
       </footer>
     </main>
