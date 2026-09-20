@@ -36,6 +36,18 @@ ThirdSight now has an evidence-backed end-to-end prototype rather than a mock da
 
 Stage 7 freezes the deterministic detector. Stage 8 adds a separately gated advisory AI analyst with no enforcement authority. Stage 9 adds a verified learning loop: a human-confirmed ambiguous outcome becomes a PII-minimized training example, a small classifier trains off the live decision path, and the candidate is promoted only after passing a frozen held-out benchmark. Learned recommendations remain limited to **REVIEW / OBSERVE / ABSTAIN**.
 
+## How another platform uses ThirdSight
+
+A customer connects ThirdSight at the boundary where third-party access can actually be observed:
+
+- **Managed request boundary** — strongest mode; the platform supplies approved purpose and first-party context, allowing pre-send field constraints when the evidence supports them.
+- **Browser sensor** — passive discovery of privacy-reduced cross-origin request metadata through the existing `/api/browser-observations` ingestion path.
+- **Audit / backend evidence** — post-access visibility for systems that cannot be placed behind an inline boundary.
+
+Connection mode determines what ThirdSight can prove. Browser-only evidence never silently becomes merchant intent, full backend capability or prevention.
+
+See [Product onboarding](docs/product-onboarding.md) for the concrete adoption flow and current prototype boundary.
+
 ## Real-world validation
 
 ThirdSight now presents two deliberately separate validation environments:
