@@ -1043,3 +1043,350 @@
   .exposure-row>div{padding:10px 0;border-left:0;border-top:1px solid #e7eae7}
   .exposure-row>div:first-child{border-top:0}
 }
+
+
+/* Boundary instrument — primary ThirdSight surface */
+.ts-boundary-page{
+  --paper:#f3f1ea;
+  --ink:#101512;
+  --muted:#667069;
+  --rule:#c8cbc4;
+  --soft:#e7e5de;
+  --ok:#1f6b45;
+  --alert:#c24d1e;
+  color:var(--ink);
+}
+.ts-boundary-head{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:40px;
+  align-items:end;
+  padding:4px 0 24px;
+  border-bottom:1px solid var(--rule);
+}
+.ts-boundary-head h1{
+  max-width:920px;
+  margin:0;
+  font-size:48px;
+  line-height:1.02;
+  letter-spacing:-.055em;
+  font-weight:760;
+}
+.ts-boundary-head p{
+  max-width:760px;
+  margin:12px 0 0;
+  color:var(--muted);
+  font-size:16px;
+  line-height:1.55;
+}
+.ts-boundary-outcome{
+  min-width:250px;
+  text-align:right;
+}
+.ts-boundary-outcome strong,
+.ts-boundary-outcome span{display:block}
+.ts-boundary-outcome strong{
+  color:var(--ok);
+  font-size:28px;
+  letter-spacing:-.035em;
+}
+.ts-boundary-outcome span{
+  margin-top:7px;
+  color:var(--muted);
+  font-size:13px;
+}
+
+.ts-boundary-labels{
+  display:grid;
+  grid-template-columns:280px 1fr 310px;
+  gap:0;
+  padding:20px 0 10px;
+  color:#505b54;
+  font-size:14px;
+  font-weight:700;
+}
+.ts-boundary-labels span:nth-child(2){text-align:center}
+.ts-boundary-labels span:nth-child(3){text-align:right}
+
+.ts-boundary-map{
+  display:grid;
+  grid-template-columns:280px 1fr 310px;
+  min-height:430px;
+  border-top:1px solid var(--rule);
+  border-bottom:1px solid var(--rule);
+}
+.ts-boundary-source{
+  padding:24px 0;
+  border-right:1px solid var(--rule);
+}
+.ts-boundary-destination{
+  padding:24px 0 24px 26px;
+  border-left:1px solid var(--rule);
+}
+.ts-boundary-field{
+  height:82px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+.ts-boundary-source .ts-boundary-field{padding-right:24px}
+.ts-boundary-field code{
+  color:var(--ink);
+  font:700 15px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+.ts-boundary-field span{
+  margin-top:8px;
+  color:var(--muted);
+  font-size:13px;
+}
+.ts-boundary-field.danger code{color:var(--alert)}
+.ts-boundary-field.muted code{color:#7a817d}
+
+.ts-boundary-flow{
+  position:relative;
+  padding-top:24px;
+}
+.ts-contract-line{
+  position:absolute;
+  top:0;
+  bottom:0;
+  left:50%;
+  width:2px;
+  background:var(--ink);
+}
+.ts-contract-name{
+  position:absolute;
+  top:18px;
+  left:50%;
+  transform:translateX(-50%);
+  padding:0 12px;
+  background:#f6f5f0;
+  font-size:14px;
+  font-weight:760;
+  white-space:nowrap;
+}
+.ts-flow-row{
+  position:relative;
+  height:82px;
+  display:flex;
+  align-items:center;
+}
+.ts-flow-row i{
+  position:absolute;
+  left:0;
+  right:0;
+  height:2px;
+  background:#2c4034;
+}
+.ts-flow-row span{
+  position:absolute;
+  left:calc(50% + 30px);
+  padding:0 6px;
+  background:#f6f5f0;
+  color:#445047;
+  font-size:13px;
+  font-weight:700;
+}
+.ts-flow-row.blocked i{
+  right:50%;
+  height:4px;
+  background:var(--alert);
+}
+.ts-flow-row.blocked b{
+  position:absolute;
+  left:50%;
+  transform:translate(-50%,-1px);
+  z-index:2;
+  display:grid;
+  width:28px;
+  height:28px;
+  place-items:center;
+  border:3px solid var(--alert);
+  border-radius:999px;
+  background:#f6f5f0;
+  color:var(--alert);
+  font-size:20px;
+  line-height:1;
+}
+.ts-flow-row.blocked span{
+  color:var(--alert);
+}
+.ts-receiver-proof{
+  margin-top:18px;
+  padding-top:18px;
+  border-top:1px solid var(--rule);
+}
+.ts-receiver-proof strong,
+.ts-receiver-proof span{display:block}
+.ts-receiver-proof strong{
+  color:var(--ok);
+  font-size:18px;
+  letter-spacing:-.02em;
+}
+.ts-receiver-proof span{
+  margin-top:5px;
+  color:var(--muted);
+  font-size:13px;
+}
+
+.ts-boundary-bottom{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:32px;
+  padding-top:26px;
+}
+.ts-boundary-bottom>section{
+  padding-top:16px;
+  border-top:1px solid var(--rule);
+}
+.ts-boundary-bottom h2{
+  margin:0 0 12px;
+  font-size:18px;
+  letter-spacing:-.02em;
+}
+.ts-boundary-facts{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  border-top:1px solid var(--soft);
+}
+.ts-boundary-facts>div{
+  padding:14px 0;
+  border-bottom:1px solid var(--soft);
+}
+.ts-boundary-facts>div:nth-child(odd){padding-right:20px}
+.ts-boundary-facts>div:nth-child(even){
+  padding-left:20px;
+  border-left:1px solid var(--soft);
+}
+.ts-boundary-facts span,
+.ts-boundary-facts b{display:block}
+.ts-boundary-facts span{
+  color:var(--muted);
+  font-size:13px;
+}
+.ts-boundary-facts b{
+  margin-top:5px;
+  font-size:15px;
+  line-height:1.35;
+}
+.ts-public-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+}
+.ts-public-head button{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  border:0;
+  background:transparent;
+  color:#34423a;
+  font-size:13px;
+  font-weight:700;
+  cursor:pointer;
+}
+.ts-public-rows{
+  display:grid;
+  border-top:1px solid var(--soft);
+}
+.ts-public-rows>button{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:20px;
+  padding:12px 0;
+  border:0;
+  border-bottom:1px solid var(--soft);
+  background:transparent;
+  text-align:left;
+  cursor:pointer;
+}
+.ts-public-rows>button b{font-size:14px}
+.ts-public-rows>button span{
+  color:var(--muted);
+  font-size:13px;
+}
+.ts-boundary-bottom section>p{
+  margin:13px 0 0;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.5;
+}
+.ts-boundary-footer{
+  display:flex;
+  justify-content:space-between;
+  gap:24px;
+  margin-top:24px;
+  padding-top:14px;
+  border-top:1px solid var(--rule);
+  color:var(--muted);
+  font-size:13px;
+}
+.ts-boundary-footer strong{color:var(--ink)}
+
+@media(max-width:900px){
+  .ts-boundary-head{
+    grid-template-columns:1fr;
+    gap:18px;
+  }
+  .ts-boundary-head h1{font-size:38px}
+  .ts-boundary-outcome{text-align:left}
+  .ts-boundary-labels{
+    grid-template-columns:150px 1fr 180px;
+    font-size:13px;
+  }
+  .ts-boundary-map{
+    grid-template-columns:150px 1fr 180px;
+    min-height:410px;
+  }
+  .ts-boundary-source .ts-boundary-field{padding-right:12px}
+  .ts-boundary-destination{padding-left:14px}
+  .ts-boundary-field code{font-size:13px}
+  .ts-contract-name{font-size:12px}
+  .ts-flow-row span{font-size:12px}
+  .ts-boundary-bottom{grid-template-columns:1fr}
+  .ts-boundary-footer{display:block}
+  .ts-boundary-footer span{display:block;margin-top:6px}
+}
+
+@media(max-width:620px){
+  .ts-boundary-head h1{font-size:34px}
+  .ts-boundary-head p{font-size:15px}
+  .ts-boundary-labels{
+    grid-template-columns:110px 1fr 125px;
+    font-size:12px;
+  }
+  .ts-boundary-map{
+    grid-template-columns:110px 1fr 125px;
+    min-height:400px;
+  }
+  .ts-boundary-field{
+    height:76px;
+  }
+  .ts-boundary-field code{
+    font-size:12px;
+    overflow-wrap:anywhere;
+  }
+  .ts-boundary-field span,
+  .ts-receiver-proof span{font-size:12px}
+  .ts-receiver-proof strong{font-size:14px}
+  .ts-contract-name{
+    top:12px;
+    max-width:120px;
+    white-space:normal;
+    text-align:center;
+    font-size:12px;
+    line-height:1.2;
+  }
+  .ts-flow-row{height:76px}
+  .ts-flow-row span{
+    left:calc(50% + 18px);
+    font-size:11px;
+  }
+  .ts-boundary-facts{grid-template-columns:1fr}
+  .ts-boundary-facts>div:nth-child(even){
+    padding-left:0;
+    border-left:0;
+  }
+  .ts-boundary-facts>div:nth-child(odd){padding-right:0}
+}
