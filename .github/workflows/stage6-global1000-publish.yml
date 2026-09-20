@@ -16,14 +16,14 @@ permissions:
 
 jobs:
   publish:
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion != 'cancelled' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: main
 
-      - name: Resolve completed benchmark run
+      - name: Resolve benchmark run
         env:
           GH_TOKEN: ${{ github.token }}
           EVENT_NAME: ${{ github.event_name }}
@@ -50,12 +50,50 @@ jobs:
 
           status=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/$run_id" --jq '.status')
           conclusion=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/$run_id" --jq '.conclusion')
-          echo "Benchmark completed: status=$status conclusion=$conclusion"
-          test "$status" = "completed"
-          test "$conclusion" = "success"
+          html_url=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/$run_id" --jq '.html_url')
+          head_sha=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/$run_id" --jq '.head_sha')
+          created_at=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/$run_id" --jq '.created_at')
+          updated_at=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/$run_id" --jq '.updated_at')
+
+          echo "Benchmark: status=$status conclusion=$conclusion"
           echo "BENCHMARK_RUN_ID=$run_id" >> "$GITHUB_ENV"
+          echo "BENCHMARK_STATUS=$status" >> "$GITHUB_ENV"
+          echo "BENCHMARK_CONCLUSION=$conclusion" >> "$GITHUB_ENV"
+          echo "BENCHMARK_HTML_URL=$html_url" >> "$GITHUB_ENV"
+          echo "BENCHMARK_HEAD_SHA=$head_sha" >> "$GITHUB_ENV"
+          echo "BENCHMARK_CREATED_AT=$created_at" >> "$GITHUB_ENV"
+          echo "BENCHMARK_UPDATED_AT=$updated_at" >> "$GITHUB_ENV"
+
+      - name: Publish run status
+        run: |
+          node - <<'NODE'
+          const fs=require("fs");
+          const body={
+            schemaVersion:"thirdsight-global1000-run-status.v1",
+            workflowRunId:process.env.BENCHMARK_RUN_ID,
+            status:process.env.BENCHMARK_STATUS,
+            conclusion:process.env.BENCHMARK_CONCLUSION,
+            htmlUrl:process.env.BENCHMARK_HTML_URL,
+            headSha:process.env.BENCHMARK_HEAD_SHA,
+            createdAt:process.env.BENCHMARK_CREATED_AT,
+            updatedAt:process.env.BENCHMARK_UPDATED_AT,
+            publishedAt:new Date().toISOString(),
+          };
+          fs.writeFileSync("docs/stage6-global1000-run-status.json",JSON.stringify(body,null,2)+"\n");
+          NODE
+
+      - name: Commit run status
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/stage6-global1000-run-status.json
+          if ! git diff --cached --quiet; then
+            git commit -m "docs(stage6): record global1000 workflow status"
+            git push origin HEAD:main
+          fi
 
       - name: Download completed benchmark artifact
+        if: ${{ env.BENCHMARK_STATUS == 'completed' && env.BENCHMARK_CONCLUSION == 'success' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -63,6 +101,7 @@ jobs:
           gh run download "$BENCHMARK_RUN_ID" -R "${{ github.repository }}" -n stage6-global1000-passive-discovery -D /tmp/global1000
 
       - name: Publish benchmark report and compact summary
+        if: ${{ env.BENCHMARK_STATUS == 'completed' && env.BENCHMARK_CONCLUSION == 'success' }}
         run: |
           cp /tmp/global1000/stage6-global1000-discovery.md docs/stage6-global1000-benchmark.md
           node - <<'NODE'
@@ -84,14 +123,18 @@ jobs:
           fs.writeFileSync("docs/stage6-global1000-summary.json",JSON.stringify(summary,null,2)+"\n");
           NODE
 
-      - name: Commit immutable benchmark result
+      - name: Commit benchmark result
+        if: ${{ env.BENCHMARK_STATUS == 'completed' && env.BENCHMARK_CONCLUSION == 'success' }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin main
           git add docs/stage6-global1000-benchmark.md docs/stage6-global1000-summary.json
-          if git diff --cached --quiet; then
-            echo "No benchmark result change to publish."
-            exit 0
+          if ! git diff --cached --quiet; then
+            git commit -m "docs(stage6): publish 1000-site benchmark result (run $BENCHMARK_RUN_ID)"
+            git push origin HEAD:main
           fi
-          git commit -m "docs(stage6): publish 1000-site benchmark result (run $BENCHMARK_RUN_ID)"
-          git push origin HEAD:main
+
+      - name: Fail publisher when benchmark did not succeed
+        if: ${{ env.BENCHMARK_STATUS != 'completed' || env.BENCHMARK_CONCLUSION != 'success' }}
+        run: |
+          echo "Benchmark did not complete successfully: status=$BENCHMARK_STATUS conclusion=$BENCHMARK_CONCLUSION"
+          exit 1
