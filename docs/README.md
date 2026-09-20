@@ -12,7 +12,7 @@ This directory contains the canonical product, validation and submission documen
 - [`stage6-ng40-benchmark.md`](stage6-ng40-benchmark.md) - 40-site Nigeria-facing public discovery benchmark, safety boundary, persisted evidence semantics, real-site breadth results and blocked-site failure record.
 - [`stage8-ai-evaluation.md`](stage8-ai-evaluation.md) - advisory AI authority boundary and evaluation record.
 - [`stage9-learning-loop.md`](stage9-learning-loop.md) - Verified Learning as the residual advisory layer: human-confirmed outcomes, review-priority learning, frozen promotion gate and explicit separation from deterministic enforcement.
-- [`vendor-intelligence-v1.md`](vendor-intelligence-v1.md) - versioned first-party vendor documentation registry, Expected / Approved / Capable / Observed / Context model, provenance rules and frozen-authority boundary.
+- [`vendor-intelligence-v1.md`](vendor-intelligence-v1.md) - initial first-party documentation registry and evidence-source separation.\n- [`vendor-intelligence-v2.md`](vendor-intelligence-v2.md) - complete 3,354-origin benchmark inventory, documentation-resolution layer, generated coverage manifest and frozen-authority boundary.
 
 ## Judge-facing submission package
 
