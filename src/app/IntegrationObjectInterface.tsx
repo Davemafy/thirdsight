@@ -5,7 +5,6 @@ import {
   ArrowUpRight,
   ChevronDown,
   CircleDot,
-  Eye,
   Layers3,
   MoreHorizontal,
   PlugZap,
