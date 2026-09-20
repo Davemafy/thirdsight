@@ -83,7 +83,8 @@ export default async function handler(request:ApiRequest,response:ApiResponse):P
 }
 
 function isPublicBenchmarkEntry(entry:EvidenceHistoryEntry):boolean{
-  return entry.recordId.startsWith("browser:benchmark40:");
+  return entry.recordId.startsWith("browser:benchmark40:")||
+    entry.recordId.startsWith("browser:benchmark1000:");
 }
 
 function derivePassiveOutcome(phase:string|undefined):"DETECTED"|null{
