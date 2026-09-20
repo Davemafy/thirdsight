@@ -123,13 +123,25 @@ jobs:
           fs.writeFileSync("docs/stage6-global1000-summary.json",JSON.stringify(summary,null,2)+"\n");
           NODE
 
+      - name: Generate complete origin intelligence inventory
+        if: ${{ env.BENCHMARK_STATUS == 'completed' && env.BENCHMARK_CONCLUSION == 'success' }}
+        run: |
+          node scripts/stage6-global1000-origin-coverage.mjs \
+            /tmp/global1000/stage6-global1000-discovery.json \
+            public/vendor-intelligence/global1000-origins.json \
+            docs/vendor-intelligence-global1000-coverage.json
+
       - name: Commit benchmark result
         if: ${{ env.BENCHMARK_STATUS == 'completed' && env.BENCHMARK_CONCLUSION == 'success' }}
         run: |
           git pull --rebase origin main
-          git add docs/stage6-global1000-benchmark.md docs/stage6-global1000-summary.json
+          git add \
+            docs/stage6-global1000-benchmark.md \
+            docs/stage6-global1000-summary.json \
+            docs/vendor-intelligence-global1000-coverage.json \
+            public/vendor-intelligence/global1000-origins.json
           if ! git diff --cached --quiet; then
-            git commit -m "docs(stage6): publish 1000-site benchmark result (run $BENCHMARK_RUN_ID)"
+            git commit -m "docs(stage6): publish 1000-site benchmark and full origin coverage (run $BENCHMARK_RUN_ID)"
             git push origin HEAD:main
           fi
 
