@@ -74,7 +74,7 @@ type ConsoleEvent={
 };
 
 const viewCopy:Record<View,{title:string}>={
-  overview:{title:"Overview"},
+  overview:{title:"Boundary"},
   integrations:{title:"Integrations"},
   activity:{title:"Activity"},
   incidents:{title:"Incidents"},
@@ -163,7 +163,7 @@ export default function App(){
       </button>
 
       <div className="ts-nav">
-        <NavButton active={view==="overview"} icon={<Layers3 size={16}/>} label="Overview" onClick={()=>setView("overview")}/>
+        <NavButton active={view==="overview"} icon={<Layers3 size={16}/>} label="Boundary" onClick={()=>setView("overview")}/>
         <NavButton active={view==="integrations"} icon={<PlugZap size={16}/>} label="Integrations" onClick={()=>setView("integrations")}/>
         <NavButton active={view==="activity"} icon={<Activity size={16}/>} label="Activity" onClick={()=>setView("activity")}/>
         <NavButton active={view==="incidents"} icon={<AlertTriangle size={16}/>} label="Incidents" onClick={()=>setView("incidents")}/>
@@ -248,74 +248,122 @@ function NavButton({active,icon,label,count,onClick}:{active:boolean;icon:React.
 
 function Overview({
   exposure,
-  events,
-  registeredCount,
-  unregisteredCount,
-  findingCount,
   onViewIntegrations,
   onOpenRow,
 }:{
   exposure:readonly ExposureRow[];
   events:readonly ConsoleEvent[];
+  proof:ChallengeProof|null;
   registeredCount:number;
   unregisteredCount:number;
   findingCount:number;
   onViewIntegrations:()=>void;
+  onConnections:()=>void;
   onOpenRow:(row:ExposureRow)=>void;
+  onOpenEvent:(index:number)=>void;
 }){
-  const attentionRows=exposure.filter(row=>
-    row.findings.length>0||
-    !row.integrationId||
-    row.latestResponse==="CONSTRAIN"||
-    row.latestResponse==="ISOLATE"||
-    row.latestResponse==="PREVENTED"||
-    row.latestResponse==="DETECTED"
-  );
-  const limitedCount=exposure.filter(row=>
-    row.preventedFields.length>0||
-    row.latestResponse==="CONSTRAIN"||
-    row.latestResponse==="ISOLATE"||
-    row.latestResponse==="PREVENTED"
-  ).length;
-  const normalCount=exposure.filter(row=>
-    row.findings.length===0&&row.latestResponse==="ALLOW"
-  ).length;
-  const reviewRows=attentionRows.slice(0,6);
-  const needReview=attentionRows.length;
-  const headline=findingCount>0
-    ?`${findingCount} integration${findingCount===1?"":"s"} crossed current rules`
-    :needReview>0
-      ?`${needReview} integration${needReview===1?" needs":"s need"} a rule or identity`
-      :"Observed access matches current rules";
+  const publicRows=exposure
+    .filter(row=>row.boundaries.includes("browser"))
+    .slice(0,3);
 
-  return <div className="ts-overview-plain">
-    <section className="ts-overview-summary">
-      <div className="ts-overview-title">
-        <h1>{headline}</h1>
-        <span>{events[0]?evidenceFreshness(events[0].observedAt):"No persisted evidence yet"}</span>
-      </div>
-      <div className="ts-overview-counts" aria-label="Current integration state">
-        <span><b>{limitedCount}</b> limited or isolated</span>
-        <span><b>{normalCount}</b> within policy</span>
-        <span><b>{unregisteredCount}</b> unresolved</span>
-      </div>
-    </section>
-
-    <section className="ts-attention-ledger">
-      <div className="ts-ledger-heading">
-        <h2>Needs attention</h2>
-        <span>{needReview}</span>
-      </div>
-      <ReviewQueue rows={reviewRows} onOpen={onOpenRow}/>
-    </section>
-
-    <div className="ts-overview-footer">
+  return <div className="ts-boundary-page">
+    <header className="ts-boundary-head">
       <div>
-        <strong>{registeredCount} registered integrations</strong>
-        <span>{exposure.length} observed in this workspace</span>
+        <h1>Customer phone tried to leave the analytics boundary.</h1>
+        <p>ThirdSight removed only the unapproved field. Product data continued.</p>
       </div>
-      <button onClick={onViewIntegrations}>All integrations <ArrowRight size={14}/></button>
+      <div className="ts-boundary-outcome">
+        <strong>Prevented</strong>
+        <span>Controlled proof · stage7-v1-frozen</span>
+      </div>
+    </header>
+
+    <div className="ts-boundary-labels" aria-hidden="true">
+      <span>Store data</span>
+      <span>Purpose contract</span>
+      <span>AnalyticsPartner</span>
     </div>
+
+    <section className="ts-boundary-map" aria-label="ThirdSight purpose boundary">
+      <div className="ts-boundary-source">
+        <BoundaryField name="product.id" note="approved"/>
+        <BoundaryField name="product.category" note="approved"/>
+        <BoundaryField name="product.price" note="approved"/>
+        <BoundaryField name="customer.phone" note="outside contract" danger/>
+      </div>
+
+      <div className="ts-boundary-flow">
+        <div className="ts-contract-line"/>
+        <div className="ts-contract-name">Measure product interest</div>
+        <div className="ts-flow-row"><i/><span>continued</span></div>
+        <div className="ts-flow-row"><i/><span>continued</span></div>
+        <div className="ts-flow-row"><i/><span>continued</span></div>
+        <div className="ts-flow-row blocked"><i/><b>×</b><span>removed here</span></div>
+      </div>
+
+      <div className="ts-boundary-destination">
+        <BoundaryField name="product.id" note="received"/>
+        <BoundaryField name="product.category" note="received"/>
+        <BoundaryField name="product.price" note="received"/>
+        <BoundaryField name="customer.phone" note="not received" muted/>
+        <div className="ts-receiver-proof">
+          <strong>Receiver confirmed no phone field</strong>
+          <span>Managed boundary · PREVENTED</span>
+        </div>
+      </div>
+    </section>
+
+    <div className="ts-boundary-bottom">
+      <section>
+        <h2>Why it stopped</h2>
+        <div className="ts-boundary-facts">
+          <div><span>Approved purpose</span><b>Measure product interest</b></div>
+          <div><span>Observed field</span><b>customer.phone</b></div>
+          <div><span>Finding</span><b>Scope drift</b></div>
+          <div><span>Response</span><b>Constrain that field only</b></div>
+        </div>
+      </section>
+
+      <section>
+        <div className="ts-public-head">
+          <h2>Public discovery</h2>
+          <button onClick={onViewIntegrations}>All integrations <ArrowRight size={14}/></button>
+        </div>
+        <div className="ts-public-rows">
+          {publicRows.map(row=>{
+            const profile=row.vendorIntelligence.profiles[0]??null;
+            return <button key={row.key} onClick={()=>onOpenRow(row)}>
+              <b>{profile?.family??row.label}</b>
+              <span>{row.observations} observation{row.observations===1?"":"s"}</span>
+            </button>;
+          })}
+          {publicRows.length===0?<EmptyState text="No public discovery evidence yet."/>:null}
+        </div>
+        <p>Browser discovery proves request execution only. It does not prove payload meaning, backend access, downstream receipt, or malicious intent.</p>
+      </section>
+    </div>
+
+    <footer className="ts-boundary-footer">
+      <strong>ThirdSight proves what can be proven, and shows where proof stops.</strong>
+      <span>Commerce Lab · controlled simulation</span>
+    </footer>
+  </div>;
+}
+
+function BoundaryField({
+  name,
+  note,
+  danger=false,
+  muted=false,
+}:{
+  name:string;
+  note:string;
+  danger?:boolean;
+  muted?:boolean;
+}){
+  return <div className={"ts-boundary-field "+(danger?"danger ":"")+(muted?"muted":"")}>
+    <code>{name}</code>
+    <span>{note}</span>
   </div>;
 }
 
