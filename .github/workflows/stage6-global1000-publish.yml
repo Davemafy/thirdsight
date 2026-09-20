@@ -1,0 +1,62 @@
+name: Publish Stage 6 Global 1000-Site Results
+
+on:
+  workflow_run:
+    workflows: ["Stage 6 Global 1000-Site Discovery"]
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Download completed benchmark artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          mkdir -p /tmp/global1000
+          gh run download "$RUN_ID" -R "${{ github.repository }}" -n stage6-global1000-passive-discovery -D /tmp/global1000
+
+      - name: Publish benchmark report and compact summary
+        run: |
+          cp /tmp/global1000/stage6-global1000-discovery.md docs/stage6-global1000-benchmark.md
+          node - <<'NODE'
+          const fs=require("fs");
+          const input=JSON.parse(fs.readFileSync("/tmp/global1000/stage6-global1000-discovery.json","utf8"));
+          const summary={
+            schemaVersion:"thirdsight-global1000-summary.v1",
+            runId:input.runId,
+            generatedAt:input.generatedAt,
+            mode:input.mode,
+            source:input.source,
+            thesis:input.thesis,
+            summary:input.summary,
+            evidenceSemantics:input.evidenceSemantics,
+            safety:input.safety,
+            topDestinations:input.topDestinations,
+          };
+          fs.writeFileSync("docs/stage6-global1000-summary.json",JSON.stringify(summary,null,2)+"\n");
+          NODE
+
+      - name: Commit immutable benchmark result
+        env:
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/stage6-global1000-benchmark.md docs/stage6-global1000-summary.json
+          if git diff --cached --quiet; then
+            echo "No benchmark result change to publish."
+            exit 0
+          fi
+          git commit -m "docs(stage6): publish 1000-site benchmark result (run $RUN_ID)"
+          git push origin HEAD:main
