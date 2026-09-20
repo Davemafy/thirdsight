@@ -167,6 +167,38 @@ export const VENDOR_INTELLIGENCE_PROFILES: readonly VendorIntelligenceProfile[] 
     ],
   },
   {
+    id:"google-publisher-tag",
+    vendor:"Google",
+    family:"Google Publisher Tag / Ad Manager",
+    category:"AD_MEASUREMENT",
+    matchers:[
+      {type:"EXACT",value:"securepubads.g.doubleclick.net"},
+      {type:"EXACT",value:"pagead2.googlesyndication.com"},
+    ],
+    expectedPurposes:[
+      "Define publisher ad inventory, request ads and render matching demand through Google Ad Manager.",
+    ],
+    documentedCapabilities:[
+      "Define ad slots and page-level targeting settings.",
+      "Initiate and bundle ad requests and render returned creatives.",
+      "Pass configured ad-unit, size and key-value information to the ad server.",
+      "Integrate consent and privacy settings for ad requests.",
+    ],
+    documentedDataOrEvents:[
+      "Ad unit identifiers",
+      "Ad sizes",
+      "Configured targeting key-values",
+      "Ad request and rendering state",
+    ],
+    sources:[
+      source("Google","Overview of Google Publisher Tag","https://support.google.com/admanager/answer/181073?hl=en"),
+      source("Google","Get Started with Google Publisher Tag","https://developers.google.com/publisher-tag/guides/get-started"),
+    ],
+    limitations:[
+      "A Publisher Tag hostname does not reveal the publisher's inventory, targeting configuration, creative payloads or whether ads are personalized.",
+    ],
+  },
+  {
     id:"google-fonts",
     vendor:"Google",
     family:"Google Fonts",
