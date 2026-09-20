@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { BookOpenCheck, Eye, Globe2, ShieldCheck } from "lucide-react";
 import {
   VENDOR_INTELLIGENCE_VERSION,
   resolveVendorOrigin,
@@ -62,54 +61,58 @@ export function RealWorldValidation(){
   );
 
   return <section className="real-validation" id="real-world-validation">
-    <div className="real-validation-head">
-      <div>
-        <span className="eyebrow">Real-world validation · ground truth + discovery + documentation</span>
-        <h2>Prove correctness where ground truth exists. Add documented expectations where public evidence exists.</h2>
-        <p>Commerce Lab proves abuse and enforcement with known ground truth. Public-site discovery proves browser-visible breadth. Vendor Intelligence then resolves known destinations against first-party vendor documentation without pretending those documents are merchant authorization.</p>
-      </div>
-      <span className="validation-badge"><ShieldCheck size={13}/> claim-bounded</span>
+    <div className="validation-section-title">
+      <h2>Real-world validation</h2>
+      <span>Each claim stays tied to the evidence that supports it.</span>
     </div>
 
-    <div className="validation-compare">
-      <article className="validation-lane controlled">
-        <div className="validation-lane-title">
-          <span className="validation-icon"><ShieldCheck size={16}/></span>
-          <div><small>CONTROLLED · COMMERCE LAB</small><strong>Ground-truth proof</strong></div>
-        </div>
-        <p>Purpose Contracts, capabilities, runtime activity and first-party business context are known, so deterministic findings and enforcement can be verified.</p>
-        <div className="validation-proof-lines">
-          <span><b>10× legitimate sale</b><em>ALLOW · no false alarm</em></span>
-          <span><b>Proportional abuse</b><em>PURPOSE_MISMATCH · caught</em></span>
-          <span><b>Scope violation</b><em>CONSTRAIN · phone removed · PREVENTED</em></span>
-        </div>
-      </article>
-
-      <article className="validation-lane public">
-        <div className="validation-lane-title">
-          <span className="validation-icon"><Globe2 size={16}/></span>
-          <div><small>PUBLIC · PASSIVE BROWSER</small><strong>External discovery breadth</strong></div>
-        </div>
-        <p>Logged-out homepage observation only. No accounts, clicks, forms, fuzzing, bypasses, request mutation, payload inspection or private/customer data.</p>
-        <div className="validation-metrics">
-          <Metric value={publicBenchmark.attempted} label="Nigeria-facing sites"/>
-          <Metric value={publicBenchmark.loaded} label="loaded normally"/>
-          <Metric value={globalBenchmark.attempted} label="scaled sample"/>
-          <Metric value={globalBenchmark.uniqueOrigins} label="origins in 1k run"/>
-        </div>
-        <div className="validation-loaded"><Eye size={13}/><span><b>{globalBenchmark.crossOriginRequests.toLocaleString()}</b> cross-origin requests observed in the 1,000-site scale run · {globalBenchmark.persisted} representative observations persisted.</span></div>
-      </article>
-    </div>
-
-    <div className="validation-intelligence">
-      <div className="validation-intelligence-head">
-        <div>
-          <span><BookOpenCheck size={14}/> Vendor Intelligence · {VENDOR_INTELLIGENCE_VERSION}</span>
-          <strong>Known destinations no longer have to stay anonymous.</strong>
-          <p>This is post-hoc documentation enrichment. Original benchmark records keep their frozen browser evidence semantics.</p>
-        </div>
-        <small>Vendor docs ≠ merchant approval</small>
+    <section className="validation-ledger-block">
+      <div className="validation-block-heading"><h3>Commerce Lab</h3><span>Ground truth</span></div>
+      <div className="validation-ledger-row">
+        <span>Busy sales day</span>
+        <strong>10× legitimate sale</strong>
+        <b>No false alarm</b>
       </div>
+      <div className="validation-ledger-row">
+        <span>Abnormal behaviour</span>
+        <strong>Proportional abuse</strong>
+        <b>Purpose mismatch caught</b>
+      </div>
+      <div className="validation-ledger-row">
+        <span>Scope violation</span>
+        <strong>Phone field outside approved scope</strong>
+        <b>Removed before send</b>
+      </div>
+    </section>
+
+    <section className="validation-ledger-block">
+      <div className="validation-block-heading"><h3>Public web</h3><span>Passive browser observation</span></div>
+      <div className="validation-number-row">
+        <div><strong>{publicBenchmark.attempted}</strong><span>Nigeria-facing sites attempted</span></div>
+        <div><strong>{publicBenchmark.loaded}</strong><span>loaded normally</span></div>
+        <div><strong>{globalBenchmark.attempted.toLocaleString()}</strong><span>sites in scale run</span></div>
+        <div><strong>{globalBenchmark.uniqueOrigins.toLocaleString()}</strong><span>unique origins</span></div>
+      </div>
+      <p className="validation-evidence-line"><b>{globalBenchmark.crossOriginRequests.toLocaleString()}</b> cross-origin requests observed · <b>{globalBenchmark.persisted}</b> representative observations persisted.</p>
+      <p className="validation-boundary-line">Logged-out homepages only. No accounts, clicks, forms, fuzzing, bypasses, request mutation, payload inspection, or private/customer data.</p>
+    </section>
+
+    <section className="validation-ledger-block">
+      <div className="validation-block-heading">
+        <h3>Origin coverage</h3>
+        <span>{originCoverage?`${originCoverage.indexed.toLocaleString()} / ${globalBenchmark.uniqueOrigins.toLocaleString()} indexed`:"3,354 / 3,354 indexed"}</span>
+      </div>
+      <div className="validation-coverage-rows">
+        <div><span>Documented product family</span><b>{originCoverage?.documentedProductFamily?.toLocaleString()??"—"}</b><small>{originCoverage?`${originCoverage.weightedDocumentationCoveragePct}% of site-origin appearances`:"Calculated after manifest loads"}</small></div>
+        <div><span>Source-domain namespace</span><b>{originCoverage?.byDisposition.INDEXED_SOURCE_NAMESPACE?.toLocaleString()??"—"}</b><small>Namespace relation only, not ownership</small></div>
+        <div><span>Shared or mixed external</span><b>{originCoverage?(originCoverage.byDisposition.INDEXED_SHARED_EXTERNAL+originCoverage.byDisposition.INDEXED_MIXED_RELATIONSHIP).toLocaleString():"—"}</b><small>Prioritized for documentation resolution</small></div>
+        <div><span>Single-site external</span><b>{originCoverage?.byDisposition.INDEXED_SINGLE_EXTERNAL?.toLocaleString()??"—"}</b><small>Indexed even when vendor identity stays unresolved</small></div>
+      </div>
+      <p className="validation-boundary-line">Inventory coverage means every observed origin has a reproducible disposition. It does not mean every origin has a verified vendor identity or documented purpose.</p>
+    </section>
+
+    <section className="validation-ledger-block">
+      <div className="validation-block-heading"><h3>Vendor context</h3><span>{VENDOR_INTELLIGENCE_VERSION}</span></div>
       <div className="validation-intelligence-rows">
         {documentedOrigins.map(({origin,sites,intelligence})=>{
           const profile=intelligence.profiles[0]??null;
@@ -122,90 +125,20 @@ export function RealWorldValidation(){
           </div>;
         })}
       </div>
+    </section>
+
+    <div className="validation-evidence-model">
+      <div><span>Expected</span><b>Vendor docs when resolved</b></div>
+      <div><span>Approved / should</span><b>Merchant only</b></div>
+      <div><span>Capable</span><b>Docs + local config</b></div>
+      <div><span>Observed / did</span><b>Runtime evidence</b></div>
+      <div><span>Context / why</span><b>First-party strongest</b></div>
     </div>
 
-    <div className="validation-origin-coverage">
-      <div className="validation-origin-coverage-head">
-        <div>
-          <span>Complete origin coverage</span>
-          <strong>{originCoverage?`${originCoverage.indexed.toLocaleString()} / ${globalBenchmark.uniqueOrigins.toLocaleString()}`:"3,354 / 3,354"} indexed</strong>
-          <p>Every unique origin from the scale run gets a deterministic disposition. Documentation-backed identity is counted separately so “covered” never means “we guessed the vendor.”</p>
-        </div>
-        <b>{originCoverage?"100% inventory":"manifest publishing"}</b>
-      </div>
-      <div className="validation-origin-coverage-grid">
-        <CoverageMetric
-          value={originCoverage?.documentedProductFamily}
-          fallback="—"
-          label="documented product family"
-          detail={originCoverage?`${originCoverage.weightedDocumentationCoveragePct}% of site-origin appearances`:"calculated after manifest loads"}
-        />
-        <CoverageMetric
-          value={originCoverage?.byDisposition.INDEXED_SOURCE_NAMESPACE}
-          fallback="—"
-          label="source-domain namespace"
-          detail="namespace relation only · not ownership"
-        />
-        <CoverageMetric
-          value={originCoverage
-            ?originCoverage.byDisposition.INDEXED_SHARED_EXTERNAL+originCoverage.byDisposition.INDEXED_MIXED_RELATIONSHIP
-            :undefined}
-          fallback="—"
-          label="shared / mixed external"
-          detail="prioritized for documentation resolution"
-        />
-        <CoverageMetric
-          value={originCoverage?.byDisposition.INDEXED_SINGLE_EXTERNAL}
-          fallback="—"
-          label="single-site external"
-          detail="indexed even when vendor remains unresolved"
-        />
-      </div>
-      <small className="validation-origin-coverage-note">Full manifest: /vendor-intelligence/global1000-origins.json · benchmark {globalBenchmark.runId}. An unresolved origin is still covered by the inventory; it simply remains unresolved rather than receiving a fabricated product identity.</small>
-    </div>
-
-    <div className="validation-semantics">
-      <div><span>EXPECTED</span><b>DOC-BACKED WHEN RESOLVED</b><small>vendor's documented product purpose</small></div>
-      <div><span>APPROVED / SHOULD</span><b>MERCHANT ONLY</b><small>Purpose Contract remains authoritative</small></div>
-      <div><span>CAPABLE</span><b>DOCS + LOCAL CONFIG</b><small>documented surface, narrowed by local evidence</small></div>
-      <div><span>OBSERVED / DID</span><b>RUNTIME</b><small>browser-visible request metadata</small></div>
-      <div><span>CONTEXT / WHY</span><b>FIRST-PARTY STRONGEST</b><small>vendor use case supports but does not prove justification</small></div>
-    </div>
-
-    <div className="validation-footer">
-      <div className="validation-destinations">
-        <span>Scale result</span>
-        <div>
-          <small><b>{globalBenchmark.attempted}</b> sites attempted</small>
-          <small><b>{globalBenchmark.loaded}</b> loaded normally</small>
-          <small><b>{globalBenchmark.uniqueOrigins}</b> unique origins</small>
-          <small><b>{globalBenchmark.persisted}</b> persisted representatives</small>
-        </div>
-        <p>Tranco snapshot {globalBenchmark.sourceVersion}. This is a reproducible 1,000-site high-traffic public-web sample, not “10% of the landscape.”</p>
-      </div>
-      <div className="validation-boundary">
-        <b>What documentation enrichment still does not prove</b>
-        <p>Vendor docs do not prove merchant approval, merchant-specific configuration, maliciousness, necessity, backend permissions, database access, server-to-server activity or what data actually reached a downstream vendor. Those require stronger evidence.</p>
-        <small>Nigeria run {publicBenchmark.workflowRun} · {publicBenchmark.runId} · scale run {globalBenchmark.workflowRun} · {globalBenchmark.runId}</small>
-      </div>
+    <div className="validation-endnotes">
+      <p>Tranco snapshot {globalBenchmark.sourceVersion}. This is a reproducible 1,000-site high-traffic public-web sample, not “10% of the landscape.”</p>
+      <p><b>Boundary:</b> vendor documentation does not prove merchant approval, merchant-specific configuration, maliciousness, necessity, backend permissions, database access, server-to-server activity, or what data actually reached a downstream vendor.</p>
+      <small>Nigeria run {publicBenchmark.workflowRun} · {publicBenchmark.runId} · scale run {globalBenchmark.workflowRun} · {globalBenchmark.runId}</small>
     </div>
   </section>;
-}
-
-function Metric({value,label}:{value:number;label:string}){
-  return <div><strong>{value.toLocaleString()}</strong><span>{label}</span></div>;
-}
-
-function CoverageMetric({
-  value,
-  fallback,
-  label,
-  detail,
-}:{
-  value:number|undefined;
-  fallback:string;
-  label:string;
-  detail:string;
-}){
-  return <div><strong>{typeof value==="number"?value.toLocaleString():fallback}</strong><span>{label}</span><small>{detail}</small></div>;
 }

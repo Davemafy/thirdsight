@@ -1,5 +1,3 @@
-import type { ReactNode } from "react";
-import { Activity, CheckCircle2, Layers3, ShieldAlert } from "lucide-react";
 import type { VendorIntelligenceResolution } from "../vendor-intelligence/vendor-intelligence";
 
 export interface ExposureRow {
@@ -44,58 +42,46 @@ export function IntegrationExposureMap({
 }){
   return <section className="exposure-section">
     <div className="exposure-intro">
-      <div>
-        <span className="eyebrow">Track G · live integration exposure</span>
-        <h2>What can each integration reach — and what did it actually touch?</h2>
-        <p>Capability, approved purpose and runtime evidence stay separate. Missing visibility is shown as unknown, not inferred.</p>
-      </div>
-      <span className="exposure-live"><Activity size={13}/> persisted evidence</span>
+      <h2>Integration exposure</h2>
+      <span>{rows.length} persisted integration rows</span>
     </div>
 
     {proof?<div className="challenge-proof">
-      <ProofCard
-        icon={<CheckCircle2 size={15}/>}
-        label="Busy sales day"
-        value={proof.busySale.passed?"NO FALSE ALARM":"NOT YET PROVEN"}
-        detail={proof.busySale.observed>0
+      <div>
+        <span>Busy sales day</span>
+        <strong>{proof.busySale.passed?"No false alarm":"Not yet proven"}</strong>
+        <small>{proof.busySale.observed>0
           ?`${proof.busySale.allowed}/${proof.busySale.observed} legitimate flash-sale events allowed · ${proof.busySale.falseAlarms} false alarms`
-          :"No persisted flash-sale run available"}
-        state={proof.busySale.passed?"pass":"neutral"}
-      />
-      <ProofCard
-        icon={<ShieldAlert size={15}/>}
-        label="Abnormal partner behaviour"
-        value={proof.abnormalBehavior.observed?"CAUGHT":"NOT OBSERVED"}
-        detail={proof.abnormalBehavior.observed
-          ?`${proof.abnormalBehavior.persistedFindings} persisted findings · ${proof.abnormalBehavior.findingTypes.slice(0,3).join(" · ")}`
-          :"No deterministic finding persisted"}
-        state={proof.abnormalBehavior.observed?"warn":"neutral"}
-      />
-      <ProofCard
-        icon={<Layers3 size={15}/>}
-        label="Graded response"
-        value="4 LEVELS"
-        detail={proof.gradedResponse.levels.join(" → ")}
-        state="neutral"
-      />
-      <ProofCard
-        icon={<CheckCircle2 size={15}/>}
-        label="Managed prevention"
-        value={proof.scopePrevention.proven?"PREVENTED":"NOT YET PROVEN"}
-        detail={proof.scopePrevention.proven
-          ?`${proof.scopePrevention.removedFields.join(", ")||"unjustified field"} removed before receiver · forbidden field received: ${proof.scopePrevention.forbiddenFieldReceived?"YES":"NO"}`
-          :"No persisted pre-send scope prevention"}
-        state={proof.scopePrevention.proven?"pass":"neutral"}
-      />
+          :"No persisted flash-sale run available"}</small>
+      </div>
+      <div>
+        <span>Abnormal partner behaviour</span>
+        <strong>{proof.abnormalBehavior.observed?"Caught":"Not observed"}</strong>
+        <small>{proof.abnormalBehavior.observed
+          ?`${proof.abnormalBehavior.persistedFindings} persisted findings · ${proof.abnormalBehavior.findingTypes.slice(0,3).map(pretty).join(" · ")}`
+          :"No deterministic finding persisted"}</small>
+      </div>
+      <div>
+        <span>Graded response</span>
+        <strong>{proof.gradedResponse.levels.length} levels</strong>
+        <small>{proof.gradedResponse.levels.map(pretty).join(" → ")}</small>
+      </div>
+      <div>
+        <span>Managed prevention</span>
+        <strong>{proof.scopePrevention.proven?"Prevented":"Not yet proven"}</strong>
+        <small>{proof.scopePrevention.proven
+          ?`${proof.scopePrevention.removedFields.join(", ")||"Unjustified field"} removed before receiver · forbidden field received: ${proof.scopePrevention.forbiddenFieldReceived?"yes":"no"}`
+          :"No persisted pre-send scope prevention"}</small>
+      </div>
     </div>:null}
 
     <div className="exposure-table-wrap">
       <div className="exposure-table-head">
         <span>Integration</span>
         <span>Can reach</span>
-        <span>Actually touched / attempted</span>
+        <span>Observed</span>
         <span>Merchant approved</span>
-        <span>Latest response</span>
+        <span>Response</span>
       </div>
       <div className="exposure-rows">
         {rows.length===0?<div className="exposure-empty">No persisted third-party exposure evidence yet.</div>:rows.map((row)=>
@@ -103,49 +89,29 @@ export function IntegrationExposureMap({
             <div className="exposure-identity">
               <strong>{row.vendorIntelligence.profiles[0]?.family??row.label}</strong>
               <small>{row.vendorIntelligence.profiles[0]
-                ?`${row.vendorIntelligence.profiles[0].vendor} · vendor documented · ${row.observations} obs.`
-                :`${row.integrationId??"identity unresolved"} · ${row.observations} obs.`}</small>
+                ?`${row.vendorIntelligence.profiles[0].vendor} · ${row.observations} observations`
+                :`${row.integrationId??"Identity unresolved"} · ${row.observations} observations`}</small>
             </div>
             <FieldCell
               values={row.canReachFields}
-              fallback={row.reachSource==="OBSERVED_LOWER_BOUND"?"browser-visible lower bound":"not declared"}
+              fallback={row.reachSource==="OBSERVED_LOWER_BOUND"?"Browser-visible lower bound":"Not declared"}
             />
             <FieldCell
               values={row.attemptedFields}
               blocked={row.preventedFields}
-              fallback={row.boundaries.length?row.boundaries.map((boundary)=>`${boundary} metadata`).join(", "):"not observed"}
+              fallback={row.boundaries.length?row.boundaries.map((boundary)=>`${pretty(boundary)} metadata`).join(", "):"Not observed"}
             />
-            <FieldCell values={row.approvedFields} fallback="not provided"/>
+            <FieldCell values={row.approvedFields} fallback="Not provided"/>
             <div className="exposure-response">
-              <span className={"response-pill "+responseClass(row.latestResponse)}>{row.latestResponse}</span>
-              {row.findings.slice(0,2).map((finding)=><small key={finding}>{finding.replaceAll("_"," ")}</small>)}
+              <span className={"response-pill "+responseClass(row.latestResponse)}>{pretty(row.latestResponse)}</span>
+              {row.findings.slice(0,2).map((finding)=><small key={finding}>{pretty(finding)}</small>)}
             </div>
           </div>
         )}
       </div>
     </div>
-    <small className="exposure-footnote">Vendor documentation is contextual evidence, not merchant authorization. “Can reach” remains declared/local capability evidence where available; “Touched / attempted” remains persisted runtime evidence. Public browser discovery never claims complete backend access.</small>
+    <small className="exposure-footnote">Vendor documentation is context, not merchant authorization. Public browser discovery does not claim complete backend access.</small>
   </section>;
-}
-
-function ProofCard({
-  icon,
-  label,
-  value,
-  detail,
-  state,
-}:{
-  icon:ReactNode;
-  label:string;
-  value:string;
-  detail:string;
-  state:"pass"|"warn"|"neutral";
-}){
-  return <div className={"proof-card "+state}>
-    <div>{icon}<span>{label}</span></div>
-    <strong>{value}</strong>
-    <small>{detail}</small>
-  </div>;
 }
 
 function FieldCell({
@@ -173,4 +139,9 @@ function responseClass(value:string){
   if(normalized==="constrain"||normalized==="prevented") return "constrain";
   if(normalized==="isolate"||normalized==="detected") return "isolate";
   return "unknown";
+}
+
+
+function pretty(value:string){
+  return value.split(/[-_]/g).filter(Boolean).map(part=>part.charAt(0).toUpperCase()+part.slice(1).toLowerCase()).join(" ");
 }
