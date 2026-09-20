@@ -24,10 +24,10 @@ export default async function handler(request:ApiRequest,response:ApiResponse):P
       store.list(900),
       learningStore.listFeedback(5),
     ]);
-    const operationalHistory=allHistory.filter((entry)=>!isPublicBenchmarkEntry(entry));
+    const operationalHistory=allHistory.filter((entry)=>isOperationalEntry(entry));
     const reviewedEntries=(await Promise.all(
       [...learningFeedback].reverse().map((feedback)=>store.findByRecordId(feedback.recordId)),
-    )).filter((entry):entry is EvidenceHistoryEntry=>entry!==null&&!isPublicBenchmarkEntry(entry));
+    )).filter((entry):entry is EvidenceHistoryEntry=>entry!==null&&isOperationalEntry(entry));
     const representative=selectRepresentativeHistory(operationalHistory);
     const history=[
       ...reviewedEntries,
@@ -85,6 +85,25 @@ export default async function handler(request:ApiRequest,response:ApiResponse):P
 function isPublicBenchmarkEntry(entry:EvidenceHistoryEntry):boolean{
   return entry.recordId.startsWith("browser:benchmark40:")||
     entry.recordId.startsWith("browser:benchmark1000:");
+}
+
+function isOperationalEntry(entry:EvidenceHistoryEntry):boolean{
+  if(isPublicBenchmarkEntry(entry)) return false;
+
+  const did=entry.evidence.did.value;
+  if(did?.boundary!=="browser") return true;
+
+  // Browser sensor product views are third-party views. Same-origin requests from
+  // the monitored page are not integrations and should not compete in the console.
+  if(did.originRelationship==="SAME_ORIGIN") return false;
+
+  // Defense in depth for older sensor builds that could observe their configured
+  // ThirdSight transport while attached to a tab.
+  if(did.destinationPath==="/api/browser-observations"&&hostname(did.destinationOrigin).includes("thirdsight")) {
+    return false;
+  }
+
+  return true;
 }
 
 function derivePassiveOutcome(phase:string|undefined):"DETECTED"|null{

@@ -66,6 +66,9 @@ async function buildObservation(tabId, params) {
 
   const tab = await chrome.tabs.get(tabId);
   const pageUrl = sanitizeHttpUrl(tab.url ?? "");
+  if (pageUrl && sameOrigin(pageUrl, destinationUrl)) return null;
+  if (await isIngestionTransport(destinationUrl)) return null;
+
   const observedAt = new Date().toISOString();
 
   return {
@@ -80,6 +83,34 @@ async function buildObservation(tabId, params) {
     initiatorType: params.initiator?.type ?? "unknown",
     hasPostData: Boolean(params.request.hasPostData || params.request.postData),
   };
+}
+
+function sameOrigin(left, right) {
+  try {
+    return new URL(left).origin === new URL(right).origin;
+  } catch {
+    return false;
+  }
+}
+
+async function isIngestionTransport(destinationUrl) {
+  const config = await chrome.storage.local.get("ingestionEndpoint");
+  const endpoint = config.ingestionEndpoint;
+  if (typeof endpoint !== "string" || endpoint.length === 0) return false;
+
+  try {
+    const configured = new URL(endpoint);
+    const destination = new URL(destinationUrl);
+    return configured.origin === destination.origin &&
+      normalizePath(configured.pathname) === normalizePath(destination.pathname);
+  } catch {
+    return false;
+  }
+}
+
+function normalizePath(pathname) {
+  if (!pathname) return "/";
+  return pathname.endsWith("/") && pathname !== "/" ? pathname.slice(0, -1) : pathname;
 }
 
 function sanitizeHttpUrl(value) {
