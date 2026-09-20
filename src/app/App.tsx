@@ -76,8 +76,8 @@ type ConsoleEvent={
 const viewCopy:Record<View,{title:string;subtitle:string}>={
   overview:{title:"Overview",subtitle:"Third-party access posture across your connected stack."},
   integrations:{title:"Integrations",subtitle:"What each integration can reach, what it touched and whether that matches its job."},
-  activity:{title:"Activity",subtitle:"Persisted integration evidence in time order."},
-  incidents:{title:"Incidents",subtitle:"Deterministic findings, prevented access and post-access detections."},
+  activity:{title:"Activity",subtitle:"Representative persisted integration evidence from the operational workspace."},
+  incidents:{title:"Incidents",subtitle:"Representative deterministic findings, prevented access and post-access detections."},
   policies:{title:"Policies",subtitle:"Approved purposes and data scope for registered integrations."},
   connections:{title:"Connections",subtitle:"How another platform connects ThirdSight to its browser, backend and audit surfaces."},
   validation:{title:"Validation",subtitle:"Controlled ground-truth proof and bounded public-site discovery evidence."},
@@ -118,7 +118,6 @@ export default function App(){
   const registered=exposureMap.filter(row=>Boolean(row.integrationId));
   const unregistered=exposureMap.filter(row=>!row.integrationId);
   const findings=exposureMap.filter(row=>row.findings.length>0);
-  const incidentEvents=events.filter(isIncident);
   const normalizedQuery=query.trim().toLowerCase();
   const filteredExposure=useMemo(()=>exposureMap.filter(row=>{
     if(!normalizedQuery)return true;
@@ -159,7 +158,7 @@ export default function App(){
         <NavButton active={view==="overview"} icon={<Layers3 size={16}/>} label="Overview" onClick={()=>setView("overview")}/>
         <NavButton active={view==="integrations"} icon={<PlugZap size={16}/>} label="Integrations" onClick={()=>setView("integrations")}/>
         <NavButton active={view==="activity"} icon={<Activity size={16}/>} label="Activity" onClick={()=>setView("activity")}/>
-        <NavButton active={view==="incidents"} icon={<AlertTriangle size={16}/>} label="Incidents" count={incidentEvents.length} onClick={()=>setView("incidents")}/>
+        <NavButton active={view==="incidents"} icon={<AlertTriangle size={16}/>} label="Incidents" onClick={()=>setView("incidents")}/>
         <NavButton active={view==="policies"} icon={<BookOpenCheck size={16}/>} label="Policies" onClick={()=>setView("policies")}/>
         <NavButton active={view==="connections"} icon={<Network size={16}/>} label="Connections" onClick={()=>setView("connections")}/>
         <div className="ts-nav-separator"/>
@@ -331,7 +330,7 @@ function Integrations({rows,query,onQuery,onOpen}:{rows:readonly ExposureRow[];q
 
 function ActivityView({events,onOpen}:{events:readonly ConsoleEvent[];onOpen:(index:number)=>void}){
   return <div className="ts-page-stack">
-    <div className="ts-section-head"><div><span className="ts-kicker">Evidence history</span><h2>What integrations actually did</h2><p>Every row opens the persisted evidence behind the decision.</p></div></div>
+    <div className="ts-section-head"><div><span className="ts-kicker">Evidence history</span><h2>What integrations actually did</h2><p>Representative persisted evidence from the operational workspace. Every row opens the evidence behind the decision.</p></div></div>
     <div className="ts-list-card">
       {events.map((event,index)=><ActivityRow key={event.recordId} event={event} onClick={()=>onOpen(index)} large/>)}
       {events.length===0?<EmptyState text="No persisted evidence is available yet."/>:null}
@@ -342,7 +341,7 @@ function ActivityView({events,onOpen}:{events:readonly ConsoleEvent[];onOpen:(in
 function IncidentView({events,onOpen}:{events:readonly ConsoleEvent[];onOpen:(index:number)=>void}){
   const incidents=events.map((event,index)=>({event,index})).filter(item=>isIncident(item.event));
   return <div className="ts-page-stack">
-    <div className="ts-section-head"><div><span className="ts-kicker">Response queue</span><h2>Incidents that need explanation</h2><p>Findings are deterministic. Prevention and detection remain separate outcomes.</p></div></div>
+    <div className="ts-section-head"><div><span className="ts-kicker">Deterministic findings</span><h2>Incident evidence</h2><p>Representative violations and detections from persisted evidence. Prevention and detection remain separate outcomes.</p></div></div>
     <div className="ts-list-card">
       {incidents.map(({event,index})=><ActivityRow key={event.recordId} event={event} onClick={()=>onOpen(index)} large/>)}
       {incidents.length===0?<EmptyState text="No representative incident evidence is currently in the queue."/>:null}
