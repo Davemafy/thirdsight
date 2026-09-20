@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Activity, CheckCircle2, Layers3, ShieldAlert } from "lucide-react";
+import type { VendorIntelligenceResolution } from "../vendor-intelligence/vendor-intelligence";
 
 export interface ExposureRow {
   key:string;
@@ -18,6 +19,7 @@ export interface ExposureRow {
   lastSeen:string;
   latestResponse:string;
   reachSource:"DECLARED_CAPABILITY"|"OBSERVED_LOWER_BOUND"|"UNKNOWN";
+  vendorIntelligence:VendorIntelligenceResolution;
 }
 
 export interface ChallengeProof {
@@ -92,15 +94,17 @@ export function IntegrationExposureMap({
         <span>Integration</span>
         <span>Can reach</span>
         <span>Actually touched / attempted</span>
-        <span>Expected</span>
+        <span>Merchant approved</span>
         <span>Latest response</span>
       </div>
       <div className="exposure-rows">
         {rows.length===0?<div className="exposure-empty">No persisted third-party exposure evidence yet.</div>:rows.map((row)=>
           <div className="exposure-row" key={row.key}>
             <div className="exposure-identity">
-              <strong>{row.label}</strong>
-              <small>{row.integrationId??"identity unresolved"} · {row.observations} obs.</small>
+              <strong>{row.vendorIntelligence.profiles[0]?.family??row.label}</strong>
+              <small>{row.vendorIntelligence.profiles[0]
+                ?`${row.vendorIntelligence.profiles[0].vendor} · vendor documented · ${row.observations} obs.`
+                :`${row.integrationId??"identity unresolved"} · ${row.observations} obs.`}</small>
             </div>
             <FieldCell
               values={row.canReachFields}
@@ -120,7 +124,7 @@ export function IntegrationExposureMap({
         )}
       </div>
     </div>
-    <small className="exposure-footnote">“Can reach” uses declared capability evidence where available. “Touched / attempted” uses persisted runtime evidence and managed enforcement records. Public browser discovery never claims complete backend access.</small>
+    <small className="exposure-footnote">Vendor documentation is contextual evidence, not merchant authorization. “Can reach” remains declared/local capability evidence where available; “Touched / attempted” remains persisted runtime evidence. Public browser discovery never claims complete backend access.</small>
   </section>;
 }
 
