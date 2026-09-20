@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  Activity,
   AlertTriangle,
   ArrowRight,
   BookOpenCheck,
@@ -10,10 +9,8 @@ import {
   Database,
   Eye,
   Globe2,
-  Layers3,
   Network,
   MoreHorizontal,
-  PlugZap,
   Search,
   ShieldCheck,
   ShieldEllipsis,
@@ -74,9 +71,9 @@ type ConsoleEvent={
 };
 
 const viewCopy:Record<View,{title:string}>={
-  overview:{title:"Overview"},
+  overview:{title:"Boundary"},
   integrations:{title:"Integrations"},
-  activity:{title:"Activity"},
+  activity:{title:"Evidence"},
   incidents:{title:"Incidents"},
   policies:{title:"Policies"},
   connections:{title:"Connections"},
@@ -155,80 +152,57 @@ export default function App(){
 
   const current=viewCopy[view];
 
-  return <div className="ts-shell">
-    <div className="ts-sidebar">
-      <button className="ts-brand" onClick={()=>setView("overview")}>
-        <span><ShieldCheck size={20}/></span>
-        <div><strong>ThirdSight</strong><small>Integration security</small></div>
+  return <div className="ts-shell ts-boundary-shell">
+    <header className="ts-header">
+      <button className="ts-header-brand" onClick={()=>setView("overview")}>
+        <span className="ts-header-mark" aria-hidden="true"/>
+        <strong>ThirdSight</strong>
       </button>
 
-      <div className="ts-nav">
-        <NavButton active={view==="overview"} icon={<Layers3 size={16}/>} label="Overview" onClick={()=>setView("overview")}/>
-        <NavButton active={view==="integrations"} icon={<PlugZap size={16}/>} label="Integrations" onClick={()=>setView("integrations")}/>
-        <NavButton active={view==="activity"} icon={<Activity size={16}/>} label="Activity" onClick={()=>setView("activity")}/>
-        <NavButton active={view==="incidents"} icon={<AlertTriangle size={16}/>} label="Incidents" onClick={()=>setView("incidents")}/>
-        <NavButton active={view==="policies"} icon={<BookOpenCheck size={16}/>} label="Policies" onClick={()=>setView("policies")}/>
-        <NavButton active={view==="connections"} icon={<Network size={16}/>} label="Connections" onClick={()=>setView("connections")}/>
-        <div className="ts-nav-separator"/>
-        <NavButton active={view==="validation"} icon={<CircleCheck size={16}/>} label="Validation" onClick={()=>setView("validation")}/>
+      <nav className="ts-primary-nav" aria-label="Primary">
+        <NavButton active={view==="overview"} label="Boundary" onClick={()=>setView("overview")}/>
+        <NavButton active={view==="integrations"} label="Integrations" onClick={()=>setView("integrations")}/>
+        <NavButton active={view==="activity"||view==="incidents"} label="Evidence" onClick={()=>setView("activity")}/>
+        <NavButton active={view==="validation"} label="Validation" onClick={()=>setView("validation")}/>
+      </nav>
+
+      <div className="ts-header-context">
+        <div><strong>Commerce Lab</strong><span>simulation</span></div>
+        <button onClick={()=>setMobileMenuOpen(true)} aria-label="More"><MoreHorizontal size={20}/></button>
       </div>
+    </header>
 
-      <div className="ts-sidebar-foot">
-        <span>{events[0]?evidenceFreshness(events[0].observedAt):"No persisted evidence yet"}</span>
-      </div>
-    </div>
+    <main className="ts-content">
+      {error?<div className="ts-error"><AlertTriangle size={16}/><div><strong>Evidence feed unavailable.</strong><span>ThirdSight will not substitute mock activity.</span></div></div>:null}
 
-    <div className="ts-workspace">
-      <div className="ts-topbar">
-        <div className="ts-mobile-product">
-          <span><ShieldCheck size={17}/></span>
-          <div><b>ThirdSight</b><small>{current.title}</small></div>
-        </div>
-        <div className="ts-desktop-context">
-          <strong>{current.title}</strong>
-        </div>
-        <div className="ts-topbar-actions">
-          <span className="ts-env">Commerce Lab</span>
-          <button className="ts-connect-button" onClick={()=>setView("connections")}><PlugZap size={14}/> Connect platform</button>
-          <button className="ts-mobile-more" onClick={()=>setMobileMenuOpen(true)} aria-label="More navigation"><MoreHorizontal size={19}/></button>
-        </div>
-      </div>
+      {view==="overview"?<BoundaryView
+        exposure={exposureMap}
+        events={events}
+        onViewIntegrations={()=>setView("integrations")}
+        onOpenEvent={openEvent}
+      />:null}
 
-      <div className="ts-content">
-        {error?<div className="ts-error"><AlertTriangle size={16}/><div><strong>Live evidence is unavailable.</strong><span>ThirdSight will not substitute mock data for the production evidence feed.</span></div></div>:null}
+      {view==="integrations"?<Integrations
+        rows={filteredExposure}
+        query={query}
+        onQuery={setQuery}
+        onOpen={openRow}
+      />:null}
 
-        {view==="overview"?<Overview
-          exposure={exposureMap}
-          events={events}
-          registeredCount={registered.length}
-          unregisteredCount={unregistered.length}
-          findingCount={findings.length}
-          onViewIntegrations={()=>setView("integrations")}
-          onOpenRow={openRow}
-        />:null}
-
-        {view==="integrations"?<Integrations
-          rows={filteredExposure}
-          query={query}
-          onQuery={setQuery}
-          onOpen={openRow}
-        />:null}
-
-        {view==="activity"?<ActivityView events={events} onOpen={openEvent}/>:null}
-        {view==="incidents"?<IncidentView events={events} onOpen={openEvent}/>:null}
-        {view==="policies"?<Policies rows={registered} events={events} onOpen={openRow}/>:null}
-        {view==="connections"?<Connections rows={exposureMap} proof={challengeProof}/>:null}
-        {view==="validation"?<Validation rows={exposureMap} proof={challengeProof}/>:null}
-      </div>
-    </div>
+      {view==="activity"?<ActivityView events={events} onOpen={openEvent}/>:null}
+      {view==="incidents"?<IncidentView events={events} onOpen={openEvent}/>:null}
+      {view==="policies"?<Policies rows={registered} events={events} onOpen={openRow}/>:null}
+      {view==="connections"?<Connections rows={exposureMap} proof={challengeProof}/>:null}
+      {view==="validation"?<Validation rows={exposureMap} proof={challengeProof}/>:null}
+    </main>
 
     {mobileMenuOpen?<div className="ts-mobile-menu-layer">
       <button className="ts-mobile-menu-backdrop" aria-label="Close menu" onClick={()=>setMobileMenuOpen(false)}/>
       <div className="ts-mobile-menu">
         <div className="ts-mobile-menu-head"><div><strong>ThirdSight</strong><span>More</span></div><button onClick={()=>setMobileMenuOpen(false)} aria-label="Close"><X size={18}/></button></div>
-        <button onClick={()=>{setView("policies");setMobileMenuOpen(false)}}><BookOpenCheck size={18}/><div><b>Policies</b><span>Approved purpose and data scope</span></div><ChevronRight size={16}/></button>
-        <button onClick={()=>{setView("connections");setMobileMenuOpen(false)}}><Network size={18}/><div><b>Connections</b><span>Connect browser, backend and audit evidence</span></div><ChevronRight size={16}/></button>
-        <button onClick={()=>{setView("validation");setMobileMenuOpen(false)}}><CircleCheck size={18}/><div><b>Validation</b><span>Controlled proof and public-site breadth</span></div><ChevronRight size={16}/></button>
+        <button onClick={()=>{setView("policies");setMobileMenuOpen(false)}}><BookOpenCheck size={18}/><div><b>Policies</b><span>Merchant-approved purpose and scope</span></div><ChevronRight size={16}/></button>
+        <button onClick={()=>{setView("connections");setMobileMenuOpen(false)}}><Network size={18}/><div><b>Connections</b><span>Managed, browser, and audit boundaries</span></div><ChevronRight size={16}/></button>
+        <button onClick={()=>{setView("incidents");setMobileMenuOpen(false)}}><AlertTriangle size={18}/><div><b>Incidents</b><span>Deterministic findings only</span></div><ChevronRight size={16}/></button>
       </div>
     </div>:null}
 
@@ -240,83 +214,150 @@ export default function App(){
   </div>;
 }
 
-function NavButton({active,icon,label,count,onClick}:{active:boolean;icon:React.ReactNode;label:string;count?:number;onClick:()=>void}){
-  return <button className={"ts-nav-button "+(active?"active":"")} onClick={onClick}>
-    <span>{icon}</span><b>{label}</b>{typeof count==="number"&&count>0?<em>{count}</em>:null}
-  </button>;
+function NavButton({active,label,onClick}:{active:boolean;label:string;onClick:()=>void}){
+  return <button className={"ts-primary-nav-button "+(active?"active":"")} onClick={onClick}>{label}</button>;
 }
 
-function Overview({
+function BoundaryView({
   exposure,
   events,
-  registeredCount,
-  unregisteredCount,
-  findingCount,
   onViewIntegrations,
-  onOpenRow,
+  onOpenEvent,
 }:{
   exposure:readonly ExposureRow[];
   events:readonly ConsoleEvent[];
-  registeredCount:number;
-  unregisteredCount:number;
-  findingCount:number;
   onViewIntegrations:()=>void;
-  onOpenRow:(row:ExposureRow)=>void;
+  onOpenEvent:(index:number)=>void;
 }){
-  const attentionRows=exposure.filter(row=>
-    row.findings.length>0||
-    !row.integrationId||
-    row.latestResponse==="CONSTRAIN"||
-    row.latestResponse==="ISOLATE"||
-    row.latestResponse==="PREVENTED"||
-    row.latestResponse==="DETECTED"
-  );
-  const limitedCount=exposure.filter(row=>
-    row.preventedFields.length>0||
-    row.latestResponse==="CONSTRAIN"||
-    row.latestResponse==="ISOLATE"||
-    row.latestResponse==="PREVENTED"
-  ).length;
-  const normalCount=exposure.filter(row=>
-    row.findings.length===0&&row.latestResponse==="ALLOW"
-  ).length;
-  const reviewRows=attentionRows.slice(0,6);
-  const needReview=attentionRows.length;
-  const headline=findingCount>0
-    ?`${findingCount} integration${findingCount===1?"":"s"} crossed current rules`
-    :needReview>0
-      ?`${needReview} integration${needReview===1?" needs":"s need"} a rule or identity`
-      :"Observed access matches current rules";
+  const managedEntry=events
+    .map((event,index)=>({event,index}))
+    .find(({event})=>event.outcome==="PREVENTED"&&event.enforcement?.outcome==="PREVENTED");
+  const managed=managedEntry?.event??null;
+  const publicRows=[...exposure]
+    .filter(row=>!row.integrationId&&row.vendorIntelligence.profiles.length>0)
+    .sort((a,b)=>b.observations-a.observations)
+    .slice(0,3);
 
-  return <div className="ts-overview-plain">
-    <section className="ts-overview-summary">
-      <div className="ts-overview-title">
-        <h1>{headline}</h1>
-        <span>{events[0]?evidenceFreshness(events[0].observedAt):"No persisted evidence yet"}</span>
-      </div>
-      <div className="ts-overview-counts" aria-label="Current integration state">
-        <span><b>{limitedCount}</b> limited or isolated</span>
-        <span><b>{normalCount}</b> within policy</span>
-        <span><b>{unregisteredCount}</b> unresolved</span>
-      </div>
-    </section>
+  if(!managed||!managed.enforcement){
+    return <div className="ts-boundary-empty">
+      <h1>No managed prevention proof is in the current feed.</h1>
+      <p>Public discovery remains available, but ThirdSight will not present discovery evidence as pre-send enforcement.</p>
+      <button onClick={onViewIntegrations}>Open public discovery <ArrowRight size={15}/></button>
+    </div>;
+  }
 
-    <section className="ts-attention-ledger">
-      <div className="ts-ledger-heading">
-        <h2>Needs attention</h2>
-        <span>{needReview}</span>
-      </div>
-      <ReviewQueue rows={reviewRows} onOpen={onOpenRow}/>
-    </section>
+  const contractFields=managed.should.value?.fields??[];
+  const attemptedFields=managed.did.value?.dataCategories??[];
+  const receivedFields=managed.enforcement.receiver.receivedFields;
+  const removedFields=managed.enforcement.removedFields;
+  const allFields=Array.from(new Set([...attemptedFields,...contractFields,...receivedFields]));
+  const contractSet=new Set(contractFields);
+  const receivedSet=new Set(receivedFields);
+  const removedSet=new Set(removedFields);
+  const violationField=removedFields[0]??managed.findings[0]?.field??"unapproved field";
+  const purpose=managed.should.value?.purpose??"Approved purpose";
+  const integration=integrationLabel(managed);
+  const continued=managed.enforcement.continuedFields.length;
 
-    <div className="ts-overview-footer">
+  return <div className="ts-boundary-page">
+    <section className="ts-boundary-headline">
       <div>
-        <strong>{registeredCount} registered integrations</strong>
-        <span>{exposure.length} observed in this workspace</span>
+        <h1><code>{violationField}</code> tried to leave the analytics boundary.</h1>
+        <p>ThirdSight removed only the unapproved field. {continued} approved field{continued===1?"":"s"} continued to {integration}.</p>
       </div>
-      <button onClick={onViewIntegrations}>All integrations <ArrowRight size={14}/></button>
+      <button className="ts-boundary-result" onClick={()=>managedEntry&&onOpenEvent(managedEntry.index)}>
+        <strong>Prevented</strong>
+        <span>{managed.enforcement.receiver.forbiddenFieldReceived?"Receiver got the forbidden field":"Receiver confirmed the field did not arrive"}</span>
+        <em>Open evidence</em>
+      </button>
+    </section>
+
+    <div className="ts-boundary-map-head">
+      <div>Commerce data</div>
+      <div><strong>{purpose}</strong><span>Purpose Contract v{managed.should.value?.contractVersion??"—"}</span></div>
+      <div>{integration}</div>
     </div>
+
+    <section className="ts-boundary-map" aria-label="Data boundary map">
+      <div className="ts-boundary-data-column">
+        {allFields.map(field=><div className={"ts-boundary-field "+(removedSet.has(field)?"blocked":"")} key={"source:"+field}>
+          <code>{field}</code>
+          <span>{contractSet.has(field)?"approved":"outside contract"}</span>
+        </div>)}
+      </div>
+
+      <div className="ts-boundary-flow-zone">
+        <div className="ts-contract-line" aria-hidden="true"/>
+        {allFields.map(field=>{
+          const blocked=removedSet.has(field);
+          return <div className={"ts-boundary-flow "+(blocked?"blocked":"")} key={"flow:"+field}>
+            <span className="ts-flow-line"/>
+            {blocked?<span className="ts-flow-stop" aria-label="Removed at boundary">×</span>:<span className="ts-flow-pass">continued</span>}
+          </div>;
+        })}
+      </div>
+
+      <div className="ts-boundary-destination-column">
+        {allFields.map(field=><div className={"ts-boundary-destination "+(removedSet.has(field)?"blocked":"")} key={"dest:"+field}>
+          <strong>{field}</strong>
+          <span>{receivedSet.has(field)?"received":"not received"}</span>
+        </div>)}
+      </div>
+    </section>
+
+    <section className="ts-boundary-mobile-map" aria-label="Data boundary map">
+      <div className="ts-mobile-contract"><strong>{purpose}</strong><span>Purpose Contract v{managed.should.value?.contractVersion??"—"}</span></div>
+      {allFields.map(field=>{
+        const blocked=removedSet.has(field);
+        return <div className={"ts-mobile-flow-row "+(blocked?"blocked":"")} key={"mobile:"+field}>
+          <code>{field}</code>
+          <span>{blocked?"removed":"continued"}</span>
+          <b>{receivedSet.has(field)?"received":"not received"}</b>
+        </div>;
+      })}
+    </section>
+
+    <div className="ts-boundary-below">
+      <section className="ts-boundary-section">
+        <h2>Why ThirdSight acted</h2>
+        <div className="ts-boundary-facts">
+          <div><span>Approved purpose</span><b>{purpose}</b></div>
+          <div><span>Observed field</span><b><code>{violationField}</code></b></div>
+          <div><span>Finding</span><b>{humanize(managed.findings[0]?.type??"SCOPE_DRIFT")}</b></div>
+          <div><span>Response</span><b>Constrain only that field</b></div>
+        </div>
+      </section>
+
+      <section className="ts-boundary-section">
+        <div className="ts-boundary-section-title">
+          <h2>Public discovery stays separate</h2>
+          <button onClick={onViewIntegrations}>All origins <ArrowRight size={14}/></button>
+        </div>
+        <div className="ts-public-evidence-list">
+          {publicRows.map(row=>{
+            const profile=row.vendorIntelligence.profiles[0];
+            return <div key={row.key}>
+              <b>{profile?.family??row.label}</b>
+              <span>{row.observations} observation{row.observations===1?"":"s"}</span>
+            </div>;
+          })}
+          {publicRows.length===0?<p>No documentation-backed public origins are in the current feed.</p>:null}
+        </div>
+        <p className="ts-boundary-note">Browser discovery proves request execution only. It does not claim payload meaning, backend access, downstream receipt, or malicious intent.</p>
+      </section>
+    </div>
+
+    <footer className="ts-boundary-footer">
+      <strong>ThirdSight proves what can be proven, and shows where proof stops.</strong>
+      <span>{formatEvidenceMoment(managed.observedAt)} · controlled simulation</span>
+    </footer>
   </div>;
+}
+
+function formatEvidenceMoment(value:string){
+  const date=new Date(value);
+  if(!Number.isFinite(date.getTime()))return "Evidence timestamp unavailable";
+  return new Intl.DateTimeFormat(undefined,{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}).format(date);
 }
 
 function Integrations({rows,query,onQuery,onOpen}:{rows:readonly ExposureRow[];query:string;onQuery:(value:string)=>void;onOpen:(row:ExposureRow)=>void}){
@@ -441,31 +482,6 @@ function Validation({rows,proof}:{rows:readonly ExposureRow[];proof:ChallengePro
   </div>;
 }
 
-function ReviewQueue({rows,onOpen}:{rows:readonly ExposureRow[];onOpen:(row:ExposureRow)=>void}){
-  if(rows.length===0)return <EmptyState text="Nothing needs attention right now."/>;
-  return <div className="ts-review-list simple">
-    {rows.map(row=>{
-      const status=simpleRowStatus(row);
-      const profile=row.vendorIntelligence.profiles[0]??null;
-      const approved=row.approvedFields.length>0?row.approvedFields.slice(0,3).join(", "):"No merchant rule";
-      const reason=row.findings.length>0
-        ?humanize(row.findings[0]??"finding")
-        :!row.integrationId
-          ?"Identity or policy missing"
-          :status.detail;
-      return <button key={row.key} onClick={()=>onOpen(row)}>
-        <div className="ts-review-name">
-          <strong>{profile?.family??row.label}</strong>
-          <small>{profile?.vendor??row.integrationId??"Unidentified integration"}</small>
-        </div>
-        <div className="ts-review-fact"><span>Approved</span><b>{approved}</b></div>
-        <div className="ts-review-fact"><span>Observed</span><b>{simpleObservedRow(row)}</b></div>
-        <div className={"ts-review-result "+status.tone}><b>{status.label}</b><span>{reason}</span></div>
-        <ChevronRight size={15}/>
-      </button>;
-    })}
-  </div>;
-}
 
 function IntegrationRow({row,onClick}:{row:ExposureRow;onClick:()=>void}){
   const profile=row.vendorIntelligence.profiles[0]??null;
