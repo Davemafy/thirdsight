@@ -1309,3 +1309,18 @@
   .ts-control-aside h3{font-size:15px}
   .ts-control-aside section>div,.ts-control-aside p{font-size:13px}
 }
+
+
+/* Final control cleanup: remove eyebrow grammar and secondary mini-dashboard */
+.ts-control-signal{display:none}
+.ts-control-head h1{margin-top:0}
+.ts-control-lower{grid-template-columns:1fr;gap:10px}
+.ts-control-boundary{max-width:820px;margin:4px 0 0;color:#717b75;font-size:12px;line-height:1.55}
+.ts-control-aside{display:none}
+.ts-brand>div{display:block}
+.ts-brand>div strong{font-size:15px}
+.ts-desktop-context span{display:none}
+
+@media(max-width:560px){
+  .ts-control-boundary{font-size:13px}
+}
