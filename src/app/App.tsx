@@ -82,8 +82,7 @@ function Claim({title,claim,summary}:{title:string;claim:EvidenceClaim<unknown>;
 
 function Coverage({coverage}:{coverage:EvidenceCoverage}){
   const label=coverage.label==="BROWSER_ONLY"?"Browser only":coverage.label==="DB_AUDIT_ONLY"?"DB audit only":"Multi-boundary";
-  return <article className="claim coverage-card"><div><span className="question">Coverage</span><span className="status partial">{label}</span></div><pre>{coverage.boundaries.join("
-")||"No active sensor boundary recorded"}</pre><p>{coverage.limitations.join(" ")}</p><footer><b>{coverage.label}</b><span>visibility boundary</span></footer></article>;
+  return <article className="claim coverage-card"><div><span className="question">Coverage</span><span className="status partial">{label}</span></div><pre>{coverage.boundaries.join("\n")||"No active sensor boundary recorded"}</pre><p>{coverage.limitations.join(" ")}</p><footer><b>{coverage.label}</b><span>visibility boundary</span></footer></article>;
 }
 
 function ActionPanel({event,discoveryOnly}:{event:ConsoleEvent;discoveryOnly:boolean}){
