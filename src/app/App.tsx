@@ -343,6 +343,7 @@ function ControlTraceRow({
   tone,
   children,
 }:{
+  label:string;
   tone?:"alert"|"action";
   children:React.ReactNode;
 }){
@@ -353,7 +354,6 @@ function ControlTraceRow({
 }
 
 function overviewIssueCopy(event:ConsoleEvent):{
-  label:string;
   title:string;
   summary:string;
   response:string;
