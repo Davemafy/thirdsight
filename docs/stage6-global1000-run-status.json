@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "thirdsight-global1000-run-status.v1",
+  "workflowRunId": "35515469345",
+  "status": "completed",
+  "conclusion": "failure",
+  "htmlUrl": "https://github.com/Davemafy/thirdsight/actions/runs/35515469345",
+  "headSha": "86871463d19b67107503ea7755637d33e079c6cf",
+  "createdAt": "2026-09-20T14:06:26Z",
+  "updatedAt": "2026-09-20T14:06:35Z",
+  "publishedAt": "2026-09-20T14:16:33.375Z"
+}
