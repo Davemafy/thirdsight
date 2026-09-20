@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import {
   Activity,
   AlertTriangle,
@@ -95,13 +95,14 @@ export function OverviewTierOneLab({exposure,proof}:Props){
       {current===2?<EvidenceMap {...data}/>:null}
     </div>
 
-    <nav ref={pickerRef} className="proto-picker" aria-label="Prototype variants" data-position="top" {...(ready?{"data-ready":""}:{})}>
+    <nav ref={pickerRef} className="proto-picker" aria-label="Prototype variants" data-position="top" data-ready={ready?"":undefined}>
       <span className="proto-picker-highlight" aria-hidden="true"/>
       {variants.map((name,index)=><button
         key={name}
         ref={node=>{itemRefs.current[index]=node}}
         className="proto-picker-item"
-        {...(index===current?{"data-active":"","aria-current":"true" as const}:{})}
+        data-active={index===current?"":undefined}
+        aria-current={index===current?"true":undefined}
         onClick={()=>setVariant(index)}
       >{name}</button>)}
     </nav>
