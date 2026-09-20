@@ -205,7 +205,6 @@ export default function App(){
           events={events}
           registeredCount={registered.length}
           unregisteredCount={unregistered.length}
-          findingCount={findings.length}
           onViewIntegrations={()=>setView("integrations")}
           onOpenRow={openRow}
           onOpenEvent={openEvent}
@@ -255,7 +254,6 @@ function Overview({
   events,
   registeredCount,
   unregisteredCount,
-  findingCount,
   onViewIntegrations,
   onOpenRow,
   onOpenEvent,
@@ -264,7 +262,6 @@ function Overview({
   events:readonly ConsoleEvent[];
   registeredCount:number;
   unregisteredCount:number;
-  findingCount:number;
   onViewIntegrations:()=>void;
   onOpenRow:(row:ExposureRow)=>void;
   onOpenEvent:(index:number)=>void;
@@ -276,12 +273,6 @@ function Overview({
   const primary=primaryEntry?.event??null;
   const primaryIndex=primaryEntry?.index??-1;
   const copy=primary?overviewIssueCopy(primary):null;
-  const limitedCount=exposure.filter(row=>
-    row.preventedFields.length>0||
-    row.latestResponse==="CONSTRAIN"||
-    row.latestResponse==="ISOLATE"||
-    row.latestResponse==="PREVENTED"
-  ).length;
   const discoveryRows=exposure.slice(0,4);
 
   return <div className="ts-control">
@@ -329,7 +320,7 @@ function Overview({
       <section className="ts-discovery-list">
         <div className="ts-control-section-head">
           <h2>Public discovery</h2>
-          <span>Separate browser observations</span>
+          <span>{exposure.length} observed · {unregisteredCount} unresolved · {registeredCount} registered</span>
         </div>
         <div className="ts-discovery-rows">
           {discoveryRows.map(row=>{
@@ -345,28 +336,7 @@ function Overview({
         {exposure.length>discoveryRows.length?<button className="ts-discovery-more" onClick={onViewIntegrations}>See all {exposure.length} observed origins <ArrowRight size={13}/></button>:null}
       </section>
 
-      <aside className="ts-control-aside">
-        <section>
-          <h3>Discovery scope</h3>
-          <div><span>Observed origins</span><b>{exposure.length}</b></div>
-          <div><span>Registered integrations</span><b>{registeredCount}</b></div>
-          <div><span>Limited or isolated</span><b>{limitedCount}</b></div>
-          <p>Browser-visible observations are evidence of request execution, not proof of backend access or downstream receipt.</p>
-        </section>
-
-        {primary?<section>
-          <h3>Why this is {primary.should.status==="KNOWN"&&primary.why.status==="KNOWN"?"decidable":"unresolved"}</h3>
-          <div><span>Merchant rule</span><b>{primary.should.status==="KNOWN"?"Known":"Missing"}</b></div>
-          <div><span>Business context</span><b>{primary.why.status==="KNOWN"?"Known":"Missing"}</b></div>
-          <div><span>Runtime request</span><b>{primary.did.status==="KNOWN"?"Observed":humanize(primary.did.status)}</b></div>
-          {findingCount>0?<div><span>Deterministic findings</span><b>{findingCount}</b></div>:null}
-        </section>:null}
-
-        {unregisteredCount>0?<section className="ts-control-aside-note">
-          <h3>{unregisteredCount} origins still lack merchant identity</h3>
-          <p>ThirdSight keeps missing identity separate from malicious intent.</p>
-        </section>:null}
-      </aside>
+      <p className="ts-control-boundary">Browser evidence proves request execution only. It does not prove payload meaning, backend access, downstream receipt, or malicious intent.</p>
     </div>
   </div>;
 }
@@ -399,9 +369,9 @@ function overviewIssueCopy(event:ConsoleEvent):{
     return {
       label:"Unregistered integration",
       title:"A request went to an integration with no rule.",
-      summary:"ThirdSight observed a cross-origin request to a destination that is not registered in merchant policy. Payload semantics and malicious intent remain unproven.",
-      response:"Watch and review",
-      responseDetail:"The evidence proves an unregistered destination, not malicious intent. Enforcement authority was not escalated.",
+      summary:"No merchant rule exists for this destination. Payload contents and intent are unknown.",
+      response:"Keep watching",
+      responseDetail:"No enforcement escalation. The evidence proves an unregistered destination, not malicious intent.",
       tone:"alert",
     };
   }
@@ -409,7 +379,7 @@ function overviewIssueCopy(event:ConsoleEvent):{
     return {
       label:"Access constrained",
       title:"ThirdSight removed unapproved access before it continued.",
-      summary:"The managed boundary produced evidence of a policy mismatch and a pre-send prevention outcome.",
+      summary:"The managed boundary proved a policy mismatch before the request continued.",
       response:"Limited before send",
       responseDetail:event.enforcement?.removedFields.length
         ?`Removed ${event.enforcement.removedFields.join(", ")} before the receiver.`
