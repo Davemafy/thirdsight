@@ -77,7 +77,7 @@ const inventorySha256=crypto.createHash("sha256").update(entriesCanonical).diges
 
 const inventory={
   schemaVersion:"thirdsight-global1000-origin-inventory.v1",
-  generatedAt:new Date().toISOString(),
+  generatedAt:input.generatedAt,
   benchmark:{
     runId:input.runId,
     source:input.source,
