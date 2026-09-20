@@ -273,8 +273,8 @@ function Overview({
     <div className="ts-hero">
       <div className="ts-hero-copy">
         <span className="ts-kicker">Third-party access control</span>
-        <h1>Know what every integration can reach. Catch when it goes beyond its job.</h1>
-        <p>ThirdSight compares approved purpose, technical reach, runtime behaviour and business context—then applies the smallest justified response without treating normal business spikes as attacks.</p>
+        <h1>Know what integrations can reach — and when they go beyond it.</h1>
+        <p>ThirdSight compares approved purpose, technical reach, observed behaviour and business context, then applies the smallest justified response.</p>
         <div className="ts-hero-actions">
           <button className="ts-primary" onClick={onViewIntegrations}>View integrations <ArrowRight size={15}/></button>
           <button className="ts-secondary" onClick={onConnections}>How to connect a platform</button>
