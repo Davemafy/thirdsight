@@ -24,10 +24,11 @@ export default async function handler(request:ApiRequest,response:ApiResponse):P
       store.list(900),
       learningStore.listFeedback(5),
     ]);
+    const operationalHistory=allHistory.filter((entry)=>!isPublicBenchmarkEntry(entry));
     const reviewedEntries=(await Promise.all(
       [...learningFeedback].reverse().map((feedback)=>store.findByRecordId(feedback.recordId)),
-    )).filter((entry):entry is EvidenceHistoryEntry=>entry!==null);
-    const representative=selectRepresentativeHistory(allHistory);
+    )).filter((entry):entry is EvidenceHistoryEntry=>entry!==null&&!isPublicBenchmarkEntry(entry));
+    const representative=selectRepresentativeHistory(operationalHistory);
     const history=[
       ...reviewedEntries,
       ...representative.filter((entry)=>!reviewedEntries.some((reviewed)=>reviewed.recordId===entry.recordId)),
@@ -49,8 +50,8 @@ export default async function handler(request:ApiRequest,response:ApiResponse):P
 
     response.status(200).json({
       productThesis:"ThirdSight proves what can be proven, and learns where proof stops.",
-      exposureMap:buildExposureMap(allHistory),
-      challengeProof:buildChallengeProof(allHistory),
+      exposureMap:buildExposureMap(operationalHistory),
+      challengeProof:buildChallengeProof(operationalHistory),
       aiAnalyst:{
         promoted:Boolean(promotedAiEvaluation),
         activePromotion:promotedAiEvaluation,
@@ -79,6 +80,10 @@ export default async function handler(request:ApiRequest,response:ApiResponse):P
   }catch{
     response.status(503).json({error:"EVIDENCE_READ_FAILED"});
   }
+}
+
+function isPublicBenchmarkEntry(entry:EvidenceHistoryEntry):boolean{
+  return entry.recordId.startsWith("browser:benchmark40:");
 }
 
 function derivePassiveOutcome(phase:string|undefined):"DETECTED"|null{
