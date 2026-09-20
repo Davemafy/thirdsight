@@ -38,7 +38,7 @@ type Scenario={
 export function HackathonControlRoom({exposure,proof}:Props){
   const [scenarioId,setScenarioId]=useState<ScenarioId>("normal");
   const [phase,setPhase]=useState<Phase>(2);
-  const [running,setRunning]=useState(false);
+  const [running,setVerifying]=useState(false);
 
   const shadow=exposure.find(row=>row.label.toLowerCase().includes("shadow")||row.destinations.some(value=>value.includes("shadow")));
   const scenarios=useMemo<Scenario[]>(()=>[
@@ -118,30 +118,31 @@ export function HackathonControlRoom({exposure,proof}:Props){
     if(!running)return;
     setPhase(0);
     const a=window.setTimeout(()=>setPhase(1),650);
-    const b=window.setTimeout(()=>{setPhase(2);setRunning(false)},1450);
+    const b=window.setTimeout(()=>{setPhase(2);setVerifying(false)},1450);
     return()=>{window.clearTimeout(a);window.clearTimeout(b)};
   },[running,scenarioId]);
 
   const run=(id:ScenarioId)=>{
     setScenarioId(id);
-    setRunning(false);
-    window.requestAnimationFrame(()=>setRunning(true));
+    setVerifying(false);
+    window.requestAnimationFrame(()=>setVerifying(true));
   };
 
   return <div className="hcr-app">
     <header className="hcr-topbar">
       <div className="hcr-brand"><span><ShieldCheck size={17}/></span><strong>ThirdSight</strong></div>
-      <div className="hcr-mode"><i/> Commerce Lab · controlled demo</div>
-      <span className="hcr-track">Track G</span>
+      <div className="hcr-mode"><i/> Digital trust infrastructure · Commerce Lab</div>
+      <span className="hcr-track">Commerce & Consumer Protection</span>
     </header>
 
     <main className="hcr-main">
       <section className="hcr-intro">
         <div>
-          <span>Watching what third-party integrations really do</span>
-          <h1>Run the attack. Watch the response.</h1>
+          <span>Third-party digital infrastructure assurance</span>
+          <h1>Trust infrastructure for third-party access.</h1>
+          <div className="hcr-positioning"><b>Built for businesses.</b><i/><b>Designed for regulators.</b></div>
         </div>
-        <p>ThirdSight separates approved purpose, technical reach, runtime access and business context—then escalates only as far as the evidence supports.</p>
+        <p>ThirdSight gives organisations a live record of what integrations are allowed to do, what they can reach, what they actually touched, and the smallest justified response when those things diverge.</p>
       </section>
 
       <nav className="hcr-scenarios" aria-label="Demo scenarios">
@@ -165,7 +166,7 @@ export function HackathonControlRoom({exposure,proof}:Props){
           </div>
           <button className="hcr-run" onClick={()=>run(scenario.id)} disabled={running}>
             {running?<RotateCcw size={15}/>:<Play size={15}/>}
-            {running?"Running":"Run scenario"}
+            {running?"Verifying":"Run proof"}
           </button>
         </div>
 
@@ -227,6 +228,31 @@ export function HackathonControlRoom({exposure,proof}:Props){
           tone="neutral"
         />
       </section>
+
+      <section className="hcr-scale-proof">
+        <div className="hcr-scale-copy">
+          <span>Beyond the controlled lab</span>
+          <h3>External breadth, with the evidence boundary kept explicit.</h3>
+          <p>ThirdSight has also been exercised against a reproducible 1,000-site high-traffic public-web sample. That run proves browser-visible discovery breadth — not merchant approval, backend reach or business justification.</p>
+        </div>
+        <div className="hcr-scale-stats">
+          <div><strong>1,000</strong><span>public sites attempted</span></div>
+          <div><strong>32,083</strong><span>cross-origin requests observed</span></div>
+          <div><strong>3,354</strong><span>unique third-party origins</span></div>
+        </div>
+        <div className="hcr-scale-foot">
+          <span>Controlled Commerce Lab = ground truth</span>
+          <ChevronRight size={14}/>
+          <span>Public-web run = external discovery breadth</span>
+          <ChevronRight size={14}/>
+          <span>Verified Learning = review priority only</span>
+        </div>
+      </section>
+
+      <footer className="hcr-footer">
+        <div><ShieldCheck size={15}/><strong>ThirdSight</strong></div>
+        <span>Prove what can be proven. Keep uncertainty visible.</span>
+      </footer>
     </main>
   </div>;
 }
