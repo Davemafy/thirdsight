@@ -478,7 +478,7 @@ function ReviewQueue({rows,onOpen}:{rows:readonly ExposureRow[];onOpen:(row:Expo
     {rows.map(row=>{
       const hasFinding=row.findings.length>0;
       const reason=hasFinding
-        ? humanize(row.findings[0])
+        ? humanize(row.findings[0]??"finding")
         : row.integrationId
           ? "Purpose or evidence context needs review"
           : "Identity and merchant-approved purpose not registered";
