@@ -1043,3 +1043,592 @@
   .exposure-row>div{padding:10px 0;border-left:0;border-top:1px solid #e7eae7}
   .exposure-row>div:first-child{border-top:0}
 }
+
+
+/* Boundary instrument
+   ThirdSight is drawn as a data-boundary tool, not a generic dashboard. */
+
+:root{
+  --ts-paper:#f3f1ea;
+  --ts-ink:#101512;
+  --ts-muted:#667069;
+  --ts-rule:#c8cbc4;
+  --ts-soft:#e7e5de;
+  --ts-ok:#1f6b45;
+  --ts-alert:#c24d1e;
+}
+
+.ts-boundary-shell{
+  min-height:100vh;
+  display:grid;
+  grid-template-rows:74px 1fr;
+  grid-template-columns:1fr;
+  background:var(--ts-paper);
+  color:var(--ts-ink);
+}
+
+.ts-header{
+  position:sticky;
+  top:0;
+  z-index:30;
+  display:grid;
+  grid-template-columns:240px 1fr 240px;
+  align-items:center;
+  min-height:74px;
+  padding:0 34px;
+  border-bottom:1px solid var(--ts-rule);
+  background:rgba(243,241,234,.96);
+  backdrop-filter:blur(8px);
+}
+
+.ts-header-brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:var(--ts-ink);
+  cursor:pointer;
+}
+.ts-header-brand strong{font-size:20px;font-weight:760;letter-spacing:-.03em}
+.ts-header-mark{
+  width:26px;
+  height:26px;
+  border:2px solid var(--ts-ink);
+  border-radius:7px;
+  position:relative;
+}
+.ts-header-mark:after{
+  content:"";
+  position:absolute;
+  inset:6px;
+  border:2px solid var(--ts-ink);
+  border-radius:50%;
+}
+
+.ts-primary-nav{
+  display:flex;
+  justify-content:center;
+  gap:28px;
+}
+.ts-primary-nav-button{
+  padding:24px 0 22px;
+  border:0;
+  border-bottom:2px solid transparent;
+  background:transparent;
+  color:#68716b;
+  font-size:14px;
+  font-weight:540;
+  cursor:pointer;
+}
+.ts-primary-nav-button:hover{color:var(--ts-ink)}
+.ts-primary-nav-button.active{
+  color:var(--ts-ink);
+  border-bottom-color:var(--ts-ink);
+  font-weight:720;
+}
+
+.ts-header-context{
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  gap:16px;
+  text-align:right;
+}
+.ts-header-context>div strong,.ts-header-context>div span{display:block}
+.ts-header-context>div strong{font-size:13px}
+.ts-header-context>div span{margin-top:2px;color:var(--ts-muted);font-size:12px}
+.ts-header-context>button{
+  display:grid;
+  place-items:center;
+  width:38px;
+  height:38px;
+  border:0;
+  border-radius:50%;
+  background:transparent;
+  color:var(--ts-ink);
+  cursor:pointer;
+}
+.ts-header-context>button:hover{background:#e7e5de}
+
+.ts-boundary-shell>.ts-content{
+  width:100%;
+  max-width:1500px;
+  margin:0 auto;
+  padding:34px 40px 36px;
+}
+
+.ts-boundary-page{display:grid;gap:24px}
+
+.ts-boundary-headline{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 260px;
+  gap:40px;
+  align-items:end;
+  padding-bottom:24px;
+  border-bottom:1px solid var(--ts-rule);
+}
+.ts-boundary-headline h1{
+  max-width:920px;
+  margin:0;
+  color:var(--ts-ink);
+  font-size:48px;
+  line-height:1.02;
+  letter-spacing:-.055em;
+  font-weight:760;
+}
+.ts-boundary-headline h1 code{
+  font:inherit;
+  color:var(--ts-alert);
+}
+.ts-boundary-headline p{
+  max-width:760px;
+  margin:12px 0 0;
+  color:var(--ts-muted);
+  font-size:16px;
+  line-height:1.55;
+}
+
+.ts-boundary-result{
+  padding:0;
+  border:0;
+  background:transparent;
+  text-align:right;
+  cursor:pointer;
+}
+.ts-boundary-result strong,.ts-boundary-result span,.ts-boundary-result em{display:block}
+.ts-boundary-result strong{
+  color:var(--ts-ok);
+  font-size:27px;
+  letter-spacing:-.035em;
+}
+.ts-boundary-result span{
+  margin-top:7px;
+  color:var(--ts-muted);
+  font-size:14px;
+  line-height:1.4;
+}
+.ts-boundary-result em{
+  margin-top:10px;
+  color:var(--ts-ink);
+  font-size:13px;
+  font-style:normal;
+  font-weight:700;
+  text-decoration:underline;
+  text-underline-offset:3px;
+}
+
+.ts-boundary-map-head{
+  display:grid;
+  grid-template-columns:280px 1fr 310px;
+  align-items:end;
+  color:#505b54;
+  font-size:14px;
+  font-weight:700;
+}
+.ts-boundary-map-head>div:nth-child(2){text-align:center}
+.ts-boundary-map-head>div:nth-child(2) strong,.ts-boundary-map-head>div:nth-child(2) span{display:block}
+.ts-boundary-map-head>div:nth-child(2) strong{color:var(--ts-ink);font-size:15px}
+.ts-boundary-map-head>div:nth-child(2) span{margin-top:4px;color:var(--ts-muted);font-size:12px;font-weight:500}
+.ts-boundary-map-head>div:nth-child(3){text-align:right}
+
+.ts-boundary-map{
+  min-height:360px;
+  display:grid;
+  grid-template-columns:280px 1fr 310px;
+  border-top:1px solid var(--ts-rule);
+  border-bottom:1px solid var(--ts-rule);
+}
+
+.ts-boundary-data-column,.ts-boundary-destination-column{
+  padding:18px 0;
+}
+.ts-boundary-data-column{border-right:1px solid var(--ts-rule)}
+.ts-boundary-destination-column{
+  padding-left:26px;
+  border-left:1px solid var(--ts-rule);
+}
+
+.ts-boundary-field,.ts-boundary-destination{
+  height:76px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+.ts-boundary-field{padding-right:24px}
+.ts-boundary-field code,.ts-boundary-destination strong{
+  color:var(--ts-ink);
+  font-size:15px;
+  line-height:1.3;
+  font-weight:720;
+}
+.ts-boundary-field code{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+.ts-boundary-field span,.ts-boundary-destination span{
+  margin-top:7px;
+  color:var(--ts-muted);
+  font-size:13px;
+}
+.ts-boundary-field.blocked code{color:var(--ts-alert)}
+.ts-boundary-destination.blocked strong{color:#777f79}
+
+.ts-boundary-flow-zone{
+  position:relative;
+  padding:18px 0;
+  overflow:hidden;
+}
+.ts-contract-line{
+  position:absolute;
+  top:0;
+  bottom:0;
+  left:50%;
+  width:2px;
+  background:var(--ts-ink);
+  transform:translateX(-1px);
+}
+.ts-boundary-flow{
+  position:relative;
+  height:76px;
+}
+.ts-flow-line{
+  position:absolute;
+  left:0;
+  right:0;
+  top:50%;
+  height:2px;
+  background:#2c4034;
+  transform:translateY(-1px);
+}
+.ts-boundary-flow.blocked .ts-flow-line{
+  right:50%;
+  height:4px;
+  background:var(--ts-alert);
+  transform:translateY(-2px);
+}
+.ts-flow-stop{
+  position:absolute;
+  left:50%;
+  top:50%;
+  display:grid;
+  place-items:center;
+  width:28px;
+  height:28px;
+  transform:translate(-50%,-50%);
+  border:3px solid var(--ts-alert);
+  border-radius:50%;
+  background:var(--ts-paper);
+  color:var(--ts-alert);
+  font-size:22px;
+  font-weight:500;
+  line-height:1;
+}
+.ts-flow-pass{
+  position:absolute;
+  left:calc(50% + 24px);
+  top:50%;
+  transform:translateY(-50%);
+  padding:2px 7px;
+  background:var(--ts-paper);
+  color:#445047;
+  font-size:12px;
+  font-weight:700;
+}
+.ts-boundary-flow.blocked:after{
+  content:"removed here";
+  position:absolute;
+  left:calc(50% + 24px);
+  top:50%;
+  transform:translateY(-50%);
+  padding:2px 7px;
+  background:var(--ts-paper);
+  color:var(--ts-alert);
+  font-size:12px;
+  font-weight:720;
+}
+
+.ts-boundary-mobile-map{display:none}
+
+.ts-boundary-below{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:32px;
+}
+.ts-boundary-section{
+  padding-top:16px;
+  border-top:1px solid var(--ts-rule);
+}
+.ts-boundary-section h2{
+  margin:0 0 12px;
+  color:var(--ts-ink);
+  font-size:18px;
+  letter-spacing:-.02em;
+}
+.ts-boundary-section-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+}
+.ts-boundary-section-title button{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:var(--ts-ink);
+  font-size:13px;
+  font-weight:700;
+  cursor:pointer;
+}
+.ts-boundary-facts{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  border-top:1px solid var(--ts-soft);
+}
+.ts-boundary-facts>div{
+  min-height:78px;
+  padding:14px 0;
+  border-bottom:1px solid var(--ts-soft);
+}
+.ts-boundary-facts>div:nth-child(odd){padding-right:20px}
+.ts-boundary-facts>div:nth-child(even){
+  padding-left:20px;
+  border-left:1px solid var(--ts-soft);
+}
+.ts-boundary-facts span,.ts-boundary-facts b{display:block}
+.ts-boundary-facts span{color:var(--ts-muted);font-size:13px}
+.ts-boundary-facts b{
+  margin-top:6px;
+  color:var(--ts-ink);
+  font-size:15px;
+  line-height:1.4;
+}
+.ts-boundary-facts code{
+  font:700 14px/1.3 ui-monospace,SFMono-Regular,Menlo,monospace;
+  color:var(--ts-alert);
+}
+
+.ts-public-evidence-list{border-top:1px solid var(--ts-soft)}
+.ts-public-evidence-list>div{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:18px;
+  padding:13px 0;
+  border-bottom:1px solid var(--ts-soft);
+  font-size:14px;
+}
+.ts-public-evidence-list>div b{font-weight:700}
+.ts-public-evidence-list>div span{color:var(--ts-muted)}
+.ts-public-evidence-list>p{margin:14px 0;color:var(--ts-muted);font-size:13px}
+.ts-boundary-note{
+  margin:13px 0 0;
+  color:var(--ts-muted);
+  font-size:13px;
+  line-height:1.5;
+}
+
+.ts-boundary-footer{
+  display:flex;
+  justify-content:space-between;
+  gap:24px;
+  padding-top:14px;
+  border-top:1px solid var(--ts-rule);
+  color:var(--ts-muted);
+  font-size:13px;
+}
+.ts-boundary-footer strong{color:var(--ts-ink)}
+
+.ts-boundary-empty{
+  max-width:780px;
+  padding:50px 0;
+}
+.ts-boundary-empty h1{
+  margin:0;
+  font-size:42px;
+  line-height:1.02;
+  letter-spacing:-.045em;
+}
+.ts-boundary-empty p{margin:14px 0;color:var(--ts-muted);font-size:15px;line-height:1.55}
+.ts-boundary-empty button{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:var(--ts-ink);
+  font-size:14px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+/* Secondary surfaces inherit the same editorial scale instead of shrinking into microcopy. */
+.ts-page-toolbar>span,
+.ts-table-head span,
+.ts-integration-name small,
+.ts-simple-cell small,
+.ts-simple-response small,
+.ts-activity-copy small,
+.ts-activity-result,
+.ts-status-pill,
+.ts-tag-fallback,
+.ts-drawer-outcome>.ts-result-word,
+.ts-simple-why span,
+.ts-vendor-match,
+.ts-proof-model-label span,
+.ts-proof-model-label small,
+.ts-connector-list .ts-connector-head small,
+.ts-coverage-warning p,
+.exposure-intro>span,
+.validation-section-title span,
+.challenge-proof span,
+.challenge-proof small,
+.exposure-table-head span,
+.exposure-identity small,
+.exposure-response small,
+.exposure-footnote,
+.validation-block-heading>span,
+.validation-number-row span,
+.validation-boundary-line,
+.validation-coverage-rows span,
+.validation-coverage-rows small,
+.validation-intelligence-row small,
+.validation-intelligence-row a,
+.validation-evidence-model span,
+.validation-evidence-model b,
+.validation-endnotes p,
+.validation-endnotes small{
+  font-size:12px;
+}
+.ts-search input,
+.ts-integration-name b,
+.ts-simple-cell b,
+.ts-activity-copy strong,
+.ts-activity-copy span,
+.ts-simple-why b,
+.ts-connector-list .ts-connector-card>p,
+.ts-connector-list .ts-connector-card li,
+.field-cell,
+.response-pill,
+.validation-ledger-row span,
+.validation-ledger-row strong,
+.validation-ledger-row b,
+.validation-evidence-line,
+.validation-intelligence-row b{
+  font-size:13px;
+}
+.ts-table-card,.ts-list-card,.ts-flat-table,.ts-flat-list{
+  border-radius:0;
+  box-shadow:none;
+}
+
+@media(max-width:900px){
+  .ts-boundary-shell{grid-template-rows:64px 1fr}
+  .ts-header{
+    grid-template-columns:auto 1fr auto;
+    min-height:64px;
+    padding:0 18px;
+  }
+  .ts-header-brand strong{font-size:18px}
+  .ts-primary-nav{
+    justify-content:flex-start;
+    gap:18px;
+    padding:0 16px;
+    overflow-x:auto;
+    scrollbar-width:none;
+  }
+  .ts-primary-nav::-webkit-scrollbar{display:none}
+  .ts-primary-nav-button{
+    min-width:max-content;
+    padding:21px 0 19px;
+    font-size:13px;
+  }
+  .ts-header-context>div{display:none}
+  .ts-boundary-shell>.ts-content{padding:22px 18px 28px}
+  .ts-boundary-headline{
+    grid-template-columns:1fr;
+    gap:18px;
+    align-items:start;
+  }
+  .ts-boundary-headline h1{font-size:38px}
+  .ts-boundary-headline p{font-size:15px}
+  .ts-boundary-result{text-align:left}
+  .ts-boundary-map-head{grid-template-columns:170px 1fr 190px}
+  .ts-boundary-map{grid-template-columns:170px 1fr 190px}
+  .ts-boundary-field code,.ts-boundary-destination strong{font-size:13px}
+  .ts-boundary-field span,.ts-boundary-destination span{font-size:12px}
+  .ts-boundary-destination-column{padding-left:14px}
+  .ts-boundary-field{padding-right:12px}
+  .ts-boundary-below{grid-template-columns:1fr}
+}
+
+@media(max-width:620px){
+  .ts-header{grid-template-columns:auto 1fr auto;padding:0 14px}
+  .ts-header-mark{width:23px;height:23px}
+  .ts-header-brand strong{font-size:17px}
+  .ts-primary-nav{gap:15px;padding:0 12px}
+  .ts-primary-nav-button{font-size:12px}
+  .ts-boundary-shell>.ts-content{padding:18px 14px 26px}
+  .ts-boundary-page{gap:20px}
+  .ts-boundary-headline{padding-bottom:20px}
+  .ts-boundary-headline h1{font-size:34px;line-height:1.01}
+  .ts-boundary-headline p{font-size:15px}
+  .ts-boundary-result strong{font-size:24px}
+  .ts-boundary-result span,.ts-boundary-result em{font-size:13px}
+
+  .ts-boundary-map-head,.ts-boundary-map{display:none}
+  .ts-boundary-mobile-map{
+    display:grid;
+    border-top:1px solid var(--ts-rule);
+    border-bottom:1px solid var(--ts-rule);
+  }
+  .ts-mobile-contract{
+    padding:14px 0;
+    border-bottom:1px solid var(--ts-rule);
+  }
+  .ts-mobile-contract strong,.ts-mobile-contract span{display:block}
+  .ts-mobile-contract strong{font-size:15px}
+  .ts-mobile-contract span{margin-top:4px;color:var(--ts-muted);font-size:12px}
+  .ts-mobile-flow-row{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:5px 16px;
+    padding:14px 0;
+    border-bottom:1px solid var(--ts-soft);
+  }
+  .ts-mobile-flow-row:last-child{border-bottom:0}
+  .ts-mobile-flow-row code{
+    color:var(--ts-ink);
+    font:700 14px/1.35 ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  .ts-mobile-flow-row>span{
+    grid-column:1;
+    color:var(--ts-ok);
+    font-size:13px;
+  }
+  .ts-mobile-flow-row>b{
+    grid-column:2;
+    grid-row:1/3;
+    align-self:center;
+    color:var(--ts-muted);
+    font-size:13px;
+  }
+  .ts-mobile-flow-row.blocked code,.ts-mobile-flow-row.blocked>span{color:var(--ts-alert)}
+
+  .ts-boundary-facts{grid-template-columns:1fr}
+  .ts-boundary-facts>div:nth-child(odd),
+  .ts-boundary-facts>div:nth-child(even){
+    min-height:auto;
+    padding:13px 0;
+    border-left:0;
+  }
+  .ts-boundary-section h2{font-size:18px}
+  .ts-boundary-facts span,.ts-boundary-note,.ts-boundary-footer{font-size:13px}
+  .ts-boundary-facts b{font-size:15px}
+  .ts-public-evidence-list>div{font-size:13px}
+  .ts-boundary-footer{display:block}
+  .ts-boundary-footer span{display:block;margin-top:6px}
+}
