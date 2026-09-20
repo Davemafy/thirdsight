@@ -1,4 +1,4 @@
-export const VENDOR_INTELLIGENCE_VERSION = "vendor-intelligence-v1" as const;
+export const VENDOR_INTELLIGENCE_VERSION = "vendor-intelligence-v2" as const;
 export const VENDOR_INTELLIGENCE_REVIEWED_AT = "2026-09-20" as const;
 
 export type VendorCategory =
@@ -8,7 +8,9 @@ export type VendorCategory =
   | "CONSENT_MANAGEMENT"
   | "PERFORMANCE_ANALYTICS"
   | "ASSET_DELIVERY"
-  | "PAYMENTS";
+  | "PAYMENTS"
+  | "EXPERIMENTATION"
+  | "MARKETING_AUTOMATION";
 
 export interface VendorDocumentationSource {
   title: string;
@@ -468,6 +470,212 @@ export const VENDOR_INTELLIGENCE_PROFILES: readonly VendorIntelligenceProfile[] 
     ],
     limitations:[
       "Asset delivery is not evidence of analytics or customer-data collection. Upload capability depends on the merchant's implementation and presets.",
+    ],
+  },
+  {
+    id:"x-pixel",
+    vendor:"X",
+    family:"X Pixel",
+    category:"AD_MEASUREMENT",
+    matchers:[
+      {type:"EXACT",value:"static.ads-twitter.com"},
+      {type:"EXACT",value:"analytics.twitter.com"},
+    ],
+    expectedPurposes:[
+      "Measure website conversions and advertising outcomes and support website-activity audiences.",
+    ],
+    documentedCapabilities:[
+      "Track site visits and configured conversion events such as add-to-cart, lead and purchase.",
+      "Send configured event parameters including value, currency and product/content metadata.",
+      "Support optional hashed email/phone user parameters for measurement coverage.",
+    ],
+    documentedDataOrEvents:[
+      "Site visit",
+      "Landing-page view",
+      "Add to cart",
+      "Lead",
+      "Purchase",
+      "Configured conversion parameters",
+    ],
+    sources:[
+      source("X","Conversion Tracking for Websites","https://business.x.com/en/help/campaign-measurement-and-analytics/conversion-tracking-for-websites"),
+    ],
+    limitations:[
+      "The documented base script uses static.ads-twitter.com; observed X-related hosts do not reveal which merchant events or parameters are configured.",
+    ],
+  },
+  {
+    id:"reddit-pixel",
+    vendor:"Reddit",
+    family:"Reddit Pixel",
+    category:"AD_MEASUREMENT",
+    matchers:[
+      {type:"EXACT",value:"pixel-config.reddit.com"},
+    ],
+    expectedPurposes:[
+      "Track website actions after Reddit ad exposure or engagement for conversion measurement.",
+    ],
+    documentedCapabilities:[
+      "Send conversion events from a website.",
+      "Pass additional event signals used for attribution matching.",
+      "Support manual, tag-manager and partner implementations.",
+    ],
+    documentedDataOrEvents:[
+      "Visitor conversion events",
+      "Configured event metadata",
+      "Attribution signals",
+    ],
+    sources:[
+      source("Reddit","About the Reddit Pixel","https://business.reddithelp.com/articles/Knowledge/reddit-pixel"),
+    ],
+    limitations:[
+      "The pixel-config.reddit.com matcher identifies Reddit Pixel configuration infrastructure; it does not prove which event definitions the merchant enabled.",
+    ],
+  },
+  {
+    id:"adobe-marketo-munchkin",
+    vendor:"Adobe",
+    family:"Marketo Munchkin",
+    category:"MARKETING_AUTOMATION",
+    matchers:[
+      {type:"EXACT",value:"munchkin.marketo.net"},
+    ],
+    expectedPurposes:[
+      "Track website visits and activity for Marketo marketing automation.",
+    ],
+    documentedCapabilities:[
+      "Track known and anonymous visitors to instrumented web pages.",
+      "Record website visit/activity signals used by Marketo campaigns and analytics.",
+    ],
+    documentedDataOrEvents:[
+      "Website visits",
+      "Anonymous visitor activity",
+      "Tracked page activity",
+    ],
+    sources:[
+      source("Adobe","Add Munchkin Tracking Code to Your Website","https://experienceleague.adobe.com/en/docs/marketo/using/product-docs/administration/additional-integrations/add-munchkin-tracking-code-to-your-website"),
+    ],
+    limitations:[
+      "The observed Munchkin host does not reveal a merchant's workspace, partition, campaign logic or exact tracking configuration.",
+    ],
+  },
+  {
+    id:"tealium-iq",
+    vendor:"Tealium",
+    family:"Tealium iQ Tag Management",
+    category:"TAG_MANAGEMENT",
+    matchers:[
+      {type:"EXACT",value:"tags.tiqcdn.com"},
+    ],
+    expectedPurposes:[
+      "Load and manage website vendor tags according to configured load rules and data mappings.",
+    ],
+    documentedCapabilities:[
+      "Load Tealium's universal tag and per-vendor tag configuration files from tags.tiqcdn.com.",
+      "Run configured vendor tags in the browser.",
+      "Map site data-layer values into configured tag destinations.",
+    ],
+    documentedDataOrEvents:[
+      "Tag configuration",
+      "Load-rule events",
+      "Mapped data-layer values",
+    ],
+    sources:[
+      source("Tealium","About the Universal Tag (utag.js)","https://docs.tealium.com/iq-tag-management/getting-started/install/about-utag/"),
+      source("Tealium","How Tealium iQ works","https://docs.tealium.com/iq-tag-management/getting-started/how-tealium-iq-works/"),
+    ],
+    limitations:[
+      "Tealium explicitly notes that tags.tiqcdn.com serves tag code; data collection depends on the tags and collection services configured by the merchant.",
+    ],
+  },
+  {
+    id:"optimizely-web",
+    vendor:"Optimizely",
+    family:"Optimizely Web Experimentation",
+    category:"EXPERIMENTATION",
+    matchers:[
+      {type:"EXACT",value:"cdn.optimizely.com"},
+      {type:"EXACT",value:"logx.optimizely.com"},
+    ],
+    expectedPurposes:[
+      "Run browser-based experiments and personalization and measure visitor/conversion outcomes.",
+    ],
+    documentedCapabilities:[
+      "Load a project-specific JavaScript snippet on website pages.",
+      "Assign visitors to experiment variations and alter the rendered experience.",
+      "Collect visitor and conversion data for experiment analysis.",
+    ],
+    documentedDataOrEvents:[
+      "Experiment assignment",
+      "Visitor interaction",
+      "Conversion/goal outcomes",
+    ],
+    sources:[
+      source("Optimizely","Optimizely Web Experimentation JavaScript snippet","https://support.optimizely.com/hc/en-us/articles/4410284311565-Optimizely-Web-Experimentation-JavaScript-snippet"),
+    ],
+    limitations:[
+      "The CDN/log hosts do not reveal which experiments, audiences, goals or data fields a merchant configured.",
+    ],
+  },
+  {
+    id:"amplitude-browser",
+    vendor:"Amplitude",
+    family:"Amplitude Browser Analytics",
+    category:"ANALYTICS",
+    matchers:[
+      {type:"EXACT",value:"cdn.amplitude.com"},
+    ],
+    expectedPurposes:[
+      "Instrument browser analytics and send configured product/user interaction events to Amplitude.",
+    ],
+    documentedCapabilities:[
+      "Load Amplitude browser analytics code from the Amplitude CDN.",
+      "Initialize with a project API key and log configured events.",
+      "Associate events with user, device, session and configured event/user properties.",
+    ],
+    documentedDataOrEvents:[
+      "Analytics events",
+      "User properties",
+      "Device/session identifiers",
+      "Configured event properties",
+    ],
+    sources:[
+      source("Amplitude","Javascript SDK","https://www.amplitude.com/docs/sdks/analytics/browser/javascript-sdk"),
+      source("Amplitude","Browser Unified SDK","https://www.amplitude.com/docs/sdks/analytics/browser/browser-unified-sdk"),
+    ],
+    limitations:[
+      "The CDN hostname proves only that Amplitude-hosted browser code was requested; it does not reveal the merchant's API key, event taxonomy or enabled Amplitude products.",
+    ],
+  },
+  {
+    id:"new-relic-browser",
+    vendor:"New Relic",
+    family:"New Relic Browser Monitoring",
+    category:"PERFORMANCE_ANALYTICS",
+    matchers:[
+      {type:"EXACT",value:"js-agent.newrelic.com"},
+      {type:"EXACT",value:"bam.nr-data.net"},
+      {type:"SUFFIX",value:"nr-data.net"},
+    ],
+    expectedPurposes:[
+      "Monitor browser performance and report browser telemetry to New Relic.",
+    ],
+    documentedCapabilities:[
+      "Load the browser monitoring agent from js-agent.newrelic.com.",
+      "Observe browser performance and interaction telemetry according to enabled agent features.",
+      "Send browser monitoring payloads to New Relic nr-data.net beacon endpoints.",
+    ],
+    documentedDataOrEvents:[
+      "Page-load performance",
+      "Browser telemetry",
+      "Enabled interaction/error/performance events",
+    ],
+    sources:[
+      source("New Relic","Install the browser agent","https://docs.newrelic.com/docs/browser/browser-monitoring/installation/install-browser-monitoring-agent/"),
+      source("New Relic","Proxy agent code and analytics data","https://docs.newrelic.com/docs/browser/new-relic-browser/configuration/proxy-agent-requests/"),
+    ],
+    limitations:[
+      "New Relic Browser has configurable agent features and privacy settings; observed endpoints do not reveal the complete merchant configuration.",
     ],
   },
   {
