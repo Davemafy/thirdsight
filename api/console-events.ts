@@ -187,7 +187,6 @@ function buildExposureMap(entries:readonly EvidenceHistoryEntry[]){
       if(findings!==0) return findings;
       return b.latestAt-a.latestAt;
     })
-    .slice(0,10)
     .map((row)=>({
       key:row.key,
       integrationId:row.integrationId,
