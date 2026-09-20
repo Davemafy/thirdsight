@@ -1,0 +1,78 @@
+name: Stage 6 Global 1000-Site Discovery
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/stage6-global1000-discovery.yml"
+      - "scripts/stage6-global1000-discovery.mjs"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  benchmark1000:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Syntax check benchmark harness
+        run: node --check scripts/stage6-global1000-discovery.mjs
+
+      - name: Request short-lived GitHub OIDC credential
+        shell: bash
+        run: |
+          response=$(curl -fsSL -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=thirdsight-stage6")
+          token=$(printf '%s' "$response" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>process.stdout.write(JSON.parse(s).value))')
+          echo "::add-mask::$token"
+          echo "THIRDSIGHT_OIDC_TOKEN=$token" >> "$GITHUB_ENV"
+
+      - name: Verify production ingestion accepts benchmark credential
+        shell: bash
+        run: |
+          code=$(curl -sS -o /tmp/oidc-check.json -w "%{http_code}" -H "Authorization: Bearer $THIRDSIGHT_OIDC_TOKEN" "https://thirdsight-five.vercel.app/api/browser-observations?limit=1" || true)
+          cat /tmp/oidc-check.json
+          test "$code" = "200"
+
+      - name: Install headless Chromium
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Run safe 1,000-site passive discovery benchmark
+        env:
+          THIRDSIGHT_URL: https://thirdsight-five.vercel.app
+        run: node scripts/stage6-global1000-discovery.mjs
+
+      - name: Validate aggregate report and safety boundary
+        shell: bash
+        run: |
+          node - <<'NODE'
+          const fs=require("fs");
+          const body=JSON.parse(fs.readFileSync("stage6-global1000-discovery.json","utf8"));
+          if(body?.schemaVersion!=="thirdsight-global1000-discovery.v1") throw new Error("Unexpected benchmark schema");
+          if(body?.summary?.sitesAttempted!==1000) throw new Error("Benchmark must attempt exactly 1,000 source sites");
+          const safety=body?.safety??{};
+          for(const key of ["formsSubmitted","authenticationUsed","clicksUsed","fuzzingUsed","requestMutationUsed","controlsBypassed","retriesToDefeatBlocks","requestBodiesInspected","responseBodiesInspectedForTelemetry","cookiesPersisted","queryStringsPersisted","rawCustomerPayloadsPersisted","piiPersisted","botChallengesBypassed"]){
+            if(safety[key]!==false) throw new Error(`Safety boundary failed: ${key}`);
+          }
+          if(body?.evidenceSemantics?.coverage!=="Browser only.") throw new Error("Coverage semantics changed");
+          console.log(JSON.stringify(body.summary,null,2));
+          NODE
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stage6-global1000-passive-discovery
+          retention-days: 14
+          path: |
+            stage6-global1000-sites.json
+            stage6-global1000-discovery.json
+            stage6-global1000-discovery.md
