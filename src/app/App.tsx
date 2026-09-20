@@ -497,18 +497,6 @@ function ReviewQueue({rows,onOpen}:{rows:readonly ExposureRow[];onOpen:(row:Expo
   </div>;
 }
 
-function CompactIntegrationTable({rows,onOpen}:{rows:readonly ExposureRow[];onOpen:(row:ExposureRow)=>void}){
-  if(rows.length===0)return <EmptyState text="No persisted integration exposure evidence yet."/>;
-  return <div className="ts-compact-table">
-    {rows.map(row=><button key={row.key} onClick={()=>onOpen(row)}>
-      <div className="ts-integration-name"><span className={"ts-integration-dot "+responseClass(row.latestResponse)}/><p><b>{row.label}</b><small>{row.integrationId??"Unregistered destination"}</small></p></div>
-      <div className="ts-compact-tags"><TagList values={row.attemptedFields} fallback={row.boundaries.length?row.boundaries.join(" + "):"No field metadata"}/></div>
-      <StatusPill value={row.latestResponse}/>
-      <ChevronRight size={15}/>
-    </button>)}
-  </div>;
-}
-
 function IntegrationRow({row,onClick}:{row:ExposureRow;onClick:()=>void}){
   return <button className="ts-table-row integration" onClick={onClick}>
     <div className="ts-integration-name"><span className={"ts-integration-dot "+responseClass(row.latestResponse)}/><p><b>{row.label}</b><small>{row.integrationId??"identity unresolved"} · {row.observations} observations</small></p></div>
