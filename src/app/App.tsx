@@ -3,7 +3,8 @@ import { Activity, CircleAlert, Radio, ShieldCheck } from "lucide-react";
 import type { EvidenceClaim, PurposeEvidence, BrowserCapabilityLowerBound, RuntimeAccessEvidence, BusinessContextEvidence, EvidenceCoverage } from "../domain/evidence";
 import type { BlindSpotAssessment } from "../domain/blind-spot-assessment";
 import { LearningLoopPanel } from "./LearningLoopPanel";
-import { IntegrationExposureMap, type ChallengeProof, type ExposureRow } from "./IntegrationExposureMap";\nimport { RealWorldValidation } from "./RealWorldValidation";
+import { IntegrationExposureMap, type ChallengeProof, type ExposureRow } from "./IntegrationExposureMap";
+import { RealWorldValidation } from "./RealWorldValidation";
 
 type Finding={type:string;action:string;field?:string;reason?:string};
 type Enforcement={action:"CONSTRAIN"|"ISOLATE";outcome:"PREVENTED";removedFields:readonly string[];continuedFields:readonly string[];receiver:{receivedFields:readonly string[];forbiddenFieldReceived:boolean}};
@@ -54,7 +55,8 @@ export default function App(){
     </aside>
     <main>
       <header><div><span className="eyebrow">Track G · commerce & consumer protection</span><h1>See what every integration can reach — and what it actually touches.</h1><p>ThirdSight compares approved purpose, technical reach, runtime behaviour and business context. Legitimate spikes pass; unjustified access is constrained.</p></div><span className="live"><Radio size={14}/> Live</span></header>
-      <IntegrationExposureMap rows={exposureMap} proof={challengeProof}/>\n      <RealWorldValidation/>
+      <IntegrationExposureMap rows={exposureMap} proof={challengeProof}/>
+      <RealWorldValidation/>
       {error?<Empty text="Live evidence is unavailable. ThirdSight will not substitute mock data."/>:!event?<Empty text="Waiting for persisted evidence. No demonstration cards are generated."/>:<>
         <section className="event-head"><div><span className="eyebrow">Selected integration evidence · SHOULD / COULD / DID / WHY</span><strong>{event.integrationId??destination??"Identity unresolved"}</strong><small>{event.recordId}</small></div><Outcome value={event.outcome??event.decision}/></section>
         {discoveryOnly?<section className="discovery-note"><b>Discovery only — browser visibility</b><span>No merchant Purpose Contract or business justification is available. ThirdSight does not infer backend permissions, server-to-server activity, database access, or downstream vendor behavior from this record.</span></section>:null}
@@ -80,7 +82,8 @@ function Claim({title,claim,summary}:{title:string;claim:EvidenceClaim<unknown>;
 
 function Coverage({coverage}:{coverage:EvidenceCoverage}){
   const label=coverage.label==="BROWSER_ONLY"?"Browser only":coverage.label==="DB_AUDIT_ONLY"?"DB audit only":"Multi-boundary";
-  return <article className="claim coverage-card"><div><span className="question">Coverage</span><span className="status partial">{label}</span></div><pre>{coverage.boundaries.join("\n")||"No active sensor boundary recorded"}</pre><p>{coverage.limitations.join(" ")}</p><footer><b>{coverage.label}</b><span>visibility boundary</span></footer></article>;
+  return <article className="claim coverage-card"><div><span className="question">Coverage</span><span className="status partial">{label}</span></div><pre>{coverage.boundaries.join("
+")||"No active sensor boundary recorded"}</pre><p>{coverage.limitations.join(" ")}</p><footer><b>{coverage.label}</b><span>visibility boundary</span></footer></article>;
 }
 
 function ActionPanel({event,discoveryOnly}:{event:ConsoleEvent;discoveryOnly:boolean}){
