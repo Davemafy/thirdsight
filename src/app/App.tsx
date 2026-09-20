@@ -32,6 +32,7 @@ import type {
   RuntimeAccessEvidence,
 } from "../domain/evidence";
 import type { BlindSpotAssessment } from "../domain/blind-spot-assessment";
+import type { VendorIntelligenceResolution } from "../vendor-intelligence/vendor-intelligence";
 import { LearningLoopPanel } from "./LearningLoopPanel";
 import { IntegrationExposureMap, type ChallengeProof, type ExposureRow } from "./IntegrationExposureMap";
 import { RealWorldValidation } from "./RealWorldValidation";
@@ -72,11 +73,12 @@ type ConsoleEvent={
   aiAssessment:AiAssessmentView|null;
   decision:"ALLOW"|"OBSERVE"|"CONSTRAIN"|"ISOLATE"|null;
   outcome:"PREVENTED"|"DETECTED"|null;
+  vendorIntelligence:VendorIntelligenceResolution;
 };
 
 const viewCopy:Record<View,{title:string;subtitle:string}>={
   overview:{title:"Overview",subtitle:"Third-party access posture across your connected stack."},
-  integrations:{title:"Integrations",subtitle:"What each integration can reach, what it touched and whether that matches its job."},
+  integrations:{title:"Integrations",subtitle:"Vendor-documented expectation, merchant approval and observed behaviour — kept as separate evidence."},
   activity:{title:"Activity",subtitle:"Representative persisted integration evidence from the operational workspace."},
   incidents:{title:"Incidents",subtitle:"Representative deterministic findings, prevented access and post-access detections."},
   policies:{title:"Policies",subtitle:"Approved purposes and data scope for registered integrations."},
@@ -130,6 +132,13 @@ export default function App(){
       ...row.approvedFields,
       ...row.attemptedFields,
       ...row.findings,
+      ...row.vendorIntelligence.profiles.flatMap(profile=>[
+        profile.vendor,
+        profile.family,
+        ...profile.expectedPurposes,
+        ...profile.documentedCapabilities,
+        ...profile.documentedDataOrEvents,
+      ]),
     ].join(" ").toLowerCase().includes(normalizedQuery);
   }),[exposureMap,normalizedQuery]);
 
@@ -345,12 +354,15 @@ function Overview({
 function Integrations({rows,query,onQuery,onOpen}:{rows:readonly ExposureRow[];query:string;onQuery:(value:string)=>void;onOpen:(row:ExposureRow)=>void}){
   return <div className="ts-page-stack">
     <div className="ts-section-head">
-      <div><span className="ts-kicker">Inventory</span><h2>Integration exposure</h2><p>Registered integrations and discovered destinations are kept distinct. Discovery is not a verdict.</p></div>
-      <label className="ts-search"><Search size={15}/><input value={query} onChange={e=>onQuery(e.target.value)} placeholder="Search integrations, fields, destinations…"/></label>
+      <div><span className="ts-kicker">Inventory · Vendor Intelligence</span><h2>Integration exposure</h2><p>Expected, approved, capable and observed are separate evidence. Vendor documentation adds context; it never becomes merchant authorization.</p></div>
+      <label className="ts-search"><Search size={15}/><input value={query} onChange={e=>onQuery(e.target.value)} placeholder="Search vendors, capabilities, fields, destinations…"/></label>
+    </div>
+    <div className="ts-intel-principle">
+      <span>Approval authority</span><b>Merchant policy</b><i>›</i><span>Product context</span><b>Vendor documentation</b><i>›</i><span>Runtime truth</span><b>Observed evidence</b>
     </div>
     <div className="ts-table-card">
       <div className="ts-table-head integration">
-        <span>Integration</span><span>Can reach</span><span>Actually touched</span><span>Approved</span><span>Response</span>
+        <span>Integration</span><span>Expected</span><span>Capable</span><span>Observed</span><span>Approved</span><span>Response</span>
       </div>
       {rows.map(row=><IntegrationRow key={row.key} row={row} onClick={()=>onOpen(row)}/>)}
       {rows.length===0?<EmptyState text="No integrations match this search."/>:null}
@@ -498,11 +510,42 @@ function ReviewQueue({rows,onOpen}:{rows:readonly ExposureRow[];onOpen:(row:Expo
 }
 
 function IntegrationRow({row,onClick}:{row:ExposureRow;onClick:()=>void}){
+  const profile=row.vendorIntelligence.profiles[0]??null;
+  const expected=profile?.expectedPurposes.slice(0,1)??[];
+  const documentedCapability=profile?.documentedCapabilities.slice(0,2)??[];
+  const localCapability=row.canReachFields;
+  const capable=localCapability.length>0?localCapability:documentedCapability;
+
   return <button className="ts-table-row integration" onClick={onClick}>
-    <div className="ts-integration-name"><span className={"ts-integration-dot "+responseClass(row.latestResponse)}/><p><b>{row.label}</b><small>{row.integrationId??"identity unresolved"} · {row.observations} observations</small></p></div>
-    <TagList values={row.canReachFields} fallback={row.reachSource==="OBSERVED_LOWER_BOUND"?"Browser-visible lower bound":"Not declared"}/>
-    <TagList values={row.attemptedFields} blocked={row.preventedFields} fallback={row.boundaries.length?row.boundaries.map(v=>v+" metadata").join(", "):"Not observed"}/>
-    <TagList values={row.approvedFields} fallback="Not provided"/>
+    <div className="ts-integration-name">
+      <span className={"ts-integration-dot "+responseClass(row.latestResponse)}/>
+      <p>
+        <b>{profile?.family??row.label}</b>
+        <small>{profile?`${profile.vendor} · documented family`:(row.integrationId??"identity unresolved")} · {row.observations} observations</small>
+      </p>
+    </div>
+    <IntelCell
+      values={expected}
+      fallback="Documented purpose unavailable"
+      source={profile?"Vendor documented":"Unresolved"}
+    />
+    <IntelCell
+      values={capable}
+      fallback={row.reachSource==="OBSERVED_LOWER_BOUND"?"Browser-visible lower bound only":"Documented capability unavailable"}
+      source={localCapability.length>0?"Local capability":profile?"Vendor documented":row.reachSource==="OBSERVED_LOWER_BOUND"?"Browser sensor":"Unresolved"}
+    />
+    <IntelCell
+      values={row.attemptedFields}
+      blocked={row.preventedFields}
+      fallback={row.boundaries.length?row.boundaries.map(v=>v+" request metadata").join(", "):"Not observed"}
+      source={row.boundaries.includes("browser")?"Browser sensor":"Runtime evidence"}
+    />
+    <IntelCell
+      values={row.approvedFields}
+      fallback="Not supplied by merchant"
+      source="Merchant policy"
+      muted={row.approvedFields.length===0}
+    />
     <div className="ts-response-cell"><StatusPill value={row.latestResponse}/>{row.findings.slice(0,1).map(value=><small key={value}>{humanize(value)}</small>)}</div>
   </button>;
 }
@@ -533,9 +576,12 @@ function EvidenceDrawer({event,aiPromoted,onClose}:{event:ConsoleEvent;aiPromote
       </div>
       <div className="ts-drawer-status"><StatusPill value={value}/><span>{eventSummary(event)}</span></div>
 
-      {discoveryOnly?<div className="ts-boundary-note"><Eye size={16}/><p><b>Discovery only.</b> Browser-visible metadata does not establish merchant purpose, backend permissions or business justification.</p></div>:null}
+      {discoveryOnly?<div className="ts-boundary-note"><Eye size={16}/><p><b>Discovery only.</b> Runtime metadata proves the observation boundary. Vendor documentation may describe expected product behaviour, but it does not establish this merchant's approval, configuration or internal justification.</p></div>:null}
       {event.blindSpotAssessment?<div className="ts-boundary-note warning"><AlertTriangle size={16}/><p><b>Known benchmark blind spot.</b> {event.blindSpotAssessment.reason}</p></div>:null}
 
+      <VendorIntelligencePanel event={event}/>
+
+      <div className="ts-proof-model-label"><span>Frozen proof model</span><small>Merchant-authoritative SHOULD / local COULD / runtime DID / first-party WHY</small></div>
       <div className="ts-evidence-grid">
         <EvidenceFact title="Should" status={event.should.status} value={event.should.value?.purpose??"No Purpose Contract provided"} detail={event.should.reason}/>
         <EvidenceFact title="Could" status={event.could.status} value={event.could.value?.statement??"Complete capability surface not available"} detail={event.could.reason}/>
@@ -570,6 +616,61 @@ function EvidenceDrawer({event,aiPromoted,onClose}:{event:ConsoleEvent;aiPromote
         </div>
       </details>:null}
     </div>
+  </div>;
+}
+
+function VendorIntelligencePanel({event}:{event:ConsoleEvent}){
+  const profile=event.vendorIntelligence.profiles[0]??null;
+  const approved=event.should.status==="KNOWN"
+    ? event.should.value?.purpose??"Merchant policy present"
+    : "Not supplied by merchant";
+  const observed=didSummary(event);
+  const context=event.why.value?.eventType
+    ? `${event.why.value.eventType} · ${event.why.value.correlationStrength}`
+    : "No authoritative customer-journey context";
+  const capability=profile?.documentedCapabilities.slice(0,2).join(" · ")
+    ?? event.could.value?.statement
+    ?? "Documented capability unavailable";
+
+  return <section className="ts-vendor-intel">
+    <div className="ts-vendor-intel-head">
+      <div>
+        <span className="ts-kicker">Vendor Intelligence · {event.vendorIntelligence.registryVersion}</span>
+        <strong>{profile?profile.family:"Vendor identity unresolved"}</strong>
+        <small>{profile?`${profile.vendor} · ${humanize(profile.category)}`:"No documentation-backed family matched this destination."}</small>
+      </div>
+      <span className={"ts-vendor-match "+(profile?"matched":"unresolved")}>{profile?"DOCUMENTED":"UNRESOLVED"}</span>
+    </div>
+
+    <div className="ts-intel-stack">
+      <IntelFact label="Expected" value={profile?.expectedPurposes[0]??"Documented purpose unavailable"} source={profile?"Vendor documented":"Unavailable"}/>
+      <IntelFact label="Approved" value={approved} source="Merchant policy"/>
+      <IntelFact label="Capable" value={capability} source={profile?"Vendor documentation":event.could.status!=="UNKNOWN"?"Local evidence":"Unavailable"}/>
+      <IntelFact label="Observed" value={observed} source={event.did.value?.boundary==="browser"?"Browser sensor":"Runtime evidence"}/>
+      <IntelFact label="Context" value={context} source={event.why.status==="UNKNOWN"?"Not supplied":"First-party business event"}/>
+    </div>
+
+    {profile?<div className="ts-vendor-docs">
+      <span>Documentation reviewed {profile.sources[0]?.reviewedAt}</span>
+      <div>{profile.sources.slice(0,3).map(item=><a href={item.url} target="_blank" rel="noreferrer" key={item.url}>{item.title}</a>)}</div>
+    </div>:null}
+    <p className="ts-vendor-boundary">{event.vendorIntelligence.authorityBoundary}</p>
+  </section>;
+}
+
+function IntelFact({label,value,source}:{label:string;value:string;source:string}){
+  return <div className="ts-intel-fact"><span>{label}</span><p><b>{value}</b><small>{source}</small></p></div>;
+}
+
+function IntelCell({values,blocked=[],fallback,source,muted=false}:{values:readonly string[];blocked?:readonly string[];fallback:string;source:string;muted?:boolean}){
+  return <div className={"ts-intel-cell "+(muted?"muted":"")}>
+    <div className="ts-intel-cell-values">
+      {values.length>0
+        ?values.slice(0,2).map(value=><span className={blocked.includes(value)?"blocked":""} key={value}>{value}{blocked.includes(value)?" · blocked":""}</span>)
+        :<span>{fallback}</span>}
+      {values.length>2?<small>+{values.length-2} more</small>:null}
+    </div>
+    <em>{source}</em>
   </div>;
 }
 
