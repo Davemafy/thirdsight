@@ -36,6 +36,21 @@ ThirdSight now has an evidence-backed end-to-end prototype rather than a mock da
 
 Stage 7 freezes the deterministic detector. Stage 8 adds a separately gated advisory AI analyst with no enforcement authority. Stage 9 adds a verified learning loop: a human-confirmed ambiguous outcome becomes a PII-minimized training example, a small classifier trains off the live decision path, and the candidate is promoted only after passing a frozen held-out benchmark. Learned recommendations remain limited to **REVIEW / OBSERVE / ABSTAIN**.
 
+## Real-world validation
+
+ThirdSight now presents two deliberately separate validation environments:
+
+- **Commerce Lab** - controlled ground truth for deterministic correctness, graded response, managed prevention, proportional-abuse detection and the no-false-alarm flash-sale proof.
+- **40-site Nigeria-facing public benchmark** - passive, logged-out discovery breadth under browser-only visibility limits.
+
+The corrected public benchmark attempted **40** sites, loaded **30** normally, observed browser-visible cross-origin evidence on **30/30 loaded sites**, persisted **203** representative observations and covered **118** unique destination origins. Public discovery preserves `SHOULD = UNKNOWN`, `COULD = PARTIAL`, `DID = KNOWN`, `WHY = UNKNOWN` and `BROWSER_ONLY` coverage; it does not infer merchant intent, backend permissions, maliciousness or downstream vendor behavior.
+
+Submission materials:
+
+- [Real-world validation](docs/real-world-validation.md)
+- [Technical submission write-up](docs/submission-technical-writeup.md)
+- [~2 minute judge demo](docs/submission-demo-script.md)
+
 ## Repository layout
 
 ```text
