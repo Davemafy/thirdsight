@@ -147,7 +147,9 @@ export function RealWorldValidation(){
           detail="namespace relation only · not ownership"
         />
         <CoverageMetric
-          value={(originCoverage?.byDisposition.INDEXED_SHARED_EXTERNAL??0)+(originCoverage?.byDisposition.INDEXED_MIXED_RELATIONSHIP??0)}
+          value={originCoverage
+            ?originCoverage.byDisposition.INDEXED_SHARED_EXTERNAL+originCoverage.byDisposition.INDEXED_MIXED_RELATIONSHIP
+            :undefined}
           fallback="—"
           label="shared / mixed external"
           detail="prioritized for documentation resolution"
