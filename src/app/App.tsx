@@ -565,31 +565,6 @@ function Validation({rows,proof}:{rows:readonly ExposureRow[];proof:ChallengePro
   </div>;
 }
 
-function ReviewQueue({rows,onOpen}:{rows:readonly ExposureRow[];onOpen:(row:ExposureRow)=>void}){
-  if(rows.length===0)return <EmptyState text="Nothing needs attention right now."/>;
-  return <div className="ts-review-list simple">
-    {rows.map(row=>{
-      const status=simpleRowStatus(row);
-      const profile=row.vendorIntelligence.profiles[0]??null;
-      const approved=row.approvedFields.length>0?row.approvedFields.slice(0,3).join(", "):"No merchant rule";
-      const reason=row.findings.length>0
-        ?humanize(row.findings[0]??"finding")
-        :!row.integrationId
-          ?"Identity or policy missing"
-          :status.detail;
-      return <button key={row.key} onClick={()=>onOpen(row)}>
-        <div className="ts-review-name">
-          <strong>{profile?.family??row.label}</strong>
-          <small>{profile?.vendor??row.integrationId??"Unidentified integration"}</small>
-        </div>
-        <div className="ts-review-fact"><span>Approved</span><b>{approved}</b></div>
-        <div className="ts-review-fact"><span>Observed</span><b>{simpleObservedRow(row)}</b></div>
-        <div className={"ts-review-result "+status.tone}><b>{status.label}</b><span>{reason}</span></div>
-        <ChevronRight size={15}/>
-      </button>;
-    })}
-  </div>;
-}
 
 function IntegrationRow({row,onClick}:{row:ExposureRow;onClick:()=>void}){
   const profile=row.vendorIntelligence.profiles[0]??null;
