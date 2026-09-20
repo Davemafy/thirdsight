@@ -12,7 +12,6 @@ import {
   Network,
   MoreHorizontal,
   Search,
-  ShieldCheck,
   ShieldEllipsis,
   Workflow,
   X,
@@ -70,16 +69,6 @@ type ConsoleEvent={
   vendorIntelligence:VendorIntelligenceResolution;
 };
 
-const viewCopy:Record<View,{title:string}>={
-  overview:{title:"Boundary"},
-  integrations:{title:"Integrations"},
-  activity:{title:"Evidence"},
-  incidents:{title:"Incidents"},
-  policies:{title:"Policies"},
-  connections:{title:"Connections"},
-  validation:{title:"Validation"},
-};
-
 export default function App(){
   const [events,setEvents]=useState<ConsoleEvent[]>([]);
   const [selected,setSelected]=useState(0);
@@ -114,8 +103,6 @@ export default function App(){
 
   const selectedEvent=events[selected]??events[0]??null;
   const registered=exposureMap.filter(row=>Boolean(row.integrationId));
-  const unregistered=exposureMap.filter(row=>!row.integrationId);
-  const findings=exposureMap.filter(row=>row.findings.length>0);
   const normalizedQuery=query.trim().toLowerCase();
   const filteredExposure=useMemo(()=>exposureMap.filter(row=>{
     if(!normalizedQuery)return true;
@@ -149,8 +136,6 @@ export default function App(){
     );
     if(index>=0)openEvent(index);
   };
-
-  const current=viewCopy[view];
 
   return <div className="ts-shell ts-boundary-shell">
     <header className="ts-header">
