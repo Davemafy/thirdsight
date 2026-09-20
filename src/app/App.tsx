@@ -6,7 +6,6 @@ import {
   BookOpenCheck,
   ChevronRight,
   CircleCheck,
-  Clock3,
   Code2,
   Database,
   Eye,
