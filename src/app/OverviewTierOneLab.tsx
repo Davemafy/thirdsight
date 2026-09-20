@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   Activity,
   AlertTriangle,
@@ -20,19 +20,23 @@ type Props={
   proof:ChallengeProof|null;
 };
 
-const variants=["Quiet Ops","Signal Rail","Evidence Map"] as const;
+type VariantData={
+  exposure:readonly ExposureRow[];
+  registered:readonly ExposureRow[];
+  findings:readonly ExposureRow[];
+  unresolved:readonly ExposureRow[];
+  review:readonly ExposureRow[];
+  proof:ChallengeProof|null;
+};
+
+const variantNames=["Quiet Ops","Signal Rail","Evidence Map"] as const;
 
 export function OverviewTierOneLab({exposure,proof}:Props){
-  const [current,setCurrent]=useState(()=>{
-    const raw=Number(new URLSearchParams(window.location.search).get("v")??"1");
-    return Number.isInteger(raw)&&raw>=1&&raw<=variants.length?raw-1:0;
-  });
-  const pickerRef=useRef<HTMLElement|null>(null);
-  const itemRefs=useRef<Array<HTMLButtonElement|null>>([]);
-  const [ready,setReady]=useState(false);
+  const initial=Number(new URLSearchParams(window.location.search).get("v")??"1");
+  const [current,setCurrent]=useState(initial>=1&&initial<=3?initial-1:0);
 
-  const setVariant=(index:number)=>{
-    if(index<0||index>=variants.length)return;
+  const choose=(index:number)=>{
+    if(index<0||index>2)return;
     setCurrent(index);
     const url=new URL(window.location.href);
     url.searchParams.set("prototype","tier1");
@@ -40,41 +44,17 @@ export function OverviewTierOneLab({exposure,proof}:Props){
     window.history.replaceState(null,"",url);
   };
 
-  useLayoutEffect(()=>{
-    const picker=pickerRef.current;
-    const item=itemRefs.current[current];
-    const highlight=picker?.querySelector<HTMLElement>(".proto-picker-highlight");
-    if(!picker||!item||!highlight)return;
-    highlight.style.width=`${item.offsetWidth}px`;
-    highlight.style.transform=`translateX(${item.offsetLeft}px)`;
-  },[current]);
-
-  useEffect(()=>{
-    const first=window.requestAnimationFrame(()=>{
-      const second=window.requestAnimationFrame(()=>setReady(true));
-      return()=>window.cancelAnimationFrame(second);
-    });
-    return()=>window.cancelAnimationFrame(first);
-  },[]);
-
   useEffect(()=>{
     const onKey=(event:KeyboardEvent)=>{
       const target=event.target as HTMLElement|null;
       if(target&&(/^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)||target.isContentEditable))return;
       if(event.metaKey||event.ctrlKey||event.altKey)return;
-      const num=Number.parseInt(event.key,10);
-      if(num>=1&&num<=variants.length)setVariant(num-1);
-      else if(event.key==="ArrowRight")setVariant((current+1)%variants.length);
-      else if(event.key==="ArrowLeft")setVariant((current-1+variants.length)%variants.length);
+      if(event.key==="1"||event.key==="2"||event.key==="3")choose(Number(event.key)-1);
+      if(event.key==="ArrowRight")choose((current+1)%3);
+      if(event.key==="ArrowLeft")choose((current+2)%3);
     };
     document.addEventListener("keydown",onKey);
     return()=>document.removeEventListener("keydown",onKey);
-  },[current]);
-
-  useEffect(()=>{
-    const onResize=()=>setVariant(current);
-    window.addEventListener("resize",onResize);
-    return()=>window.removeEventListener("resize",onResize);
   },[current]);
 
   const registered=exposure.filter(row=>Boolean(row.integrationId));
@@ -86,37 +66,27 @@ export function OverviewTierOneLab({exposure,proof}:Props){
     ...registered.filter(row=>row.findings.length===0),
   ].slice(0,5);
 
-  const data={exposure,registered,findings,unresolved,review,proof};
+  const data:VariantData={exposure,registered,findings,unresolved,review,proof};
 
   return <div className="tier1-lab">
     <div className="tier1-stage">
-      {current===0?<QuietOps {...data}/>:null}
-      {current===1?<SignalRail {...data}/>:null}
-      {current===2?<EvidenceMap {...data}/>:null}
+      {current===0?<QuietOps data={data}/>:null}
+      {current===1?<SignalRail data={data}/>:null}
+      {current===2?<EvidenceMap data={data}/>:null}
     </div>
 
-    <nav ref={pickerRef} className="proto-picker" aria-label="Prototype variants" data-position="top" data-ready={ready?"":undefined}>
+    <nav className={"proto-picker proto-v"+current} aria-label="Prototype variants" data-position="top" data-ready>
       <span className="proto-picker-highlight" aria-hidden="true"/>
-      {variants.map((name,index)=><button
+      {variantNames.map((name,index)=><button
         key={name}
-        ref={node=>{itemRefs.current[index]=node}}
         className="proto-picker-item"
         data-active={index===current?"":undefined}
-        aria-current={index===current?"true":undefined}
-        onClick={()=>setVariant(index)}
+        aria-current={index===current}
+        onClick={()=>choose(index)}
       >{name}</button>)}
     </nav>
   </div>;
 }
-
-type VariantProps={
-  exposure:readonly ExposureRow[];
-  registered:readonly ExposureRow[];
-  findings:readonly ExposureRow[];
-  unresolved:readonly ExposureRow[];
-  review:readonly ExposureRow[];
-  proof:ChallengeProof|null;
-};
 
 function AppFrame({children,mode}:{children:ReactNode;mode:string}){
   return <div className="tier1-app">
@@ -140,7 +110,8 @@ function AppFrame({children,mode}:{children:ReactNode;mode:string}){
   </div>;
 }
 
-function QuietOps({exposure,registered,findings,unresolved,review,proof}:VariantProps){
+function QuietOps({data}:{data:VariantData}){
+  const {exposure,registered,findings,unresolved,review,proof}=data;
   const clean=findings.length===0;
   return <AppFrame mode="Quiet Ops">
     <section className="quiet-shell">
@@ -166,17 +137,15 @@ function QuietOps({exposure,registered,findings,unresolved,review,proof}:Variant
       </div>
 
       <section className="quiet-review">
-        <div className="tier1-section-head">
-          <div><span className="tier1-eyebrow">Review next</span><h2>Resolve the unknowns first.</h2></div>
-          <button>All integrations <ChevronRight size={14}/></button>
-        </div>
-        <ReviewRows rows={review.slice(0,4)} density="quiet"/>
+        <SectionHead eyebrow="Review next" title="Resolve the unknowns first." accessory="All integrations"/>
+        <ReviewRows rows={review.slice(0,4)}/>
       </section>
     </section>
   </AppFrame>;
 }
 
-function SignalRail({exposure,registered,findings,unresolved,review}:VariantProps){
+function SignalRail({data}:{data:VariantData}){
+  const {exposure,registered,findings,unresolved,review}=data;
   const clean=findings.length===0;
   return <AppFrame mode="Signal Rail">
     <section className="rail-shell">
@@ -194,9 +163,9 @@ function SignalRail({exposure,registered,findings,unresolved,review}:VariantProp
       </div>
 
       <div className="rail-bar" aria-label="Posture distribution">
-        <span style={{"--share":Math.max(8,registered.length/Math.max(1,exposure.length)*100)+"%"} as CSSProperties}><b>{registered.length}</b> purpose-aware</span>
-        <span style={{"--share":Math.max(12,unresolved.length/Math.max(1,exposure.length)*100)+"%"} as CSSProperties}><b>{unresolved.length}</b> unresolved</span>
-        <span style={{"--share":Math.max(6,findings.length/Math.max(1,exposure.length)*100)+"%"} as CSSProperties}><b>{findings.length}</b> findings</span>
+        <span><b>{registered.length}</b> purpose-aware</span>
+        <span><b>{unresolved.length}</b> unresolved</span>
+        <span><b>{findings.length}</b> findings</span>
       </div>
 
       <section className="rail-queue">
@@ -204,13 +173,14 @@ function SignalRail({exposure,registered,findings,unresolved,review}:VariantProp
           <div><span className="tier1-eyebrow">Triage rail</span><h2>Work the highest-uncertainty surfaces.</h2></div>
           <span className="rail-filter">Unresolved first</span>
         </div>
-        <ReviewRows rows={review.slice(0,5)} density="rail"/>
+        <ReviewRows rows={review}/>
       </section>
     </section>
   </AppFrame>;
 }
 
-function EvidenceMap({exposure,registered,findings,unresolved,review}:VariantProps){
+function EvidenceMap({data}:{data:VariantData}){
+  const {exposure,registered,findings,unresolved,review}=data;
   const nodes=(review.length?review:exposure).slice(0,4);
   return <AppFrame mode="Evidence Map">
     <section className="map-shell">
@@ -227,40 +197,50 @@ function EvidenceMap({exposure,registered,findings,unresolved,review}:VariantPro
         </div>
         <div className="map-spine" aria-hidden="true"/>
         <div className="map-nodes">
-          {nodes.map((row,index)=><button className="map-node" key={row.key}>
-            <span className={"map-node-status "+(row.findings.length?"finding":row.integrationId?"known":"unknown")}/>
-            <div><strong>{row.label}</strong><small>{row.findings.length?humanize(row.findings[0]??"finding"):row.integrationId?"purpose-aware":"purpose unresolved"}</small></div>
-            <span>{row.observations}</span>
-          </button>)}
+          {nodes.map(row=>{
+            const finding=row.findings[0]??null;
+            const state=finding?"finding":row.integrationId?"known":"unknown";
+            return <button className="map-node" key={row.key}>
+              <span className={"map-node-status "+state}/>
+              <div>
+                <strong>{row.label}</strong>
+                <small>{finding?humanize(finding):row.integrationId?"purpose-aware":"purpose unresolved"}</small>
+              </div>
+              <span>{row.observations}</span>
+            </button>;
+          })}
           {nodes.length===0?<div className="map-empty">Waiting for observed third-party destinations.</div>:null}
         </div>
       </div>
 
       <div className="map-footer">
-        <div>
-          <span>Observed</span><strong>{exposure.length}</strong>
-        </div>
-        <div>
-          <span>Purpose-aware</span><strong>{registered.length}</strong>
-        </div>
-        <div>
-          <span>Unresolved</span><strong>{unresolved.length}</strong>
-        </div>
-        <div>
-          <span>Findings</span><strong>{findings.length}</strong>
-        </div>
+        <MapMetric label="Observed" value={exposure.length}/>
+        <MapMetric label="Purpose-aware" value={registered.length}/>
+        <MapMetric label="Unresolved" value={unresolved.length}/>
+        <MapMetric label="Findings" value={findings.length}/>
       </div>
     </section>
   </AppFrame>;
+}
+
+function SectionHead({eyebrow,title,accessory}:{eyebrow:string;title:string;accessory:string}){
+  return <div className="tier1-section-head">
+    <div><span className="tier1-eyebrow">{eyebrow}</span><h2>{title}</h2></div>
+    <button>{accessory}<ChevronRight size={14}/></button>
+  </div>;
 }
 
 function Metric({value,label,note}:{value:string;label:string;note:string}){
   return <div className="quiet-metric"><strong>{value}</strong><span>{label}</span><small>{note}</small></div>;
 }
 
-function ReviewRows({rows,density}:{rows:readonly ExposureRow[];density:"quiet"|"rail"}){
+function MapMetric({label,value}:{label:string;value:number}){
+  return <div><span>{label}</span><strong>{value}</strong></div>;
+}
+
+function ReviewRows({rows}:{rows:readonly ExposureRow[]}){
   if(rows.length===0)return <div className="tier1-empty"><Check size={16}/><span>No unresolved or evidence-backed item is queued.</span></div>;
-  return <div className={"tier1-review-rows "+density}>
+  return <div className="tier1-review-rows">
     {rows.map(row=>{
       const finding=row.findings[0]??null;
       const state=finding?"finding":row.integrationId?"known":"unknown";
