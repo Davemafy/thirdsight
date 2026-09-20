@@ -1187,3 +1187,125 @@
   .ts-discovery-rows>button>em{grid-column:2;grid-row:1}
   .ts-control-section-head h2{font-size:14px}
 }
+
+
+/* Readability floor — no microtext-as-hierarchy */
+.ts-brand strong{font-size:15px}
+.ts-brand small{font-size:12px}
+.ts-nav-button b{font-size:13px}
+.ts-nav-button em{font-size:12px}
+.ts-nav-secondary button{font-size:12px}
+.ts-sidebar-foot strong{font-size:12px}
+.ts-sidebar-foot small,.ts-sidebar-foot span{font-size:12px;line-height:1.4}
+
+.ts-desktop-context strong{font-size:13px}
+.ts-desktop-context span{font-size:12px}
+.ts-evidence-freshness{font-size:12px}
+
+.ts-control-signal{font-size:13px}
+.ts-control-head h1{font-size:46px;line-height:1}
+.ts-control-head p{max-width:720px;font-size:14px;line-height:1.55}
+.ts-control-time b{font-size:13px}
+.ts-control-time span{font-size:12px}
+
+.ts-control-trace-row{grid-template-columns:180px minmax(0,1fr);min-height:84px}
+.ts-control-trace-label{padding-top:20px;font-size:12px;font-weight:650}
+.ts-control-trace-value{padding-top:18px;padding-bottom:18px}
+.ts-control-trace-value strong{font-size:17px;line-height:1.3}
+.ts-control-trace-value span{font-size:13px;line-height:1.5}
+.ts-control-trace-value code{font-size:13px;line-height:1.5}
+.ts-control-trace-row.action .ts-control-trace-value strong{font-size:19px}
+.ts-control-primary,.ts-control-secondary{padding:10px 13px;font-size:12px}
+
+.ts-control-section-head h2{font-size:18px}
+.ts-control-section-head span{font-size:12px}
+.ts-discovery-rows>button{padding:16px 0}
+.ts-discovery-rows>button>div b{font-size:13px;line-height:1.35}
+.ts-discovery-rows>button>div span{font-size:12px;line-height:1.4}
+.ts-discovery-rows>button em{font-size:12px}
+.ts-discovery-more{margin-top:14px;font-size:12px}
+
+.ts-control-aside h3{font-size:14px}
+.ts-control-aside section>div{padding:8px 0;font-size:12px}
+.ts-control-aside p{font-size:12px;line-height:1.55}
+
+.ts-page-toolbar>span{font-size:12px}
+.ts-search input{font-size:13px}
+.ts-table-head span{font-size:12px}
+.ts-integration-name b{font-size:13px}
+.ts-integration-name small{font-size:12px}
+.ts-simple-cell b{font-size:13px}
+.ts-simple-cell small,.ts-simple-response small{font-size:12px}
+.ts-result-word{font-size:12px}
+.ts-tag-fallback{font-size:12px}
+
+.ts-activity-copy strong{font-size:13px}
+.ts-activity-copy span{font-size:12px}
+.ts-activity-copy small{font-size:12px}
+.ts-activity-result{font-size:12px}
+
+.ts-drawer-outcome>.ts-result-word{font-size:12px}
+.ts-drawer-outcome strong{font-size:21px}
+.ts-drawer-outcome p{font-size:13px}
+.ts-simple-why span{font-size:12px}
+.ts-simple-why b{font-size:13px}
+.ts-decision-card>div:first-child strong{font-size:16px}
+.ts-decision-card>div:first-child span{font-size:12px}
+.ts-vendor-intel-head strong{font-size:14px}
+.ts-vendor-match{font-size:12px}
+.ts-proof-model-label span,.ts-proof-model-label small{font-size:12px}
+
+.ts-connection-title h2{font-size:24px}
+.ts-connection-title span{font-size:13px}
+.ts-connector-list .ts-connector-head strong{font-size:14px}
+.ts-connector-list .ts-connector-head small{font-size:12px}
+.ts-connector-list .ts-connector-card>p{font-size:13px}
+.ts-connector-list .ts-connector-card li{font-size:12px}
+.ts-coverage-warning p{font-size:12px}
+
+.exposure-intro h2,.validation-section-title h2{font-size:20px}
+.exposure-intro>span,.validation-section-title span{font-size:12px}
+.challenge-proof span,.challenge-proof small{font-size:12px}
+.challenge-proof strong{font-size:14px}
+.exposure-table-head span{font-size:12px}
+.exposure-identity strong{font-size:13px}
+.exposure-identity small{font-size:12px}
+.field-cell{font-size:12px}
+.response-pill{font-size:12px}
+.exposure-response small,.exposure-footnote{font-size:12px}
+
+.validation-block-heading h3{font-size:15px}
+.validation-block-heading>span{font-size:12px}
+.validation-ledger-row span,.validation-ledger-row strong,.validation-ledger-row b{font-size:12px}
+.validation-number-row strong{font-size:23px}
+.validation-number-row span{font-size:12px}
+.validation-evidence-line,.validation-boundary-line{font-size:12px}
+.validation-coverage-rows span{font-size:12px}
+.validation-coverage-rows b{font-size:18px}
+.validation-coverage-rows small{font-size:12px}
+.validation-intelligence-row b{font-size:12px}
+.validation-intelligence-row small{font-size:12px}
+.validation-intelligence-row a,.validation-intelligence-row>div:last-child span{font-size:12px}
+.validation-evidence-model span{font-size:12px}
+.validation-evidence-model b{font-size:12px}
+.validation-endnotes p,.validation-endnotes small{font-size:12px}
+
+@media(max-width:560px){
+  .ts-nav-button b{font-size:13px}
+  .ts-evidence-freshness{font-size:13px}
+  .ts-control-signal{font-size:13px}
+  .ts-control-head h1{font-size:34px}
+  .ts-control-head p{font-size:14px}
+  .ts-control-time b{font-size:13px}
+  .ts-control-time span{font-size:13px}
+  .ts-control-trace-label{font-size:13px}
+  .ts-control-trace-value strong{font-size:17px}
+  .ts-control-trace-value span,.ts-control-trace-value code{font-size:13px}
+  .ts-control-primary,.ts-control-secondary{font-size:13px}
+  .ts-control-section-head h2{font-size:18px}
+  .ts-control-section-head span{font-size:13px}
+  .ts-discovery-rows>button>div b{font-size:14px}
+  .ts-discovery-rows>button>div span,.ts-discovery-rows>button em,.ts-discovery-more{font-size:13px}
+  .ts-control-aside h3{font-size:15px}
+  .ts-control-aside section>div,.ts-control-aside p{font-size:13px}
+}
