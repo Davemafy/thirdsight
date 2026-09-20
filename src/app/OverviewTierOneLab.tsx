@@ -1,16 +1,16 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useMemo, useState } from "react";
 import {
   Activity,
   AlertTriangle,
-  ArrowRight,
+  ArrowUpRight,
   Check,
   ChevronRight,
+  CircleHelp,
   Eye,
-  Layers3,
   MoreHorizontal,
   PlugZap,
-  Radio,
   ShieldCheck,
+  X,
 } from "lucide-react";
 import type { ChallengeProof, ExposureRow } from "./IntegrationExposureMap";
 import "./OverviewTierOneLab.css";
@@ -20,245 +20,211 @@ type Props={
   proof:ChallengeProof|null;
 };
 
-type VariantData={
-  exposure:readonly ExposureRow[];
-  registered:readonly ExposureRow[];
-  findings:readonly ExposureRow[];
-  unresolved:readonly ExposureRow[];
-  review:readonly ExposureRow[];
-  proof:ChallengeProof|null;
-};
-
-const variantNames=["Quiet Ops","Signal Rail","Evidence Map"] as const;
-
 export function OverviewTierOneLab({exposure,proof}:Props){
-  const initial=Number(new URLSearchParams(window.location.search).get("v")??"1");
-  const [current,setCurrent]=useState(initial>=1&&initial<=3?initial-1:0);
+  const [selected,setSelected]=useState<ExposureRow|null>(null);
+  const [filter,setFilter]=useState<"all"|"unresolved"|"findings">("all");
 
-  const choose=(index:number)=>{
-    if(index<0||index>2)return;
-    setCurrent(index);
-    const url=new URL(window.location.href);
-    url.searchParams.set("prototype","tier1");
-    url.searchParams.set("v",String(index+1));
-    window.history.replaceState(null,"",url);
-  };
-
-  useEffect(()=>{
-    const onKey=(event:KeyboardEvent)=>{
-      const target=event.target as HTMLElement|null;
-      if(target&&(/^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)||target.isContentEditable))return;
-      if(event.metaKey||event.ctrlKey||event.altKey)return;
-      if(event.key==="1"||event.key==="2"||event.key==="3")choose(Number(event.key)-1);
-      if(event.key==="ArrowRight")choose((current+1)%3);
-      if(event.key==="ArrowLeft")choose((current+2)%3);
-    };
-    document.addEventListener("keydown",onKey);
-    return()=>document.removeEventListener("keydown",onKey);
-  },[current]);
-
-  const registered=exposure.filter(row=>Boolean(row.integrationId));
-  const findings=exposure.filter(row=>row.findings.length>0);
   const unresolved=exposure.filter(row=>!row.integrationId);
-  const review=[
-    ...findings,
-    ...unresolved.filter(row=>row.findings.length===0),
-    ...registered.filter(row=>row.findings.length===0),
-  ].slice(0,5);
+  const findings=exposure.filter(row=>row.findings.length>0);
+  const registered=exposure.filter(row=>Boolean(row.integrationId));
 
-  const data:VariantData={exposure,registered,findings,unresolved,review,proof};
+  const rows=useMemo(()=>{
+    if(filter==="unresolved") return unresolved;
+    if(filter==="findings") return findings;
+    return [...findings,...unresolved.filter(row=>row.findings.length===0),...registered.filter(row=>row.findings.length===0)];
+  },[filter,findings,unresolved,registered]);
 
-  return <div className="tier1-lab">
-    <div className="tier1-stage">
-      {current===0?<QuietOps data={data}/>:null}
-      {current===1?<SignalRail data={data}/>:null}
-      {current===2?<EvidenceMap data={data}/>:null}
-    </div>
-
-    <nav className={"proto-picker proto-v"+current} aria-label="Prototype variants" data-position="top" data-ready>
-      <span className="proto-picker-highlight" aria-hidden="true"/>
-      {variantNames.map((name,index)=><button
-        key={name}
-        className="proto-picker-item"
-        data-active={index===current?"":undefined}
-        aria-current={index===current}
-        onClick={()=>choose(index)}
-      >{name}</button>)}
-    </nav>
-  </div>;
-}
-
-function AppFrame({children,mode}:{children:ReactNode;mode:string}){
-  return <div className="tier1-app">
-    <header className="tier1-header">
-      <div className="tier1-brand">
-        <span className="tier1-mark"><ShieldCheck size={17}/></span>
-        <div><strong>ThirdSight</strong><small>{mode}</small></div>
+  return <div className="dossier-app">
+    <header className="dossier-header">
+      <div className="dossier-brand">
+        <span><ShieldCheck size={17}/></span>
+        <div><strong>ThirdSight</strong><small>Third-party evidence</small></div>
       </div>
-      <div className="tier1-head-actions">
+      <div className="dossier-header-actions">
         <button aria-label="Connect platform"><PlugZap size={16}/></button>
         <button aria-label="More"><MoreHorizontal size={18}/></button>
       </div>
     </header>
-    <main>{children}</main>
-    <nav className="tier1-bottom-nav" aria-label="Primary">
-      <button data-active><Layers3 size={19}/><span>Overview</span></button>
+
+    <main className="dossier-main">
+      <section className="dossier-status">
+        <div>
+          <span className="dossier-live"><i/> Discovery active · Commerce Lab</span>
+          <h1>{findings.length>0
+            ? `${findings.length} evidence-backed finding${findings.length===1?"":"s"}`
+            : "No policy violation is proven."}</h1>
+          <p>{exposure.length} third-party destinations observed. {unresolved.length} still need identity or merchant-purpose context.</p>
+        </div>
+        <button className="dossier-connect">Connect purpose source <ArrowUpRight size={14}/></button>
+      </section>
+
+      <section className="dossier-watchlist">
+        <div className="dossier-section-head">
+          <div>
+            <span>WATCHLIST</span>
+            <h2>Every third party, ordered by what needs proof.</h2>
+          </div>
+          <small>{exposure.length} observed</small>
+        </div>
+
+        <div className="dossier-filters" role="tablist" aria-label="Watchlist filters">
+          <button data-active={filter==="all"?"":undefined} onClick={()=>setFilter("all")}>All <b>{exposure.length}</b></button>
+          <button data-active={filter==="unresolved"?"":undefined} onClick={()=>setFilter("unresolved")}>Unresolved <b>{unresolved.length}</b></button>
+          <button data-active={filter==="findings"?"":undefined} onClick={()=>setFilter("findings")}>Findings <b>{findings.length}</b></button>
+        </div>
+
+        <div className="dossier-list">
+          {rows.map(row=><WatchRow key={row.key} row={row} onOpen={()=>setSelected(row)}/>)}
+          {rows.length===0?<div className="dossier-empty"><Check size={16}/><span>No item matches this filter.</span></div>:null}
+        </div>
+      </section>
+
+      <section className="dossier-proof-note">
+        <div><ShieldCheck size={16}/><strong>Proof boundary</strong></div>
+        <p>Unknown is a product state, not a guess. ThirdSight separates approved purpose, technical reach, observed access and business context before it escalates.</p>
+      </section>
+
+      <section className="dossier-lab-proof">
+        <div>
+          <span>10× sale</span>
+          <strong>{proof?.busySale.passed?"Allowed without false alarm":"Awaiting proof"}</strong>
+        </div>
+        <div>
+          <span>Scope control</span>
+          <strong>{proof?.scopePrevention.proven?"Prevented before send":"No persisted proof"}</strong>
+        </div>
+      </section>
+    </main>
+
+    <nav className="dossier-nav" aria-label="Primary">
+      <button data-active><Eye size={19}/><span>Watchlist</span></button>
       <button><PlugZap size={19}/><span>Integrations</span></button>
       <button><Activity size={19}/><span>Activity</span></button>
       <button><AlertTriangle size={19}/><span>Incidents</span></button>
     </nav>
+
+    {selected?<DossierSheet row={selected} onClose={()=>setSelected(null)}/>:null}
   </div>;
 }
 
-function QuietOps({data}:{data:VariantData}){
-  const {exposure,registered,findings,unresolved,review,proof}=data;
-  const clean=findings.length===0;
-  return <AppFrame mode="Quiet Ops">
-    <section className="quiet-shell">
-      <div className="quiet-statusbar">
-        <span><i/> Discovery active</span>
-        <b>Commerce Lab</b>
+function WatchRow({row,onOpen}:{row:ExposureRow;onOpen:()=>void}){
+  const finding=row.findings[0]??null;
+  const unresolved=!row.integrationId;
+  const state=finding?"finding":unresolved?"unresolved":"known";
+
+  return <button className="watch-row" onClick={onOpen}>
+    <div className={"watch-marker "+state}>
+      {finding?<AlertTriangle size={14}/>:unresolved?<CircleHelp size={14}/>:<Check size={14}/>}
+    </div>
+
+    <div className="watch-copy">
+      <div className="watch-title">
+        <strong>{row.label}</strong>
+        <span className={"watch-state "+state}>{finding?humanize(finding):unresolved?"Purpose unresolved":"Purpose-aware"}</span>
       </div>
-
-      <section className="quiet-summary">
-        <div>
-          <span className="tier1-eyebrow">Current posture</span>
-          <h1>{clean?"No policy violation is proven.":`${findings.length} deterministic finding${findings.length===1?"":"s"} need review.`}</h1>
-          <p>{exposure.length} third-party destinations observed. {unresolved.length} still lack a registered merchant purpose.</p>
-        </div>
-        <button className="tier1-primary">Review destinations <ArrowRight size={15}/></button>
-      </section>
-
-      <div className="quiet-metrics" aria-label="Current metrics">
-        <Metric value={String(exposure.length)} label="Observed" note="third-party origins"/>
-        <Metric value={String(registered.length)} label="Purpose-aware" note="merchant context"/>
-        <Metric value={String(findings.length)} label="Findings" note={clean?"none proven":"evidence-backed"}/>
-        <Metric value={proof?.scopePrevention.proven?"Yes":"—"} label="Pre-send proof" note={proof?.scopePrevention.proven?"field prevented":"not in current view"}/>
+      <div className="watch-meta">
+        <span>{row.observations} observation{row.observations===1?"":"s"}</span>
+        <i/>
+        <span>{lastSeen(row.lastSeen)}</span>
       </div>
+    </div>
 
-      <section className="quiet-review">
-        <SectionHead eyebrow="Review next" title="Resolve the unknowns first." accessory="All integrations"/>
-        <ReviewRows rows={review.slice(0,4)}/>
-      </section>
-    </section>
-  </AppFrame>;
+    <EvidenceMini row={row}/>
+    <ChevronRight size={16}/>
+  </button>;
 }
 
-function SignalRail({data}:{data:VariantData}){
-  const {exposure,registered,findings,unresolved,review}=data;
-  const clean=findings.length===0;
-  return <AppFrame mode="Signal Rail">
-    <section className="rail-shell">
-      <div className="rail-hero">
-        <div className="rail-score">
-          <span className="rail-pulse"><Radio size={14}/> live evidence</span>
-          <strong>{exposure.length}</strong>
-          <small>destinations observed</small>
-        </div>
-        <div className="rail-message">
-          <span className="tier1-eyebrow">Attention</span>
-          <h1>{clean?"Discovery is active. Nothing is proven malicious.":"Deterministic evidence needs attention."}</h1>
-          <p>{unresolved.length} destinations remain unresolved. {registered.length} currently carry merchant purpose context.</p>
-        </div>
-      </div>
-
-      <div className="rail-bar" aria-label="Posture distribution">
-        <span><b>{registered.length}</b> purpose-aware</span>
-        <span><b>{unresolved.length}</b> unresolved</span>
-        <span><b>{findings.length}</b> findings</span>
-      </div>
-
-      <section className="rail-queue">
-        <div className="tier1-section-head">
-          <div><span className="tier1-eyebrow">Triage rail</span><h2>Work the highest-uncertainty surfaces.</h2></div>
-          <span className="rail-filter">Unresolved first</span>
-        </div>
-        <ReviewRows rows={review}/>
-      </section>
-    </section>
-  </AppFrame>;
-}
-
-function EvidenceMap({data}:{data:VariantData}){
-  const {exposure,registered,findings,unresolved,review}=data;
-  const nodes=(review.length?review:exposure).slice(0,4);
-  return <AppFrame mode="Evidence Map">
-    <section className="map-shell">
-      <div className="map-heading">
-        <div><span className="tier1-eyebrow">Runtime map</span><h1>See the relationship before reading the evidence.</h1></div>
-        <span className="map-legend"><i/> observed now</span>
-      </div>
-
-      <div className="map-canvas">
-        <div className="map-origin">
-          <span className="map-origin-ring"><ShieldCheck size={22}/></span>
-          <strong>Your platform</strong>
-          <small>Commerce Lab</small>
-        </div>
-        <div className="map-spine" aria-hidden="true"/>
-        <div className="map-nodes">
-          {nodes.map(row=>{
-            const finding=row.findings[0]??null;
-            const state=finding?"finding":row.integrationId?"known":"unknown";
-            return <button className="map-node" key={row.key}>
-              <span className={"map-node-status "+state}/>
-              <div>
-                <strong>{row.label}</strong>
-                <small>{finding?humanize(finding):row.integrationId?"purpose-aware":"purpose unresolved"}</small>
-              </div>
-              <span>{row.observations}</span>
-            </button>;
-          })}
-          {nodes.length===0?<div className="map-empty">Waiting for observed third-party destinations.</div>:null}
-        </div>
-      </div>
-
-      <div className="map-footer">
-        <MapMetric label="Observed" value={exposure.length}/>
-        <MapMetric label="Purpose-aware" value={registered.length}/>
-        <MapMetric label="Unresolved" value={unresolved.length}/>
-        <MapMetric label="Findings" value={findings.length}/>
-      </div>
-    </section>
-  </AppFrame>;
-}
-
-function SectionHead({eyebrow,title,accessory}:{eyebrow:string;title:string;accessory:string}){
-  return <div className="tier1-section-head">
-    <div><span className="tier1-eyebrow">{eyebrow}</span><h2>{title}</h2></div>
-    <button>{accessory}<ChevronRight size={14}/></button>
+function EvidenceMini({row}:{row:ExposureRow}){
+  const should=row.approvedFields.length>0?"known":"unknown";
+  const could=row.canReachFields.length>0||row.reachSource==="OBSERVED_LOWER_BOUND"?"partial":"unknown";
+  const did=row.attemptedFields.length>0||row.receivedFields.length>0||row.boundaries.length>0?"known":"unknown";
+  const why="unknown";
+  return <div className="evidence-mini" aria-label="Evidence completeness">
+    <span data-state={should}>S</span>
+    <span data-state={could}>C</span>
+    <span data-state={did}>D</span>
+    <span data-state={why}>W</span>
   </div>;
 }
 
-function Metric({value,label,note}:{value:string;label:string;note:string}){
-  return <div className="quiet-metric"><strong>{value}</strong><span>{label}</span><small>{note}</small></div>;
-}
+function DossierSheet({row,onClose}:{row:ExposureRow;onClose:()=>void}){
+  const finding=row.findings[0]??null;
+  const shouldText=row.approvedFields.length
+    ? `Approved data: ${row.approvedFields.join(", ")}`
+    : "Merchant-approved purpose was not supplied.";
+  const couldText=row.canReachFields.length
+    ? `Technical reach includes ${row.canReachFields.join(", ")}.`
+    : row.reachSource==="OBSERVED_LOWER_BOUND"
+      ? "Browser evidence proves only a lower bound of technical reach."
+      : "Technical reach is not declared.";
+  const didText=row.attemptedFields.length
+    ? `Observed attempt: ${row.attemptedFields.join(", ")}.`
+    : row.receivedFields.length
+      ? `Receiver observed: ${row.receivedFields.join(", ")}.`
+      : row.boundaries.length
+        ? `Observed at ${row.boundaries.join(", ")} boundary.`
+        : "No field-level access is present in this representative record.";
+  const whyText="Business justification is not attached to this third-party observation.";
 
-function MapMetric({label,value}:{label:string;value:number}){
-  return <div><span>{label}</span><strong>{value}</strong></div>;
-}
-
-function ReviewRows({rows}:{rows:readonly ExposureRow[]}){
-  if(rows.length===0)return <div className="tier1-empty"><Check size={16}/><span>No unresolved or evidence-backed item is queued.</span></div>;
-  return <div className="tier1-review-rows">
-    {rows.map(row=>{
-      const finding=row.findings[0]??null;
-      const state=finding?"finding":row.integrationId?"known":"unknown";
-      return <button key={row.key}>
-        <span className={"tier1-row-icon "+state}>
-          {finding?<AlertTriangle size={15}/>:row.integrationId?<Check size={15}/>:<Eye size={15}/>}
-        </span>
+  return <div className="dossier-layer">
+    <button className="dossier-backdrop" aria-label="Close dossier" onClick={onClose}/>
+    <aside className="dossier-sheet" aria-label={`${row.label} evidence dossier`}>
+      <div className="sheet-handle"/>
+      <div className="sheet-head">
         <div>
-          <strong>{row.label}</strong>
-          <span>{finding?humanize(finding):row.integrationId?"Purpose context registered":"Identity / merchant purpose unresolved"}</span>
+          <span className="sheet-kicker">THIRD-PARTY DOSSIER</span>
+          <h2>{row.label}</h2>
+          <p>{row.integrationId??"Identity unresolved"} · {row.observations} observation{row.observations===1?"":"s"}</p>
         </div>
-        <small>{row.observations} obs</small>
-        <ChevronRight size={15}/>
-      </button>;
-    })}
+        <button onClick={onClose} aria-label="Close"><X size={18}/></button>
+      </div>
+
+      <div className="sheet-verdict">
+        <span>{finding?"Needs deterministic review":row.integrationId?"Purpose-aware integration":"Purpose not yet established"}</span>
+        <strong>{row.latestResponse||"OBSERVE"}</strong>
+      </div>
+
+      <div className="evidence-spine">
+        <EvidenceStep code="SHOULD" label="Approved purpose" state={row.approvedFields.length?"known":"unknown"} text={shouldText}/>
+        <EvidenceStep code="COULD" label="Technical reach" state={row.canReachFields.length?"known":row.reachSource==="OBSERVED_LOWER_BOUND"?"partial":"unknown"} text={couldText}/>
+        <EvidenceStep code="DID" label="Observed access" state={row.attemptedFields.length||row.receivedFields.length||row.boundaries.length?"known":"unknown"} text={didText}/>
+        <EvidenceStep code="WHY" label="Business context" state="unknown" text={whyText}/>
+      </div>
+
+      <div className="sheet-gap">
+        <span>Evidence gap</span>
+        <p>{finding
+          ? `ThirdSight found ${humanize(finding)} from deterministic evidence.`
+          : !row.integrationId
+            ? "Runtime activity exists, but identity and merchant-approved purpose are missing. ThirdSight keeps this unresolved instead of inventing intent."
+            : "The integration is recognized, but business context remains separate from runtime evidence."}</p>
+      </div>
+
+      <button className="sheet-action">Open full evidence <ArrowUpRight size={14}/></button>
+    </aside>
+  </div>;
+}
+
+function EvidenceStep({code,label,state,text}:{code:string;label:string;state:"known"|"partial"|"unknown";text:string}){
+  return <div className="evidence-step">
+    <div className="evidence-step-rail">
+      <span data-state={state}/>
+      <i/>
+    </div>
+    <div className="evidence-step-copy">
+      <div><b>{code}</b><span>{label}</span><em data-state={state}>{state}</em></div>
+      <p>{text}</p>
+    </div>
   </div>;
 }
 
 function humanize(value:string){
   return value.split(/[-_]/g).filter(Boolean).map(part=>part.charAt(0).toUpperCase()+part.slice(1).toLowerCase()).join(" ");
+}
+
+function lastSeen(value:string){
+  if(!value)return "no timestamp";
+  const date=new Date(value);
+  if(Number.isNaN(date.getTime()))return "recently";
+  return date.toLocaleString(undefined,{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
 }
