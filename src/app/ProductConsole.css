@@ -216,3 +216,85 @@
   .ts-integration-name small{font-size:9px}
   .ts-tag-list span,.ts-tag-fallback{font-size:9px}
 }
+
+
+/* Signal-first mobile overview */
+@media(max-width:650px){
+  .ts-hero{
+    padding:16px;
+    gap:0;
+    background:#fff;
+    border-color:#dfe5e0;
+    box-shadow:none
+  }
+  .ts-hero h1{
+    max-width:520px;
+    margin:7px 0 8px;
+    font-size:28px;
+    line-height:1.02;
+    letter-spacing:-.045em
+  }
+  .ts-hero p{
+    font-size:11px;
+    line-height:1.52
+  }
+  .ts-hero-actions{
+    margin-top:14px
+  }
+  .ts-hero-actions .ts-primary{
+    width:100%;
+    min-height:44px;
+    font-size:11px
+  }
+  .ts-hero-actions .ts-secondary{
+    display:none
+  }
+  .ts-hero-model{
+    display:none
+  }
+  .ts-stat-grid{
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin-top:8px
+  }
+  .ts-stat-card{
+    min-height:104px;
+    padding:12px;
+    border-radius:12px
+  }
+  .ts-stat-card>div{
+    gap:6px;
+    align-items:center
+  }
+  .ts-stat-card>div>span{
+    width:26px;
+    height:26px;
+    border-radius:7px
+  }
+  .ts-stat-card small{
+    font-size:8px;
+    line-height:1.25
+  }
+  .ts-stat-card>strong{
+    margin-top:10px;
+    font-size:19px;
+    line-height:1
+  }
+  .ts-stat-card p{
+    margin-top:4px;
+    font-size:8px;
+    line-height:1.32
+  }
+  .ts-overview-grid{
+    margin-top:8px
+  }
+  .ts-panel-head{
+    padding:13px 14px
+  }
+  .ts-panel-head strong{
+    font-size:11px
+  }
+  .ts-panel-head span{
+    font-size:8px
+  }
+}
