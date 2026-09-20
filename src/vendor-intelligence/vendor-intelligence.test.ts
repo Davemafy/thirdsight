@@ -20,6 +20,10 @@ describe("vendor intelligence registry",()=>{
     expect(resolveVendorOrigin("https://cdn.cookielaw.org").profiles[0]?.vendor).toBe("OneTrust");
     expect(resolveVendorOrigin("https://www.clarity.ms").profiles[0]?.vendor).toBe("Microsoft");
     expect(resolveVendorOrigin("https://securepubads.g.doubleclick.net").profiles[0]?.family).toBe("Google Publisher Tag / Ad Manager");
+    expect(resolveVendorOrigin("https://static.ads-twitter.com").profiles[0]?.family).toBe("X Pixel");
+    expect(resolveVendorOrigin("https://tags.tiqcdn.com").profiles[0]?.family).toBe("Tealium iQ Tag Management");
+    expect(resolveVendorOrigin("https://js-agent.newrelic.com").profiles[0]?.family).toBe("New Relic Browser Monitoring");
+    expect(resolveVendorOrigin("https://dpm.demdex.net").profiles[0]?.vendor).toBe("Adobe");
   });
 
   it("keeps unknown domains unresolved",()=>{
