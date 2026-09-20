@@ -1,0 +1,2714 @@
+{
+  "schemaVersion": "thirdsight-global1000-summary.v1",
+  "workflowRunId": "35516116239",
+  "runId": "global1000-1789914020306",
+  "generatedAt": "2026-09-20T14:27:18.396Z",
+  "mode": "public logged-out passive homepage discovery",
+  "source": {
+    "name": "Tranco Top 1M snapshot mirror",
+    "url": "https://raw.githubusercontent.com/wangmm001/tranco-top1m-cache/main/data/current.csv.gz",
+    "version": "PY96J",
+    "selectedRange": "ranks 1-1000",
+    "selectedSha256": "2524c9601b6f9b959dd1e521cf9e8d253b312ac02978e848a2de20260e2e8820"
+  },
+  "thesis": "This run measures browser-visible integration landscape breadth across a reproducible high-traffic public-web sample. It does not measure ten percent of the global or Nigerian B2C market because no defensible denominator is asserted.",
+  "summary": {
+    "sitesAttempted": 1000,
+    "sitesLoadedNormally": 522,
+    "blockedOrFailed": 478,
+    "sitesWithCrossOriginEvidence": 610,
+    "sitesWithPersistedRepresentativeEvidence": 502,
+    "totalCrossOriginRequestsObserved": 32083,
+    "representativeObservationsPersisted": 980,
+    "uniqueObservedCrossOriginOrigins": 3354,
+    "requestCaptureCappedSites": 0
+  },
+  "evidenceSemantics": {
+    "should": "No merchant-authoritative Purpose Contract supplied by this passive sensor; persisted schema status remains UNKNOWN.",
+    "could": "Partial / browser-visible lower bound.",
+    "did": "Observed browser request metadata.",
+    "why": "No authoritative first-party business event supplied by this passive sensor; persisted schema status remains UNKNOWN.",
+    "coverage": "Browser only.",
+    "enforcementClaim": "None. Public discovery does not claim PREVENTED or DETECTED."
+  },
+  "safety": {
+    "publicPagesOnly": true,
+    "loggedOutOnly": true,
+    "homepageNavigationOnly": true,
+    "onePagePerDomain": true,
+    "concurrency": 8,
+    "navigationTimeoutMs": 12000,
+    "dwellMs": 2000,
+    "formsSubmitted": false,
+    "authenticationUsed": false,
+    "clicksUsed": false,
+    "fuzzingUsed": false,
+    "requestMutationUsed": false,
+    "controlsBypassed": false,
+    "retriesToDefeatBlocks": false,
+    "requestBodiesInspected": false,
+    "responseBodiesInspectedForTelemetry": false,
+    "cookiesPersisted": false,
+    "queryStringsPersisted": false,
+    "rawCustomerPayloadsPersisted": false,
+    "piiPersisted": false,
+    "botChallengesBypassed": false,
+    "note": "A non-2xx/3xx response, timeout, CAPTCHA, or bot challenge is retained as unavailable. The harness does not try a second technique to defeat it."
+  },
+  "topDestinations": [
+    {
+      "origin": "https://www.googletagmanager.com",
+      "siteCount": 228,
+      "exampleDomains": [
+        "cloudflare.com",
+        "microsoft.com",
+        "mail.ru",
+        "fastly.net",
+        "doubleclick.net",
+        "wordpress.org",
+        "spotify.com",
+        "ntp.org"
+      ]
+    },
+    {
+      "origin": "https://www.google.com",
+      "siteCount": 123,
+      "exampleDomains": [
+        "microsoft.com",
+        "youtube.com",
+        "googleusercontent.com",
+        "fastly.net",
+        "doubleclick.net",
+        "netflix.com",
+        "youtu.be",
+        "spotify.com"
+      ]
+    },
+    {
+      "origin": "https://www.google-analytics.com",
+      "siteCount": 81,
+      "exampleDomains": [
+        "mail.ru",
+        "doubleclick.net",
+        "ntp.org",
+        "mozilla.org",
+        "achmea.nl",
+        "actify.nl",
+        "ui.com",
+        "google-analytics.com"
+      ]
+    },
+    {
+      "origin": "https://ad.doubleclick.net",
+      "siteCount": 76,
+      "exampleDomains": [
+        "cloudflare.com",
+        "fastly.net",
+        "doubleclick.net",
+        "zoom.us",
+        "opera.com",
+        "wordpress.com",
+        "google-analytics.com",
+        "bit.ly"
+      ]
+    },
+    {
+      "origin": "https://cdn.cookielaw.org",
+      "siteCount": 76,
+      "exampleDomains": [
+        "fastly.net",
+        "spotify.com",
+        "zoom.us",
+        "ui.com",
+        "bit.ly",
+        "soundcloud.com",
+        "rubiconproject.com",
+        "meraki.com"
+      ]
+    },
+    {
+      "origin": "https://geolocation.onetrust.com",
+      "siteCount": 74,
+      "exampleDomains": [
+        "fastly.net",
+        "netflix.com",
+        "zoom.us",
+        "ui.com",
+        "bit.ly",
+        "intuit.com",
+        "discord.gg",
+        "discord.com"
+      ]
+    },
+    {
+      "origin": "https://fonts.gstatic.com",
+      "siteCount": 71,
+      "exampleDomains": [
+        "youtube.com",
+        "doubleclick.net",
+        "youtu.be",
+        "googledomains.com",
+        "spotify.com",
+        "ntp.org",
+        "cloudflare-dns.com",
+        "blogspot.com"
+      ]
+    },
+    {
+      "origin": "https://fonts.googleapis.com",
+      "siteCount": 65,
+      "exampleDomains": [
+        "youtube.com",
+        "doubleclick.net",
+        "youtu.be",
+        "googledomains.com",
+        "ntp.org",
+        "cloudflare-dns.com",
+        "vimeo.com",
+        "blogspot.com"
+      ]
+    },
+    {
+      "origin": "https://analytics.google.com",
+      "siteCount": 62,
+      "exampleDomains": [
+        "fastly.net",
+        "wordpress.org",
+        "opera.com",
+        "wordpress.com",
+        "bit.ly",
+        "snapchat.com",
+        "gravatar.com",
+        "hosting24.com"
+      ]
+    },
+    {
+      "origin": "https://stats.g.doubleclick.net",
+      "siteCount": 62,
+      "exampleDomains": [
+        "fastly.net",
+        "wordpress.org",
+        "opera.com",
+        "wordpress.com",
+        "snapchat.com",
+        "gravatar.com",
+        "hosting24.com",
+        "rubiconproject.com"
+      ]
+    },
+    {
+      "origin": "https://connect.facebook.net",
+      "siteCount": 58,
+      "exampleDomains": [
+        "fastly.net",
+        "zoom.us",
+        "wordpress.com",
+        "hosting24.com",
+        "vungle.com",
+        "cpanel.net",
+        "linktr.ee",
+        "appsflyer.com"
+      ]
+    },
+    {
+      "origin": "https://www.gstatic.com",
+      "siteCount": 52,
+      "exampleDomains": [
+        "google.com",
+        "doubleclick.net",
+        "netflix.com",
+        "googlesyndication.com",
+        "spotify.com",
+        "google-analytics.com",
+        "adtrafficquality.google",
+        "paypal.com"
+      ]
+    },
+    {
+      "origin": "https://googleads.g.doubleclick.net",
+      "siteCount": 48,
+      "exampleDomains": [
+        "microsoft.com",
+        "youtube.com",
+        "fastly.net",
+        "doubleclick.net",
+        "opera.com",
+        "wordpress.com",
+        "google-analytics.com",
+        "bit.ly"
+      ]
+    },
+    {
+      "origin": "https://bat.bing.com",
+      "siteCount": 45,
+      "exampleDomains": [
+        "microsoft.com",
+        "fastly.net",
+        "zoom.us",
+        "opera.com",
+        "wordpress.com",
+        "bit.ly",
+        "hosting24.com",
+        "cpanel.net"
+      ]
+    },
+    {
+      "origin": "https://snap.licdn.com",
+      "siteCount": 43,
+      "exampleDomains": [
+        "fastly.net",
+        "zoom.us",
+        "rubiconproject.com",
+        "pubmatic.com",
+        "cpanel.net",
+        "appsflyer.com",
+        "inmobi.com",
+        "amplitude.com"
+      ]
+    },
+    {
+      "origin": "https://assets.adobedtm.com",
+      "siteCount": 40,
+      "exampleDomains": [
+        "azure.com",
+        "sharepoint.com",
+        "windows.com",
+        "samsung.com",
+        "office365.com",
+        "telekom.net",
+        "ibm.com",
+        "dnsmadeeasy.com"
+      ]
+    },
+    {
+      "origin": "https://securepubads.g.doubleclick.net",
+      "siteCount": 36,
+      "exampleDomains": [
+        "yahoo.com",
+        "soundcloud.com",
+        "theguardian.com",
+        "forbes.com",
+        "weather.com",
+        "globo.com",
+        "yahoo.co.jp",
+        "businessinsider.com"
+      ]
+    },
+    {
+      "origin": "https://www.clarity.ms",
+      "siteCount": 35,
+      "exampleDomains": [
+        "microsoft.com",
+        "office.com",
+        "azure.com",
+        "cloud.microsoft",
+        "sharepoint.com",
+        "skype.com",
+        "ntp.org",
+        "opera.com"
+      ]
+    },
+    {
+      "origin": "https://cdn.jsdelivr.net",
+      "siteCount": 34,
+      "exampleDomains": [
+        "zoom.us",
+        "bit.ly",
+        "criteo.com",
+        "adobe.io",
+        "doi.org",
+        "appsflyer.com",
+        "springer.com",
+        "smartadserver.com"
+      ]
+    },
+    {
+      "origin": "https://accounts.google.com",
+      "siteCount": 33,
+      "exampleDomains": [
+        "youtube.com",
+        "linkedin.com",
+        "youtu.be",
+        "pinterest.com",
+        "wordpress.com",
+        "blogspot.com",
+        "bit.ly",
+        "snapchat.com"
+      ]
+    },
+    {
+      "origin": "https://dpm.demdex.net",
+      "siteCount": 32,
+      "exampleDomains": [
+        "microsoft.com",
+        "amazonaws.com",
+        "linkedin.com",
+        "nginx.com",
+        "intuit.com",
+        "meraki.com",
+        "cisco.com",
+        "dnsmadeeasy.com"
+      ]
+    },
+    {
+      "origin": "https://px.ads.linkedin.com",
+      "siteCount": 32,
+      "exampleDomains": [
+        "microsoft.com",
+        "azure.com",
+        "msn.com",
+        "intuit.com",
+        "rubiconproject.com",
+        "pubmatic.com",
+        "cpanel.net",
+        "appsflyer.com"
+      ]
+    },
+    {
+      "origin": "https://scripts.clarity.ms",
+      "siteCount": 30,
+      "exampleDomains": [
+        "microsoft.com",
+        "office.com",
+        "azure.com",
+        "cloud.microsoft",
+        "sharepoint.com",
+        "ntp.org",
+        "opera.com",
+        "office365.com"
+      ]
+    },
+    {
+      "origin": "https://static.cloudflareinsights.com",
+      "siteCount": 30,
+      "exampleDomains": [
+        "cloudflare.com",
+        "zoom.us",
+        "workers.dev",
+        "nih.gov",
+        "hosting24.com",
+        "medium.com",
+        "pages.dev",
+        "nist.gov"
+      ]
+    },
+    {
+      "origin": "https://www.redditstatic.com",
+      "siteCount": 29,
+      "exampleDomains": [
+        "zoom.us",
+        "ui.com",
+        "hosting24.com",
+        "cpanel.net",
+        "linktr.ee",
+        "ibm.com",
+        "appsflyer.com",
+        "hostinger.com"
+      ]
+    },
+    {
+      "origin": "https://pagead2.googlesyndication.com",
+      "siteCount": 27,
+      "exampleDomains": [
+        "ntp.org",
+        "bit.ly",
+        "one.one",
+        "theguardian.com",
+        "taboola.com",
+        "springer.com",
+        "nature.com",
+        "inmobi.com"
+      ]
+    },
+    {
+      "origin": "https://cm.g.doubleclick.net",
+      "siteCount": 26,
+      "exampleDomains": [
+        "samsung.com",
+        "soundcloud.com",
+        "theguardian.com",
+        "pages.dev",
+        "meraki.com",
+        "weather.com",
+        "globo.com",
+        "intel.com"
+      ]
+    },
+    {
+      "origin": "https://munchkin.marketo.net",
+      "siteCount": 25,
+      "exampleDomains": [
+        "cloudflare.com",
+        "fastly.net",
+        "rubiconproject.com",
+        "pages.dev",
+        "ibm.com",
+        "appsflyer.com",
+        "datadoghq.com",
+        "gitlab.com"
+      ]
+    },
+    {
+      "origin": "https://www.linkedin.com",
+      "siteCount": 25,
+      "exampleDomains": [
+        "microsoft.com",
+        "azure.com",
+        "intuit.com",
+        "rubiconproject.com",
+        "cpanel.net",
+        "appsflyer.com",
+        "inmobi.com",
+        "datadoghq.com"
+      ]
+    },
+    {
+      "origin": "https://alb.reddit.com",
+      "siteCount": 24,
+      "exampleDomains": [
+        "cloudflare.com",
+        "azure.com",
+        "ui.com",
+        "hosting24.com",
+        "pages.dev",
+        "cpanel.net",
+        "linktr.ee",
+        "ibm.com"
+      ]
+    },
+    {
+      "origin": "https://sb.scorecardresearch.com",
+      "siteCount": 24,
+      "exampleDomains": [
+        "msn.com",
+        "tumblr.com",
+        "soundcloud.com",
+        "theguardian.com",
+        "bbc.co.uk",
+        "globo.com",
+        "go.com",
+        "businessinsider.com"
+      ]
+    },
+    {
+      "origin": "https://c.amazon-adsystem.com",
+      "siteCount": 22,
+      "exampleDomains": [
+        "zoom.us",
+        "theguardian.com",
+        "weather.com",
+        "businessinsider.com",
+        "speedtest.net",
+        "cnbc.com",
+        "foxnews.com",
+        "indiatimes.com"
+      ]
+    },
+    {
+      "origin": "https://c.go-mpulse.net",
+      "siteCount": 22,
+      "exampleDomains": [
+        "azure.com",
+        "samsung.com",
+        "intuit.com",
+        "meraki.com",
+        "cisco.com",
+        "avast.com",
+        "paloaltonetworks.com",
+        "npr.org"
+      ]
+    },
+    {
+      "origin": "https://ajax.googleapis.com",
+      "siteCount": 21,
+      "exampleDomains": [
+        "doubleclick.net",
+        "blogspot.com",
+        "google-analytics.com",
+        "discord.gg",
+        "adtrafficquality.google",
+        "discord.com",
+        "flickr.com",
+        "duckdns.org"
+      ]
+    },
+    {
+      "origin": "https://cdnjs.cloudflare.com",
+      "siteCount": 20,
+      "exampleDomains": [
+        "criteo.com",
+        "hosting24.com",
+        "pubmatic.com",
+        "who.int",
+        "hostinger.com",
+        "datadoghq.com",
+        "ipify.org",
+        "skyhigh.cloud"
+      ]
+    },
+    {
+      "origin": "https://s.go-mpulse.net",
+      "siteCount": 20,
+      "exampleDomains": [
+        "azure.com",
+        "samsung.com",
+        "intuit.com",
+        "meraki.com",
+        "cisco.com",
+        "avast.com",
+        "paloaltonetworks.com",
+        "npr.org"
+      ]
+    },
+    {
+      "origin": "https://mc.yandex.ru",
+      "siteCount": 17,
+      "exampleDomains": [
+        "mail.ru",
+        "dzen.ru",
+        "yandex.net",
+        "yandex.ru",
+        "mts.ru",
+        "ok.ru",
+        "selectel.ru",
+        "yandex.com"
+      ]
+    },
+    {
+      "origin": "https://static.ads-twitter.com",
+      "siteCount": 17,
+      "exampleDomains": [
+        "cloudflare.com",
+        "zoom.us",
+        "pages.dev",
+        "pubmatic.com",
+        "datadoghq.com",
+        "media.net",
+        "opendns.com",
+        "launchdarkly.com"
+      ]
+    },
+    {
+      "origin": "https://unpkg.com",
+      "siteCount": 17,
+      "exampleDomains": [
+        "sentry.io",
+        "adobe.io",
+        "appsflyer.com",
+        "zendesk.com",
+        "calendly.com",
+        "onelink.me",
+        "skyhigh.cloud",
+        "mediatek.com"
+      ]
+    },
+    {
+      "origin": "https://match.adsrvr.org",
+      "siteCount": 16,
+      "exampleDomains": [
+        "samsung.com",
+        "intuit.com",
+        "theguardian.com",
+        "pages.dev",
+        "businessinsider.com",
+        "aol.com",
+        "speedtest.net",
+        "squarespace.com"
+      ]
+    },
+    {
+      "origin": "https://www.youtube.com",
+      "siteCount": 16,
+      "exampleDomains": [
+        "discord.gg",
+        "discord.com",
+        "appsflyer.com",
+        "harvard.edu",
+        "slack.com",
+        "stanford.edu",
+        "onelink.me",
+        "trendmicro.com"
+      ]
+    },
+    {
+      "origin": "https://c.bing.com",
+      "siteCount": 15,
+      "exampleDomains": [
+        "msn.com",
+        "ntp.org",
+        "opera.com",
+        "bit.ly",
+        "cpanel.net",
+        "who.int",
+        "wpguardian.io",
+        "wps.com"
+      ]
+    },
+    {
+      "origin": "https://pixel-config.reddit.com",
+      "siteCount": 15,
+      "exampleDomains": [
+        "ui.com",
+        "hosting24.com",
+        "linktr.ee",
+        "ibm.com",
+        "appsflyer.com",
+        "hostinger.com",
+        "datadoghq.com",
+        "onelink.me"
+      ]
+    },
+    {
+      "origin": "https://pixel.rubiconproject.com",
+      "siteCount": 15,
+      "exampleDomains": [
+        "microsoft.com",
+        "theguardian.com",
+        "pages.dev",
+        "ibm.com",
+        "appsflyer.com",
+        "inmobi.com",
+        "datadoghq.com",
+        "paloaltonetworks.com"
+      ]
+    },
+    {
+      "origin": "https://cdn.prod.website-files.com",
+      "siteCount": 14,
+      "exampleDomains": [
+        "discord.gg",
+        "discord.com",
+        "flickr.com",
+        "smartadserver.com",
+        "media.net",
+        "anthropic.com",
+        "sharethrough.com",
+        "gumgum.com"
+      ]
+    },
+    {
+      "origin": "https://consent.trustarc.com",
+      "siteCount": 14,
+      "exampleDomains": [
+        "f5.com",
+        "samsung.com",
+        "nginx.com",
+        "flickr.com",
+        "ibm.com",
+        "aliyun.com",
+        "doubleverify.com",
+        "squarespace.com"
+      ]
+    },
+    {
+      "origin": "https://d3e54v103j8qbb.cloudfront.net",
+      "siteCount": 14,
+      "exampleDomains": [
+        "discord.gg",
+        "discord.com",
+        "flickr.com",
+        "smartadserver.com",
+        "media.net",
+        "anthropic.com",
+        "sharethrough.com",
+        "gumgum.com"
+      ]
+    },
+    {
+      "origin": "https://google.com",
+      "siteCount": 14,
+      "exampleDomains": [
+        "google.com",
+        "pinterest.com",
+        "bit.ly",
+        "tradingview.com",
+        "issuu.com",
+        "wp.com",
+        "grammarly.com",
+        "wix.com"
+      ]
+    },
+    {
+      "origin": "https://mc.yandex.com",
+      "siteCount": 14,
+      "exampleDomains": [
+        "mail.ru",
+        "dzen.ru",
+        "yandex.ru",
+        "mts.ru",
+        "ok.ru",
+        "yandex.com",
+        "netangels.ru",
+        "timeweb.ru"
+      ]
+    },
+    {
+      "origin": "https://analytics.tiktok.com",
+      "siteCount": 13,
+      "exampleDomains": [
+        "azure.com",
+        "hosting24.com",
+        "linktr.ee",
+        "aliyun.com",
+        "hostinger.com",
+        "eventbrite.com",
+        "netflix.net",
+        "grammarly.com"
+      ]
+    },
+    {
+      "origin": "https://api.company-target.com",
+      "siteCount": 13,
+      "exampleDomains": [
+        "microsoft.com",
+        "azure.com",
+        "windows.com",
+        "pages.dev",
+        "ibm.com",
+        "appsflyer.com",
+        "inmobi.com",
+        "datadoghq.com"
+      ]
+    },
+    {
+      "origin": "https://bzrcdn.openai.com",
+      "siteCount": 13,
+      "exampleDomains": [
+        "zoom.us",
+        "bit.ly",
+        "avast.com",
+        "dynatrace.com",
+        "scribd.com",
+        "eventbrite.com",
+        "3lift.com",
+        "wix.com"
+      ]
+    },
+    {
+      "origin": "https://c.clarity.ms",
+      "siteCount": 13,
+      "exampleDomains": [
+        "ntp.org",
+        "opera.com",
+        "bit.ly",
+        "cpanel.net",
+        "who.int",
+        "wpguardian.io",
+        "wps.com",
+        "wpguardian.com"
+      ]
+    },
+    {
+      "origin": "https://cm.everesttech.net",
+      "siteCount": 13,
+      "exampleDomains": [
+        "amazonaws.com",
+        "dnsmadeeasy.com",
+        "avast.com",
+        "docker.com",
+        "trendmicro.com",
+        "eset.com",
+        "loc.gov",
+        "mlb.com"
+      ]
+    },
+    {
+      "origin": "https://j.6sc.co",
+      "siteCount": 13,
+      "exampleDomains": [
+        "fastly.net",
+        "launchdarkly.com",
+        "okta.com",
+        "dynatrace.com",
+        "docker.com",
+        "trendmicro.com",
+        "grammarly.com",
+        "optimizely.com"
+      ]
+    },
+    {
+      "origin": "https://rum.hlx.page",
+      "siteCount": 13,
+      "exampleDomains": [
+        "microsoft.com",
+        "live.com",
+        "azure.com",
+        "sharepoint.com",
+        "office365.com",
+        "outlook.com",
+        "meraki.com",
+        "cisco.com"
+      ]
+    },
+    {
+      "origin": "https://tags.tiqcdn.com",
+      "siteCount": 13,
+      "exampleDomains": [
+        "f5.com",
+        "nginx.com",
+        "intuit.com",
+        "meraki.com",
+        "cisco.com",
+        "ibm.com",
+        "avast.com",
+        "opendns.com"
+      ]
+    },
+    {
+      "origin": "https://analytics.twitter.com",
+      "siteCount": 12,
+      "exampleDomains": [
+        "samsung.com",
+        "pages.dev",
+        "meraki.com",
+        "datadoghq.com",
+        "media.net",
+        "opendns.com",
+        "launchdarkly.com",
+        "okta.com"
+      ]
+    },
+    {
+      "origin": "https://cdn.optimizely.com",
+      "siteCount": 12,
+      "exampleDomains": [
+        "zoom.us",
+        "bit.ly",
+        "bbc.com",
+        "bbc.co.uk",
+        "gitlab.com",
+        "npr.org",
+        "foxnews.com",
+        "klaviyo.com"
+      ]
+    },
+    {
+      "origin": "https://challenges.cloudflare.com",
+      "siteCount": 12,
+      "exampleDomains": [
+        "hosting24.com",
+        "flickr.com",
+        "tinyurl.com",
+        "hostinger.com",
+        "name.com",
+        "noaa.gov",
+        "cookielaw.org",
+        "onetrust.com"
+      ]
+    },
+    {
+      "origin": "https://config.aps.amazon-adsystem.com",
+      "siteCount": 12,
+      "exampleDomains": [
+        "theguardian.com",
+        "forbes.com",
+        "weather.com",
+        "businessinsider.com",
+        "speedtest.net",
+        "foxnews.com",
+        "indiatimes.com",
+        "wired.com"
+      ]
+    },
+    {
+      "origin": "https://dsum-sec.casalemedia.com",
+      "siteCount": 12,
+      "exampleDomains": [
+        "microsoft.com",
+        "theguardian.com",
+        "pages.dev",
+        "ibm.com",
+        "appsflyer.com",
+        "inmobi.com",
+        "datadoghq.com",
+        "paloaltonetworks.com"
+      ]
+    },
+    {
+      "origin": "https://gum.criteo.com",
+      "siteCount": 12,
+      "exampleDomains": [
+        "cpanel.net",
+        "weather.com",
+        "globo.com",
+        "walmart.com",
+        "speedtest.net",
+        "foxnews.com",
+        "indiatimes.com",
+        "uol.com.br"
+      ]
+    },
+    {
+      "origin": "https://ib.adnxs.com",
+      "siteCount": 12,
+      "exampleDomains": [
+        "intuit.com",
+        "theguardian.com",
+        "pages.dev",
+        "yahoo.co.jp",
+        "businessinsider.com",
+        "indiatimes.com",
+        "squarespace.com",
+        "uol.com.br"
+      ]
+    },
+    {
+      "origin": "https://m.media-amazon.com",
+      "siteCount": 12,
+      "exampleDomains": [
+        "amazon.com",
+        "amazonvideo.com",
+        "amazonalexa.com",
+        "amazon.co.jp",
+        "amazon.co.za",
+        "amzn.to",
+        "amazon.fr",
+        "amazon.ca"
+      ]
+    },
+    {
+      "origin": "https://privacy-cs.mail.ru",
+      "siteCount": 12,
+      "exampleDomains": [
+        "mail.ru",
+        "dzen.ru",
+        "yandex.ru",
+        "vk.com",
+        "ok.ru",
+        "selectel.ru",
+        "ivi.ru",
+        "bitrix24.ru"
+      ]
+    },
+    {
+      "origin": "https://pub.doubleverify.com",
+      "siteCount": 12,
+      "exampleDomains": [
+        "forbes.com",
+        "weather.com",
+        "globo.com",
+        "businessinsider.com",
+        "cnbc.com",
+        "target.com",
+        "telegraph.co.uk",
+        "independent.co.uk"
+      ]
+    },
+    {
+      "origin": "https://tag.demandbase.com",
+      "siteCount": 12,
+      "exampleDomains": [
+        "cloudflare.com",
+        "microsoft.com",
+        "azure.com",
+        "zoom.us",
+        "pages.dev",
+        "appsflyer.com",
+        "inmobi.com",
+        "datadoghq.com"
+      ]
+    },
+    {
+      "origin": "https://top-fwz1.mail.ru",
+      "siteCount": 12,
+      "exampleDomains": [
+        "mail.ru",
+        "dzen.ru",
+        "yandex.ru",
+        "vk.com",
+        "ok.ru",
+        "selectel.ru",
+        "ivi.ru",
+        "bitrix24.ru"
+      ]
+    },
+    {
+      "origin": "https://adobedc.demdex.net",
+      "siteCount": 11,
+      "exampleDomains": [
+        "ibm.com",
+        "docker.com",
+        "bitdefender.net",
+        "redhat.com",
+        "elpais.com",
+        "att.com",
+        "homedepot.com",
+        "lenovo.com"
+      ]
+    },
+    {
+      "origin": "https://cdn.amplitude.com",
+      "siteCount": 11,
+      "exampleDomains": [
+        "zoom.us",
+        "hosting24.com",
+        "linktr.ee",
+        "amplitude.com",
+        "hostinger.com",
+        "cnbc.com",
+        "digitalocean.com",
+        "wpguardian.io"
+      ]
+    },
+    {
+      "origin": "https://js.adsrvr.org",
+      "siteCount": 11,
+      "exampleDomains": [
+        "cloudflare.com",
+        "pages.dev",
+        "cnbc.com",
+        "dynatrace.com",
+        "mediatek.com",
+        "trendmicro.com",
+        "netflix.net",
+        "grammarly.com"
+      ]
+    },
+    {
+      "origin": "https://js.hs-banner.com",
+      "siteCount": 11,
+      "exampleDomains": [
+        "cpanel.net",
+        "hubspot.com",
+        "inmobi.com",
+        "doubleverify.com",
+        "ipify.org",
+        "mediatek.com",
+        "3lift.com",
+        "klaviyo.com"
+      ]
+    },
+    {
+      "origin": "https://p.typekit.net",
+      "siteCount": 11,
+      "exampleDomains": [
+        "adobe.io",
+        "doi.org",
+        "mit.edu",
+        "smartadserver.com",
+        "ipinfo.io",
+        "cornell.edu",
+        "networkadvertising.org",
+        "prnewswire.com"
+      ]
+    },
+    {
+      "origin": "https://uhf.microsoft.com",
+      "siteCount": 11,
+      "exampleDomains": [
+        "microsoft.com",
+        "office.com",
+        "live.com",
+        "azure.com",
+        "cloud.microsoft",
+        "sharepoint.com",
+        "windows.com",
+        "office365.com"
+      ]
+    },
+    {
+      "origin": "https://use.typekit.net",
+      "siteCount": 11,
+      "exampleDomains": [
+        "doi.org",
+        "mit.edu",
+        "smartadserver.com",
+        "ipinfo.io",
+        "cornell.edu",
+        "networkadvertising.org",
+        "prnewswire.com",
+        "princeton.edu"
+      ]
+    },
+    {
+      "origin": "https://wcpstatic.microsoft.com",
+      "siteCount": 11,
+      "exampleDomains": [
+        "microsoft.com",
+        "live.com",
+        "azure.com",
+        "cloud.microsoft",
+        "sharepoint.com",
+        "skype.com",
+        "windows.com",
+        "office365.com"
+      ]
+    },
+    {
+      "origin": "https://app.qualified.com",
+      "siteCount": 10,
+      "exampleDomains": [
+        "opendns.com",
+        "launchdarkly.com",
+        "okta.com",
+        "dynatrace.com",
+        "braze.com",
+        "optimizely.com",
+        "box.com",
+        "mixpanel.com"
+      ]
+    },
+    {
+      "origin": "https://id.rlcdn.com",
+      "siteCount": 10,
+      "exampleDomains": [
+        "microsoft.com",
+        "azure.com",
+        "pages.dev",
+        "ibm.com",
+        "appsflyer.com",
+        "inmobi.com",
+        "datadoghq.com",
+        "onelink.me"
+      ]
+    },
+    {
+      "origin": "https://js-agent.newrelic.com",
+      "siteCount": 10,
+      "exampleDomains": [
+        "nist.gov",
+        "adsrvr.org",
+        "roku.com",
+        "newrelic.com",
+        "aol.com",
+        "visualstudio.com",
+        "box.com",
+        "frontiersin.org"
+      ]
+    },
+    {
+      "origin": "https://js.hs-analytics.net",
+      "siteCount": 10,
+      "exampleDomains": [
+        "cpanel.net",
+        "hubspot.com",
+        "inmobi.com",
+        "doubleverify.com",
+        "ipify.org",
+        "mediatek.com",
+        "3lift.com",
+        "klaviyo.com"
+      ]
+    },
+    {
+      "origin": "https://js.hs-scripts.com",
+      "siteCount": 10,
+      "exampleDomains": [
+        "cpanel.net",
+        "inmobi.com",
+        "ipify.org",
+        "eventbrite.com",
+        "3lift.com",
+        "klaviyo.com",
+        "disqus.com",
+        "fwmrm.net"
+      ]
+    },
+    {
+      "origin": "https://s.amazon-adsystem.com",
+      "siteCount": 10,
+      "exampleDomains": [
+        "theguardian.com",
+        "twitch.tv",
+        "businessinsider.com",
+        "speedtest.net",
+        "indiatimes.com",
+        "squarespace.com",
+        "usatoday.com",
+        "amazon.ca"
+      ]
+    },
+    {
+      "origin": "https://s.company-target.com",
+      "siteCount": 10,
+      "exampleDomains": [
+        "microsoft.com",
+        "azure.com",
+        "pages.dev",
+        "ibm.com",
+        "appsflyer.com",
+        "inmobi.com",
+        "datadoghq.com",
+        "paloaltonetworks.com"
+      ]
+    },
+    {
+      "origin": "https://bam.nr-data.net",
+      "siteCount": 9,
+      "exampleDomains": [
+        "nist.gov",
+        "adsrvr.org",
+        "roku.com",
+        "newrelic.com",
+        "aol.com",
+        "visualstudio.com",
+        "frontiersin.org",
+        "xerox.com"
+      ]
+    },
+    {
+      "origin": "https://browser.events.data.microsoft.com",
+      "siteCount": 9,
+      "exampleDomains": [
+        "microsoft.com",
+        "office.com",
+        "azure.com",
+        "cloud.microsoft",
+        "sharepoint.com",
+        "office365.com",
+        "outlook.com",
+        "visualstudio.com"
+      ]
+    },
+    {
+      "origin": "https://browser.sentry-cdn.com",
+      "siteCount": 9,
+      "exampleDomains": [
+        "appsflyer.com",
+        "amplitude.com",
+        "onelink.me",
+        "hotjar.com",
+        "onetrust.com",
+        "wix.com",
+        "bugsnag.com",
+        "prnewswire.com"
+      ]
+    },
+    {
+      "origin": "https://cdn.bizible.com",
+      "siteCount": 9,
+      "exampleDomains": [
+        "fastly.net",
+        "vungle.com",
+        "opendns.com",
+        "gitlab.com",
+        "launchdarkly.com",
+        "okta.com",
+        "cookielaw.org",
+        "onetrust.com"
+      ]
+    },
+    {
+      "origin": "https://cdn.bizibly.com",
+      "siteCount": 9,
+      "exampleDomains": [
+        "fastly.net",
+        "vungle.com",
+        "opendns.com",
+        "gitlab.com",
+        "launchdarkly.com",
+        "okta.com",
+        "cookielaw.org",
+        "onetrust.com"
+      ]
+    },
+    {
+      "origin": "https://cdn.id5-sync.com",
+      "siteCount": 9,
+      "exampleDomains": [
+        "theguardian.com",
+        "ibm.com",
+        "weather.com",
+        "globo.com",
+        "businessinsider.com",
+        "speedtest.net",
+        "indiatimes.com",
+        "webmd.com"
+      ]
+    },
+    {
+      "origin": "https://cdn.taboola.com",
+      "siteCount": 9,
+      "exampleDomains": [
+        "yahoo.com",
+        "aol.com",
+        "foxnews.com",
+        "grammarly.com",
+        "usatoday.com",
+        "sedo.com",
+        "lefigaro.fr",
+        "att.net"
+      ]
+    },
+    {
+      "origin": "https://code.jquery.com",
+      "siteCount": 9,
+      "exampleDomains": [
+        "adsrvr.org",
+        "scorecardresearch.com",
+        "mediatek.com",
+        "jquery.com",
+        "imgur.com",
+        "independent.co.uk",
+        "parklogic.com",
+        "prnewswire.com"
+      ]
+    },
+    {
+      "origin": "https://dev.visualwebsiteoptimizer.com",
+      "siteCount": 9,
+      "exampleDomains": [
+        "ui.com",
+        "taboola.com",
+        "cpanel.net",
+        "plesk.com",
+        "cnbc.com",
+        "braze.com",
+        "branch.io",
+        "auvik.com"
+      ]
+    },
+    {
+      "origin": "https://fundingchoicesmessages.google.com",
+      "siteCount": 9,
+      "exampleDomains": [
+        "globo.com",
+        "businessinsider.com",
+        "indiatimes.com",
+        "uol.com.br",
+        "elpais.com",
+        "imgur.com",
+        "livejournal.com",
+        "hbr.org"
+      ]
+    },
+    {
+      "origin": "https://images-na.ssl-images-amazon.com",
+      "siteCount": 9,
+      "exampleDomains": [
+        "amazonvideo.com",
+        "amazon.co.uk",
+        "amazon.de",
+        "amazon.fr",
+        "amazon.ca",
+        "primevideo.com",
+        "amazon.in",
+        "amazon.es"
+      ]
+    },
+    {
+      "origin": "https://js.hsforms.net",
+      "siteCount": 9,
+      "exampleDomains": [
+        "one.one",
+        "vungle.com",
+        "forter.com",
+        "doubleverify.com",
+        "mediatek.com",
+        "3lift.com",
+        "klaviyo.com",
+        "liftoff.io"
+      ]
+    },
+    {
+      "origin": "https://js.hubspot.com",
+      "siteCount": 9,
+      "exampleDomains": [
+        "cpanel.net",
+        "hubspot.com",
+        "inmobi.com",
+        "doubleverify.com",
+        "ipify.org",
+        "mediatek.com",
+        "3lift.com",
+        "fwmrm.net"
+      ]
+    },
+    {
+      "origin": "https://js.qualified.com",
+      "siteCount": 9,
+      "exampleDomains": [
+        "opendns.com",
+        "launchdarkly.com",
+        "okta.com",
+        "dynatrace.com",
+        "braze.com",
+        "optimizely.com",
+        "mixpanel.com",
+        "prnewswire.com"
+      ]
+    },
+    {
+      "origin": "https://pixel.wp.com",
+      "siteCount": 9,
+      "exampleDomains": [
+        "wordpress.org",
+        "wordpress.com",
+        "gravatar.com",
+        "tumblr.com",
+        "harvard.edu",
+        "wp.com",
+        "techcrunch.com",
+        "stackadapt.com"
+      ]
+    },
+    {
+      "origin": "https://static.criteo.net",
+      "siteCount": 9,
+      "exampleDomains": [
+        "soundcloud.com",
+        "theguardian.com",
+        "forbes.com",
+        "weather.com",
+        "globo.com",
+        "businessinsider.com",
+        "foxnews.com",
+        "indiatimes.com"
+      ]
+    },
+    {
+      "origin": "https://t.co",
+      "siteCount": 9,
+      "exampleDomains": [
+        "pages.dev",
+        "datadoghq.com",
+        "media.net",
+        "opendns.com",
+        "launchdarkly.com",
+        "okta.com",
+        "trendmicro.com",
+        "mlb.com"
+      ]
+    },
+    {
+      "origin": "https://yastatic.net",
+      "siteCount": 9,
+      "exampleDomains": [
+        "mail.ru",
+        "dzen.ru",
+        "yandex.net",
+        "yandex.ru",
+        "yandex.com",
+        "imgsmail.ru",
+        "cdnvideo.ru",
+        "ya.ru"
+      ]
+    },
+    {
+      "origin": "https://1c5c1ecf7303.c0b160fb.us-east-1.token.awswaf.com",
+      "siteCount": 8,
+      "exampleDomains": [
+        "amazon.com",
+        "amazon.co.uk",
+        "amazon.de",
+        "amazon.co.jp",
+        "amazon.co.za",
+        "amzn.to",
+        "amazon.in",
+        "amazon.it"
+      ]
+    },
+    {
+      "origin": "https://c.s-microsoft.com",
+      "siteCount": 8,
+      "exampleDomains": [
+        "microsoft.com",
+        "office.com",
+        "azure.com",
+        "cloud.microsoft",
+        "sharepoint.com",
+        "office365.com",
+        "appcenter.ms",
+        "xbox.com"
+      ]
+    },
+    {
+      "origin": "https://cdn.parsely.com",
+      "siteCount": 8,
+      "exampleDomains": [
+        "wordpress.com",
+        "harvard.edu",
+        "nasa.gov",
+        "wp.com",
+        "cnbc.com",
+        "techcrunch.com",
+        "cnet.com",
+        "nbcnews.com"
+      ]
+    },
+    {
+      "origin": "https://client.aps.amazon-adsystem.com",
+      "siteCount": 8,
+      "exampleDomains": [
+        "forbes.com",
+        "weather.com",
+        "speedtest.net",
+        "foxnews.com",
+        "wired.com",
+        "usatoday.com",
+        "cnet.com",
+        "healthline.com"
+      ]
+    },
+    {
+      "origin": "https://csp.withgoogle.com",
+      "siteCount": 8,
+      "exampleDomains": [
+        "doubleclick.net",
+        "google-analytics.com",
+        "dns.google",
+        "adtrafficquality.google",
+        "pki.goog",
+        "android.com",
+        "livejournal.com",
+        "it.com"
+      ]
+    },
+    {
+      "origin": "https://ct.captcha-delivery.com",
+      "siteCount": 8,
+      "exampleDomains": [
+        "nytimes.com",
+        "reuters.com",
+        "etsy.com",
+        "wsj.com",
+        "tripadvisor.com",
+        "allegro.pl",
+        "yelp.com",
+        "allaboutcookies.org"
+      ]
+    },
+    {
+      "origin": "https://cta-service-cms2.hubspot.com",
+      "siteCount": 8,
+      "exampleDomains": [
+        "cpanel.net",
+        "inmobi.com",
+        "doubleverify.com",
+        "ipify.org",
+        "mediatek.com",
+        "3lift.com",
+        "fwmrm.net",
+        "netlify.app"
+      ]
+    },
+    {
+      "origin": "https://geo.captcha-delivery.com",
+      "siteCount": 8,
+      "exampleDomains": [
+        "nytimes.com",
+        "reuters.com",
+        "etsy.com",
+        "wsj.com",
+        "tripadvisor.com",
+        "allegro.pl",
+        "yelp.com",
+        "allaboutcookies.org"
+      ]
+    },
+    {
+      "origin": "https://global.ketchcdn.com",
+      "siteCount": 8,
+      "exampleDomains": [
+        "forbes.com",
+        "pubmatic.com",
+        "calendly.com",
+        "foxnews.com",
+        "time.com",
+        "cbsnews.com",
+        "blackberry.com",
+        "tailscale.com"
+      ]
+    },
+    {
+      "origin": "https://idx.liadm.com",
+      "siteCount": 8,
+      "exampleDomains": [
+        "weather.com",
+        "globo.com",
+        "businessinsider.com",
+        "aol.com",
+        "speedtest.net",
+        "techcrunch.com",
+        "cnet.com",
+        "webmd.com"
+      ]
+    },
+    {
+      "origin": "https://image2.pubmatic.com",
+      "siteCount": 8,
+      "exampleDomains": [
+        "microsoft.com",
+        "pages.dev",
+        "ibm.com",
+        "appsflyer.com",
+        "inmobi.com",
+        "datadoghq.com",
+        "paloaltonetworks.com",
+        "onelink.me"
+      ]
+    },
+    {
+      "origin": "https://logx.optimizely.com",
+      "siteCount": 8,
+      "exampleDomains": [
+        "zoom.us",
+        "bit.ly",
+        "bbc.com",
+        "gitlab.com",
+        "nintendo.com",
+        "optimizely.com",
+        "mixpanel.com",
+        "zoom.com"
+      ]
+    },
+    {
+      "origin": "https://ogads-pa.clients6.google.com",
+      "siteCount": 8,
+      "exampleDomains": [
+        "google.com",
+        "googlesyndication.com",
+        "google.de",
+        "google.com.hk",
+        "withgoogle.com",
+        "google.co.uk",
+        "google.com.br",
+        "app-ads-services.com"
+      ]
+    },
+    {
+      "origin": "https://partners.tremorhub.com",
+      "siteCount": 8,
+      "exampleDomains": [
+        "microsoft.com",
+        "pages.dev",
+        "ibm.com",
+        "appsflyer.com",
+        "inmobi.com",
+        "datadoghq.com",
+        "paloaltonetworks.com",
+        "onelink.me"
+      ]
+    },
+    {
+      "origin": "https://play.google.com",
+      "siteCount": 8,
+      "exampleDomains": [
+        "google.com",
+        "googlesyndication.com",
+        "google.de",
+        "google.com.hk",
+        "withgoogle.com",
+        "google.co.uk",
+        "google.com.br",
+        "app-ads-services.com"
+      ]
+    },
+    {
+      "origin": "https://player.vimeo.com",
+      "siteCount": 8,
+      "exampleDomains": [
+        "vimeo.com",
+        "actify.nl",
+        "pubmatic.com",
+        "casalemedia.com",
+        "outbrain.com",
+        "agora.io",
+        "fwmrm.net",
+        "flashtalking.com"
+      ]
+    },
+    {
+      "origin": "https://s.pinimg.com",
+      "siteCount": 8,
+      "exampleDomains": [
+        "pinterest.com",
+        "eventbrite.com",
+        "squarespace.com",
+        "wix.com",
+        "pinimg.com",
+        "mixpanel.com",
+        "usps.com",
+        "mailchi.mp"
+      ]
+    },
+    {
+      "origin": "https://sc-static.net",
+      "siteCount": 8,
+      "exampleDomains": [
+        "intuit.com",
+        "netflix.net",
+        "branch.io",
+        "mlb.com",
+        "cursor.sh",
+        "lenovo.com",
+        "usps.com",
+        "agoda.com"
+      ]
+    },
+    {
+      "origin": "https://script.crazyegg.com",
+      "siteCount": 8,
+      "exampleDomains": [
+        "opendns.com",
+        "ipify.org",
+        "dynatrace.com",
+        "npr.org",
+        "stackadapt.com",
+        "independent.co.uk",
+        "washington.edu",
+        "epa.gov"
+      ]
+    },
+    {
+      "origin": "https://sdk.mrf.io",
+      "siteCount": 8,
+      "exampleDomains": [
+        "globo.com",
+        "businessinsider.com",
+        "uol.com.br",
+        "time.com",
+        "elpais.com",
+        "lefigaro.fr",
+        "repubblica.it",
+        "corriere.it"
+      ]
+    },
+    {
+      "origin": "https://segments.company-target.com",
+      "siteCount": 8,
+      "exampleDomains": [
+        "microsoft.com",
+        "azure.com",
+        "pages.dev",
+        "ibm.com",
+        "appsflyer.com",
+        "inmobi.com",
+        "datadoghq.com",
+        "onelink.me"
+      ]
+    },
+    {
+      "origin": "https://stats.wp.com",
+      "siteCount": 8,
+      "exampleDomains": [
+        "wordpress.org",
+        "wordpress.com",
+        "gravatar.com",
+        "harvard.edu",
+        "wp.com",
+        "techcrunch.com",
+        "stackadapt.com",
+        "cnet.com"
+      ]
+    },
+    {
+      "origin": "https://tags.srv.stackadapt.com",
+      "siteCount": 8,
+      "exampleDomains": [
+        "fastly.net",
+        "zoom.us",
+        "inmobi.com",
+        "okta.com",
+        "dynatrace.com",
+        "scribd.com",
+        "stackadapt.com",
+        "zoom.com"
+      ]
+    },
+    {
+      "origin": "https://tracking.g2crowd.com",
+      "siteCount": 8,
+      "exampleDomains": [
+        "zoom.us",
+        "appsflyer.com",
+        "onelink.me",
+        "launchdarkly.com",
+        "trendmicro.com",
+        "stackadapt.com",
+        "mixpanel.com",
+        "zoom.com"
+      ]
+    },
+    {
+      "origin": "https://web-banner.ads.aps.amazon-adsystem.com",
+      "siteCount": 8,
+      "exampleDomains": [
+        "theguardian.com",
+        "weather.com",
+        "businessinsider.com",
+        "speedtest.net",
+        "indiatimes.com",
+        "usatoday.com",
+        "cnet.com",
+        "webmd.com"
+      ]
+    },
+    {
+      "origin": "https://www.datadoghq-browser-agent.com",
+      "siteCount": 8,
+      "exampleDomains": [
+        "linktr.ee",
+        "go.com",
+        "kick.com",
+        "mlb.com",
+        "rakuten.com",
+        "moloco.com",
+        "lg.com",
+        "nationalgeographic.com"
+      ]
+    },
+    {
+      "origin": "https://www.recaptcha.net",
+      "siteCount": 8,
+      "exampleDomains": [
+        "pinterest.com",
+        "paypal.com",
+        "duolingo.com",
+        "atlassian.net",
+        "atlassian.com",
+        "pinimg.com",
+        "bandcamp.com",
+        "hbr.org"
+      ]
+    },
+    {
+      "origin": "https://ad.mail.ru",
+      "siteCount": 7,
+      "exampleDomains": [
+        "mail.ru",
+        "dzen.ru",
+        "yandex.ru",
+        "ok.ru",
+        "imgsmail.ru",
+        "cdnvideo.ru",
+        "pikabu.ru"
+      ]
+    },
+    {
+      "origin": "https://ads.pubmatic.com",
+      "siteCount": 7,
+      "exampleDomains": [
+        "soundcloud.com",
+        "theguardian.com",
+        "businessinsider.com",
+        "aol.com",
+        "speedtest.net",
+        "indiatimes.com",
+        "usatoday.com"
+      ]
+    },
+    {
+      "origin": "https://api.rlcdn.com",
+      "siteCount": 7,
+      "exampleDomains": [
+        "weather.com",
+        "globo.com",
+        "businessinsider.com",
+        "speedtest.net",
+        "techcrunch.com",
+        "cnet.com",
+        "webmd.com"
+      ]
+    },
+    {
+      "origin": "https://cdn.ketchjs.com",
+      "siteCount": 7,
+      "exampleDomains": [
+        "forbes.com",
+        "pubmatic.com",
+        "calendly.com",
+        "foxnews.com",
+        "time.com",
+        "cbsnews.com",
+        "tailscale.com"
+      ]
+    },
+    {
+      "origin": "https://cdn.sanity.io",
+      "siteCount": 7,
+      "exampleDomains": [
+        "amplitude.com",
+        "name.com",
+        "klaviyo.com",
+        "braze.com",
+        "anthropic.com",
+        "figma.com",
+        "tailscale.com"
+      ]
+    },
+    {
+      "origin": "https://cdn.segment.com",
+      "siteCount": 7,
+      "exampleDomains": [
+        "launchdarkly.com",
+        "docker.com",
+        "foxnews.com",
+        "box.com",
+        "netlify.app",
+        "docker.io",
+        "mailchi.mp"
+      ]
+    },
+    {
+      "origin": "https://i.ytimg.com",
+      "siteCount": 7,
+      "exampleDomains": [
+        "youtube.com",
+        "youtu.be",
+        "forbes.com",
+        "harvard.edu",
+        "mikrotik.com",
+        "dotomi.com",
+        "frontiersin.org"
+      ]
+    },
+    {
+      "origin": "https://id5-sync.com",
+      "siteCount": 7,
+      "exampleDomains": [
+        "theguardian.com",
+        "weather.com",
+        "globo.com",
+        "speedtest.net",
+        "indiatimes.com",
+        "cnet.com",
+        "webmd.com"
+      ]
+    },
+    {
+      "origin": "https://images.ctfassets.net",
+      "siteCount": 7,
+      "exampleDomains": [
+        "github.com",
+        "windows.com",
+        "hotjar.com",
+        "ring.com",
+        "mlb.com",
+        "deepl.com",
+        "xerox.com"
+      ]
+    },
+    {
+      "origin": "https://p1.parsely.com",
+      "siteCount": 7,
+      "exampleDomains": [
+        "wordpress.com",
+        "harvard.edu",
+        "nasa.gov",
+        "wp.com",
+        "techcrunch.com",
+        "cnet.com",
+        "nbcnews.com"
+      ]
+    },
+    {
+      "origin": "https://perf-na1.hsforms.com",
+      "siteCount": 7,
+      "exampleDomains": [
+        "cpanel.net",
+        "inmobi.com",
+        "doubleverify.com",
+        "ipify.org",
+        "3lift.com",
+        "fwmrm.net",
+        "netlify.app"
+      ]
+    },
+    {
+      "origin": "https://s.yimg.jp",
+      "siteCount": 7,
+      "exampleDomains": [
+        "zoom.us",
+        "datadoghq.com",
+        "yahoo.co.jp",
+        "mixpanel.com",
+        "agoda.com",
+        "zoom.com",
+        "qualtrics.com"
+      ]
+    },
+    {
+      "origin": "https://static.hotjar.com",
+      "siteCount": 7,
+      "exampleDomains": [
+        "ui.com",
+        "cpanel.net",
+        "springer.com",
+        "casalemedia.com",
+        "dynatrace.com",
+        "fwmrm.net",
+        "tailscale.com"
+      ]
+    },
+    {
+      "origin": "https://t.contentsquare.net",
+      "siteCount": 7,
+      "exampleDomains": [
+        "zoom.us",
+        "rubiconproject.com",
+        "stanford.edu",
+        "okta.com",
+        "eventbrite.com",
+        "hotjar.com",
+        "zoom.com"
+      ]
+    },
+    {
+      "origin": "https://tag-logger.demandbase.com",
+      "siteCount": 7,
+      "exampleDomains": [
+        "microsoft.com",
+        "pages.dev",
+        "ibm.com",
+        "appsflyer.com",
+        "datadoghq.com",
+        "paloaltonetworks.com",
+        "onelink.me"
+      ]
+    },
+    {
+      "origin": "https://tags.crwdcntrl.net",
+      "siteCount": 7,
+      "exampleDomains": [
+        "theguardian.com",
+        "weather.com",
+        "globo.com",
+        "businessinsider.com",
+        "speedtest.net",
+        "indiatimes.com",
+        "webmd.com"
+      ]
+    },
+    {
+      "origin": "https://www.googleadservices.com",
+      "siteCount": 7,
+      "exampleDomains": [
+        "theguardian.com",
+        "ibm.com",
+        "globo.com",
+        "trendmicro.com",
+        "ameblo.jp",
+        "washington.edu",
+        "webmd.com"
+      ]
+    },
+    {
+      "origin": "https://aax.amazon-adsystem.com",
+      "siteCount": 6,
+      "exampleDomains": [
+        "aol.com",
+        "telegraph.co.uk",
+        "techcrunch.com",
+        "imgur.com",
+        "independent.co.uk",
+        "theverge.com"
+      ]
+    },
+    {
+      "origin": "https://cdn-dynmedia-1.microsoft.com",
+      "siteCount": 6,
+      "exampleDomains": [
+        "microsoft.com",
+        "live.com",
+        "azure.com",
+        "sharepoint.com",
+        "office365.com",
+        "outlook.com"
+      ]
+    },
+    {
+      "origin": "https://cdn.privacy-mgmt.com",
+      "siteCount": 6,
+      "exampleDomains": [
+        "theguardian.com",
+        "bbc.com",
+        "bbc.co.uk",
+        "businessinsider.com",
+        "telegraph.co.uk",
+        "bild.de"
+      ]
+    },
+    {
+      "origin": "https://cmp.osano.com",
+      "siteCount": 6,
+      "exampleDomains": [
+        "flickr.com",
+        "newrelic.com",
+        "scribd.com",
+        "ted.com",
+        "disqus.com",
+        "wyzecam.com"
+      ]
+    },
+    {
+      "origin": "https://consent.cookiebot.com",
+      "siteCount": 6,
+      "exampleDomains": [
+        "b-cdn.net",
+        "issuu.com",
+        "launchdarkly.com",
+        "skyhigh.cloud",
+        "globalsign.com",
+        "auvik.com"
+      ]
+    },
+    {
+      "origin": "https://consentcdn.cookiebot.com",
+      "siteCount": 6,
+      "exampleDomains": [
+        "b-cdn.net",
+        "issuu.com",
+        "launchdarkly.com",
+        "skyhigh.cloud",
+        "globalsign.com",
+        "auvik.com"
+      ]
+    },
+    {
+      "origin": "https://cs.media.net",
+      "siteCount": 6,
+      "exampleDomains": [
+        "theguardian.com",
+        "businessinsider.com",
+        "speedtest.net",
+        "duolingo.com",
+        "indiatimes.com",
+        "usatoday.com"
+      ]
+    },
+    {
+      "origin": "https://dx.mountain.com",
+      "siteCount": 6,
+      "exampleDomains": [
+        "fastly.net",
+        "zoom.us",
+        "appsflyer.com",
+        "onelink.me",
+        "bitdefender.net",
+        "zoom.com"
+      ]
+    },
+    {
+      "origin": "https://edge.adobedc.net",
+      "siteCount": 6,
+      "exampleDomains": [
+        "azure.com",
+        "sharepoint.com",
+        "office365.com",
+        "elpais.com",
+        "docker.io",
+        "deloitte.com"
+      ]
+    },
+    {
+      "origin": "https://fast.wistia.com",
+      "siteCount": 6,
+      "exampleDomains": [
+        "appsflyer.com",
+        "amplitude.com",
+        "onelink.me",
+        "onetrust.com",
+        "prnewswire.com",
+        "auvik.com"
+      ]
+    },
+    {
+      "origin": "https://idsync.rlcdn.com",
+      "siteCount": 6,
+      "exampleDomains": [
+        "samsung.com",
+        "businessinsider.com",
+        "mlb.com",
+        "lenovo.com",
+        "usps.com",
+        "smartthings.com"
+      ]
+    },
+    {
+      "origin": "https://invstatic101.creativecdn.com",
+      "siteCount": 6,
+      "exampleDomains": [
+        "soundcloud.com",
+        "theguardian.com",
+        "weather.com",
+        "globo.com",
+        "businessinsider.com",
+        "indiatimes.com"
+      ]
+    },
+    {
+      "origin": "https://jadserve.postrelease.com",
+      "siteCount": 6,
+      "exampleDomains": [
+        "theguardian.com",
+        "speedtest.net",
+        "okta.com",
+        "indiatimes.com",
+        "usatoday.com",
+        "mailchi.mp"
+      ]
+    },
+    {
+      "origin": "https://js.hsadspixel.net",
+      "siteCount": 6,
+      "exampleDomains": [
+        "hubspot.com",
+        "inmobi.com",
+        "ipify.org",
+        "mediatek.com",
+        "seedtag.com",
+        "netlify.app"
+      ]
+    },
+    {
+      "origin": "https://js.monitor.azure.com",
+      "siteCount": 6,
+      "exampleDomains": [
+        "office.com",
+        "azure.com",
+        "cloud.microsoft",
+        "sharepoint.com",
+        "visualstudio.com",
+        "sagepub.com"
+      ]
+    },
+    {
+      "origin": "https://js.stripe.com",
+      "siteCount": 6,
+      "exampleDomains": [
+        "tinyurl.com",
+        "scribd.com",
+        "npr.org",
+        "kick.com",
+        "fontawesome.com",
+        "bandcamp.com"
+      ]
+    },
+    {
+      "origin": "https://login.microsoftonline.com",
+      "siteCount": 6,
+      "exampleDomains": [
+        "microsoft.com",
+        "live.com",
+        "skype.com",
+        "office365.com",
+        "outlook.com",
+        "xbox.com"
+      ]
+    },
+    {
+      "origin": "https://marfeelexperimentsexperienceengine.mrf.io",
+      "siteCount": 6,
+      "exampleDomains": [
+        "globo.com",
+        "businessinsider.com",
+        "uol.com.br",
+        "elpais.com",
+        "lefigaro.fr",
+        "repubblica.it"
+      ]
+    },
+    {
+      "origin": "https://play.vidyard.com",
+      "siteCount": 6,
+      "exampleDomains": [
+        "live.com",
+        "azure.com",
+        "sharepoint.com",
+        "office365.com",
+        "outlook.com",
+        "okta.com"
+      ]
+    },
+    {
+      "origin": "https://rp.liadm.com",
+      "siteCount": 6,
+      "exampleDomains": [
+        "weather.com",
+        "globo.com",
+        "businessinsider.com",
+        "speedtest.net",
+        "techcrunch.com",
+        "webmd.com"
+      ]
+    },
+    {
+      "origin": "https://s.yimg.com",
+      "siteCount": 6,
+      "exampleDomains": [
+        "yahoo.com",
+        "businessinsider.com",
+        "wix.com",
+        "usps.com",
+        "att.net",
+        "mailchi.mp"
+      ]
+    },
+    {
+      "origin": "https://secure.cdn.fastclick.net",
+      "siteCount": 6,
+      "exampleDomains": [
+        "theguardian.com",
+        "weather.com",
+        "indiatimes.com",
+        "usatoday.com",
+        "webmd.com",
+        "healthline.com"
+      ]
+    },
+    {
+      "origin": "https://siteimproveanalytics.com",
+      "siteCount": 6,
+      "exampleDomains": [
+        "intuit.com",
+        "noaa.gov",
+        "cornell.edu",
+        "berkeley.edu",
+        "mailchi.mp",
+        "xerox.com"
+      ]
+    },
+    {
+      "origin": "https://static-mon.yandex.net",
+      "siteCount": 6,
+      "exampleDomains": [
+        "dzen.ru",
+        "yandex.net",
+        "yandex.ru",
+        "yandex.com",
+        "ya.ru",
+        "livejournal.com"
+      ]
+    },
+    {
+      "origin": "https://tr.snapchat.com",
+      "siteCount": 6,
+      "exampleDomains": [
+        "intuit.com",
+        "netflix.net",
+        "branch.io",
+        "mlb.com",
+        "lenovo.com",
+        "agoda.com"
+      ]
+    },
+    {
+      "origin": "https://track.hubspot.com",
+      "siteCount": 6,
+      "exampleDomains": [
+        "cpanel.net",
+        "inmobi.com",
+        "doubleverify.com",
+        "ipify.org",
+        "3lift.com",
+        "seedtag.com"
+      ]
+    },
+    {
+      "origin": "https://tracking-api.g2.com",
+      "siteCount": 6,
+      "exampleDomains": [
+        "appsflyer.com",
+        "onelink.me",
+        "launchdarkly.com",
+        "okta.com",
+        "stackadapt.com",
+        "zoom.com"
+      ]
+    },
+    {
+      "origin": "https://transcend-cdn.com",
+      "siteCount": 6,
+      "exampleDomains": [
+        "vimeo.com",
+        "mozilla.org",
+        "dnsmadeeasy.com",
+        "datadoghq.com",
+        "grammarly.com",
+        "klaviyo.com"
+      ]
+    },
+    {
+      "origin": "https://uhf-exp-fd-gbcrdgggfbggh0g3.b02.azurefd.net",
+      "siteCount": 6,
+      "exampleDomains": [
+        "microsoft.com",
+        "azure.com",
+        "sharepoint.com",
+        "office365.com",
+        "visualstudio.com",
+        "xbox.com"
+      ]
+    },
+    {
+      "origin": "https://vk.ru",
+      "siteCount": 6,
+      "exampleDomains": [
+        "mail.ru",
+        "dzen.ru",
+        "yandex.ru",
+        "imgsmail.ru",
+        "livejournal.com",
+        "pikabu.ru"
+      ]
+    },
+    {
+      "origin": "https://www.facebook.com",
+      "siteCount": 6,
+      "exampleDomains": [
+        "microsoft.com",
+        "instagram.com",
+        "aliyun.com",
+        "grammarly.com",
+        "lenovo.com",
+        "ryanair.com"
+      ]
+    },
+    {
+      "origin": "https://www.microsoft.com",
+      "siteCount": 6,
+      "exampleDomains": [
+        "office.com",
+        "live.com",
+        "azure.com",
+        "cloud.microsoft",
+        "outlook.com",
+        "xbox.com"
+      ]
+    },
+    {
+      "origin": "https://yandex.ru",
+      "siteCount": 6,
+      "exampleDomains": [
+        "mail.ru",
+        "dzen.ru",
+        "yandex.net",
+        "yandex.ru",
+        "imgsmail.ru",
+        "pikabu.ru"
+      ]
+    },
+    {
+      "origin": "https://a.quora.com",
+      "siteCount": 5,
+      "exampleDomains": [
+        "appsflyer.com",
+        "datadoghq.com",
+        "onelink.me",
+        "launchdarkly.com",
+        "grammarly.com"
+      ]
+    },
+    {
+      "origin": "https://adservice.google.com",
+      "siteCount": 5,
+      "exampleDomains": [
+        "bit.ly",
+        "intuit.com",
+        "paloaltonetworks.com",
+        "launchdarkly.com",
+        "okta.com"
+      ]
+    },
+    {
+      "origin": "https://analytics.ahrefs.com",
+      "siteCount": 5,
+      "exampleDomains": [
+        "rubiconproject.com",
+        "cpanel.net",
+        "appsflyer.com",
+        "onelink.me",
+        "flashtalking.com"
+      ]
+    },
+    {
+      "origin": "https://b.6sc.co",
+      "siteCount": 5,
+      "exampleDomains": [
+        "launchdarkly.com",
+        "okta.com",
+        "trendmicro.com",
+        "box.com",
+        "lenovo.com"
+      ]
+    },
+    {
+      "origin": "https://c.6sc.co",
+      "siteCount": 5,
+      "exampleDomains": [
+        "launchdarkly.com",
+        "okta.com",
+        "trendmicro.com",
+        "box.com",
+        "lenovo.com"
+      ]
+    },
+    {
+      "origin": "https://cdn.adsafeprotected.com",
+      "siteCount": 5,
+      "exampleDomains": [
+        "theguardian.com",
+        "forbes.com",
+        "weather.com",
+        "bestbuy.com",
+        "lefigaro.fr"
+      ]
+    },
+    {
+      "origin": "https://cdn.brandmetrics.com",
+      "siteCount": 5,
+      "exampleDomains": [
+        "theguardian.com",
+        "businessinsider.com",
+        "usatoday.com",
+        "techcrunch.com",
+        "onet.pl"
+      ]
+    },
+    {
+      "origin": "https://cdn.cxense.com",
+      "siteCount": 5,
+      "exampleDomains": [
+        "time.com",
+        "telegraph.co.uk",
+        "nbcnews.com",
+        "onet.pl",
+        "corriere.it"
+      ]
+    },
+    {
+      "origin": "https://cdn.metadata.io",
+      "siteCount": 5,
+      "exampleDomains": [
+        "zoom.us",
+        "vungle.com",
+        "launchdarkly.com",
+        "liftoff.io",
+        "zoom.com"
+      ]
+    },
+    {
+      "origin": "https://cdn.mxpnl.com",
+      "siteCount": 5,
+      "exampleDomains": [
+        "appsflyer.com",
+        "onelink.me",
+        "viber.com",
+        "mixpanel.com",
+        "genius.com"
+      ]
+    },
+    {
+      "origin": "https://cdn.speedcurve.com",
+      "siteCount": 5,
+      "exampleDomains": [
+        "fastly.net",
+        "forbes.com",
+        "businessinsider.com",
+        "target.com",
+        "nikkei.com"
+      ]
+    },
+    {
+      "origin": "https://cdn.weglot.com",
+      "siteCount": 5,
+      "exampleDomains": [
+        "flickr.com",
+        "skyhigh.cloud",
+        "sharethrough.com",
+        "blackberry.com",
+        "wyzecam.com"
+      ]
+    },
+    {
+      "origin": "https://consent-api.service.consent.usercentrics.eu",
+      "siteCount": 5,
+      "exampleDomains": [
+        "cpanel.net",
+        "bitdefender.net",
+        "stackadapt.com",
+        "wpguardian.io",
+        "wpguardian.com"
+      ]
+    },
+    {
+      "origin": "https://dap.digitalgov.gov",
+      "siteCount": 5,
+      "exampleDomains": [
+        "cdc.gov",
+        "nasa.gov",
+        "noaa.gov",
+        "usps.com",
+        "epa.gov"
+      ]
+    },
+    {
+      "origin": "https://ep1.adtrafficquality.google",
+      "siteCount": 5,
+      "exampleDomains": [
+        "ntp.org",
+        "nature.com",
+        "yahoo.co.jp",
+        "businessinsider.com",
+        "daum.net"
+      ]
+    },
+    {
+      "origin": "https://ep2.adtrafficquality.google",
+      "siteCount": 5,
+      "exampleDomains": [
+        "ntp.org",
+        "nature.com",
+        "yahoo.co.jp",
+        "businessinsider.com",
+        "daum.net"
+      ]
+    },
+    {
+      "origin": "https://events.newsroom.bi",
+      "siteCount": 5,
+      "exampleDomains": [
+        "globo.com",
+        "businessinsider.com",
+        "uol.com.br",
+        "repubblica.it",
+        "corriere.it"
+      ]
+    },
+    {
+      "origin": "https://f.vimeocdn.com",
+      "siteCount": 5,
+      "exampleDomains": [
+        "vimeo.com",
+        "actify.nl",
+        "pubmatic.com",
+        "outbrain.com",
+        "flashtalking.com"
+      ]
+    },
+    {
+      "origin": "https://fast.wistia.net",
+      "siteCount": 5,
+      "exampleDomains": [
+        "amplitude.com",
+        "hotjar.com",
+        "onetrust.com",
+        "bugsnag.com",
+        "prnewswire.com"
+      ]
+    },
+    {
+      "origin": "https://fls-na.amazon.com",
+      "siteCount": 5,
+      "exampleDomains": [
+        "amazon.com",
+        "amazonvideo.com",
+        "amazonalexa.com",
+        "amzn.to",
+        "primevideo.com"
+      ]
+    },
+    {
+      "origin": "https://g.alicdn.com",
+      "siteCount": 5,
+      "exampleDomains": [
+        "alidns.com",
+        "alibaba.com",
+        "aliyun.com",
+        "taobao.com",
+        "youku.com"
+      ]
+    }
+  ]
+}
