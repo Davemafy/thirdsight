@@ -235,7 +235,7 @@ function BoundaryView({
   const attemptedFields=managed.did.value?.dataCategories??[];
   const receivedFields=managed.enforcement.receiver.receivedFields;
   const removedFields=managed.enforcement.removedFields;
-  const allFields=Array.from(new Set([...attemptedFields,...contractFields,...receivedFields]));
+  const allFields=Array.from(new Set([...attemptedFields,...removedFields,...receivedFields]));
   const contractSet=new Set(contractFields);
   const receivedSet=new Set(receivedFields);
   const removedSet=new Set(removedFields);
