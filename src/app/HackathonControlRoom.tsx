@@ -44,7 +44,7 @@ export function HackathonControlRoom({exposure,proof}:Props){
   const scenarios=useMemo<Scenario[]>(()=>[
     {
       id:"normal",
-      label:"Normal",
+      label:"Normal operation",
       kicker:"Baseline",
       title:"Normal checkout stays out of the way.",
       subtitle:"Approved access, expected business context, no escalation.",
@@ -56,8 +56,8 @@ export function HackathonControlRoom({exposure,proof}:Props){
     },
     {
       id:"flash",
-      label:"10× flash sale",
-      kicker:"False-positive test",
+      label:"10× sales spike",
+      kicker:"False-positive control",
       title:proof?.busySale.passed?"Traffic jumps 10×. ThirdSight still allows it.":"Flash-sale proof is not currently available.",
       subtitle:proof?.busySale.passed
         ? `${proof.busySale.allowed}/${proof.busySale.observed} legitimate events allowed · ${proof.busySale.falseAlarms} false alarms.`
@@ -70,8 +70,8 @@ export function HackathonControlRoom({exposure,proof}:Props){
     },
     {
       id:"drift",
-      label:"Scope drift",
-      kicker:"Managed prevention",
+      label:"Scope overreach",
+      kicker:"Field-level enforcement",
       title:proof?.scopePrevention.proven?"An integration reaches for data outside its job.":"Scope-drift prevention proof is not currently available.",
       subtitle:proof?.scopePrevention.proven
         ? `${proof.scopePrevention.removedFields.join(", ")||"Unjustified field"} is removed before transmission while legitimate fields continue.`
@@ -84,8 +84,8 @@ export function HackathonControlRoom({exposure,proof}:Props){
     },
     {
       id:"proportional",
-      label:"Hidden abuse",
-      kicker:"Looks normal",
+      label:"Purpose mismatch",
+      kicker:"Normal-looking abuse",
       title:proof?.abnormalBehavior.observed?"Volume looks plausible. Purpose correlation does not.":"Abnormal-behaviour proof is not currently available.",
       subtitle:proof?.abnormalBehavior.observed
         ? `ThirdSight catches the mismatch without relying on raw volume. ${proof.abnormalBehavior.persistedFindings} persisted finding${proof.abnormalBehavior.persistedFindings===1?"":"s"}.`
@@ -98,8 +98,8 @@ export function HackathonControlRoom({exposure,proof}:Props){
     },
     {
       id:"shadow",
-      label:"Unknown integration",
-      kicker:"Proof stops here",
+      label:"Unresolved partner",
+      kicker:"Authority boundary",
       title:"ThirdSight sees the request but cannot justify stronger authority.",
       subtitle:shadow
         ? `${shadow.label} is observed, but merchant purpose remains unresolved. Deterministic response stays OBSERVE.`
