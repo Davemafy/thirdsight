@@ -1,18 +1,16 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import {
   Activity,
   AlertTriangle,
   ArrowRight,
   Check,
   ChevronRight,
-  CircleDot,
   Eye,
   Layers3,
   MoreHorizontal,
   PlugZap,
   Radio,
   ShieldCheck,
-  Sparkles,
 } from "lucide-react";
 import type { ChallengeProof, ExposureRow } from "./IntegrationExposureMap";
 import "./OverviewTierOneLab.css";
@@ -119,7 +117,7 @@ type VariantProps={
   proof:ChallengeProof|null;
 };
 
-function AppFrame({children,mode}:{children:React.ReactNode;mode:string}){
+function AppFrame({children,mode}:{children:ReactNode;mode:string}){
   return <div className="tier1-app">
     <header className="tier1-header">
       <div className="tier1-brand">
@@ -195,9 +193,9 @@ function SignalRail({exposure,registered,findings,unresolved,review}:VariantProp
       </div>
 
       <div className="rail-bar" aria-label="Posture distribution">
-        <span style={{"--share":Math.max(8,registered.length/Math.max(1,exposure.length)*100)+"%"} as React.CSSProperties}><b>{registered.length}</b> purpose-aware</span>
-        <span style={{"--share":Math.max(12,unresolved.length/Math.max(1,exposure.length)*100)+"%"} as React.CSSProperties}><b>{unresolved.length}</b> unresolved</span>
-        <span style={{"--share":Math.max(6,findings.length/Math.max(1,exposure.length)*100)+"%"} as React.CSSProperties}><b>{findings.length}</b> findings</span>
+        <span style={{"--share":Math.max(8,registered.length/Math.max(1,exposure.length)*100)+"%"} as CSSProperties}><b>{registered.length}</b> purpose-aware</span>
+        <span style={{"--share":Math.max(12,unresolved.length/Math.max(1,exposure.length)*100)+"%"} as CSSProperties}><b>{unresolved.length}</b> unresolved</span>
+        <span style={{"--share":Math.max(6,findings.length/Math.max(1,exposure.length)*100)+"%"} as CSSProperties}><b>{findings.length}</b> findings</span>
       </div>
 
       <section className="rail-queue">
