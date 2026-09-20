@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import crypto from "node:crypto";
+import path from "node:path";
 
 const [inputPath, inventoryPath, summaryPath] = process.argv.slice(2);
 if(!inputPath||!inventoryPath||!summaryPath){
@@ -112,8 +113,8 @@ const summary={
   claimBoundary:"100% inventory coverage means every observed origin has a reproducible disposition. It does not mean every origin has a verified vendor identity, documented product purpose or merchant authorization.",
 };
 
-fs.mkdirSync(new URL(".",`file://${process.cwd()}/${inventoryPath}`).pathname,{recursive:true});
-fs.mkdirSync(new URL(".",`file://${process.cwd()}/${summaryPath}`).pathname,{recursive:true});
+fs.mkdirSync(path.dirname(inventoryPath),{recursive:true});
+fs.mkdirSync(path.dirname(summaryPath),{recursive:true});
 fs.writeFileSync(inventoryPath,JSON.stringify(inventory,null,2)+"\n");
 fs.writeFileSync(summaryPath,JSON.stringify(summary,null,2)+"\n");
 
