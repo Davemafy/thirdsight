@@ -35,6 +35,7 @@ import type { BlindSpotAssessment } from "../domain/blind-spot-assessment";
 import { LearningLoopPanel } from "./LearningLoopPanel";
 import { IntegrationExposureMap, type ChallengeProof, type ExposureRow } from "./IntegrationExposureMap";
 import { RealWorldValidation } from "./RealWorldValidation";
+import { CloudflareWorkbench } from "./CloudflareWorkbench";
 import "./ProductConsole.css";
 
 type View="overview"|"integrations"|"activity"|"incidents"|"policies"|"connections"|"validation";
@@ -148,6 +149,10 @@ export default function App(){
   };
 
   const current=viewCopy[view];
+  const prototypeMode=new URLSearchParams(window.location.search).get("prototype");
+  if(prototypeMode==="cf"){
+    return <CloudflareWorkbench exposure={exposureMap} proof={challengeProof}/>;
+  }
 
   return <div className="ts-shell">
     <div className="ts-sidebar">
