@@ -71,10 +71,10 @@ export function RealWorldValidation(){
         </div>
         <p>Logged-out homepage observation only. No accounts, clicks, forms, fuzzing, bypasses, request mutation, payload inspection or private/customer data.</p>
         <div className="validation-metrics">
-          <Metric value={publicBenchmark.attempted} label="Nigeria-facing sites"/ >
-          <Metric value={publicBenchmark.loaded} label="loaded normally"/ >
-          <Metric value={globalBenchmark.attempted} label="scaled sample"/ >
-          <Metric value={globalBenchmark.uniqueOrigins} label="origins in 1k run"/ >
+          <Metric value={publicBenchmark.attempted} label="Nigeria-facing sites"/>
+          <Metric value={publicBenchmark.loaded} label="loaded normally"/>
+          <Metric value={globalBenchmark.attempted} label="scaled sample"/>
+          <Metric value={globalBenchmark.uniqueOrigins} label="origins in 1k run"/>
         </div>
         <div className="validation-loaded"><Eye size={13}/><span><b>{globalBenchmark.crossOriginRequests.toLocaleString()}</b> cross-origin requests observed in the 1,000-site scale run · {globalBenchmark.persisted} representative observations persisted.</span></div>
       </article>
