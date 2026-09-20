@@ -74,9 +74,9 @@ type ConsoleEvent={
 };
 
 const viewCopy:Record<View,{title:string}>={
-  overview:{title:"Overview"},
+  overview:{title:"Control"},
   integrations:{title:"Integrations"},
-  activity:{title:"Activity"},
+  activity:{title:"Evidence"},
   incidents:{title:"Incidents"},
   policies:{title:"Policies"},
   connections:{title:"Connections"},
@@ -163,17 +163,20 @@ export default function App(){
       </button>
 
       <div className="ts-nav">
-        <NavButton active={view==="overview"} icon={<Layers3 size={16}/>} label="Overview" onClick={()=>setView("overview")}/>
-        <NavButton active={view==="integrations"} icon={<PlugZap size={16}/>} label="Integrations" onClick={()=>setView("integrations")}/>
-        <NavButton active={view==="activity"} icon={<Activity size={16}/>} label="Activity" onClick={()=>setView("activity")}/>
-        <NavButton active={view==="incidents"} icon={<AlertTriangle size={16}/>} label="Incidents" onClick={()=>setView("incidents")}/>
-        <NavButton active={view==="policies"} icon={<BookOpenCheck size={16}/>} label="Policies" onClick={()=>setView("policies")}/>
-        <NavButton active={view==="connections"} icon={<Network size={16}/>} label="Connections" onClick={()=>setView("connections")}/>
-        <div className="ts-nav-separator"/>
+        <NavButton active={view==="overview"} icon={<Layers3 size={16}/>} label="Control" count={findings.length} onClick={()=>setView("overview")}/>
+        <NavButton active={view==="integrations"} icon={<PlugZap size={16}/>} label="Integrations" count={exposureMap.length} onClick={()=>setView("integrations")}/>
+        <NavButton active={view==="activity"||view==="incidents"} icon={<Activity size={16}/>} label="Evidence" onClick={()=>setView("activity")}/>
         <NavButton active={view==="validation"} icon={<CircleCheck size={16}/>} label="Validation" onClick={()=>setView("validation")}/>
       </div>
 
+      <div className="ts-nav-secondary">
+        <button className={view==="policies"?"active":""} onClick={()=>setView("policies")}>Policies</button>
+        <button className={view==="connections"?"active":""} onClick={()=>setView("connections")}>Connections</button>
+      </div>
+
       <div className="ts-sidebar-foot">
+        <strong>Commerce Lab</strong>
+        <small>Simulation workspace</small>
         <span>{events[0]?evidenceFreshness(events[0].observedAt):"No persisted evidence yet"}</span>
       </div>
     </div>
@@ -185,11 +188,11 @@ export default function App(){
           <div><b>ThirdSight</b><small>{current.title}</small></div>
         </div>
         <div className="ts-desktop-context">
-          <strong>{current.title}</strong>
+          <strong>Commerce Lab</strong>
+          <span>Simulation workspace · {current.title}</span>
         </div>
         <div className="ts-topbar-actions">
-          <span className="ts-env">Commerce Lab</span>
-          <button className="ts-connect-button" onClick={()=>setView("connections")}><PlugZap size={14}/> Connect platform</button>
+          <span className="ts-evidence-freshness">{events[0]?evidenceFreshness(events[0].observedAt):"No persisted evidence yet"}</span>
           <button className="ts-mobile-more" onClick={()=>setMobileMenuOpen(true)} aria-label="More navigation"><MoreHorizontal size={19}/></button>
         </div>
       </div>
@@ -205,6 +208,7 @@ export default function App(){
           findingCount={findings.length}
           onViewIntegrations={()=>setView("integrations")}
           onOpenRow={openRow}
+          onOpenEvent={openEvent}
         />:null}
 
         {view==="integrations"?<Integrations
@@ -254,6 +258,7 @@ function Overview({
   findingCount,
   onViewIntegrations,
   onOpenRow,
+  onOpenEvent,
 }:{
   exposure:readonly ExposureRow[];
   events:readonly ConsoleEvent[];
@@ -262,61 +267,180 @@ function Overview({
   findingCount:number;
   onViewIntegrations:()=>void;
   onOpenRow:(row:ExposureRow)=>void;
+  onOpenEvent:(index:number)=>void;
 }){
-  const attentionRows=exposure.filter(row=>
-    row.findings.length>0||
-    !row.integrationId||
-    row.latestResponse==="CONSTRAIN"||
-    row.latestResponse==="ISOLATE"||
-    row.latestResponse==="PREVENTED"||
-    row.latestResponse==="DETECTED"
-  );
+  const incidentEntry=events
+    .map((event,index)=>({event,index}))
+    .find(({event})=>isIncident(event));
+  const primaryEntry=incidentEntry??(events[0]?{event:events[0],index:0}:null);
+  const primary=primaryEntry?.event??null;
+  const primaryIndex=primaryEntry?.index??-1;
+  const copy=primary?overviewIssueCopy(primary):null;
   const limitedCount=exposure.filter(row=>
     row.preventedFields.length>0||
     row.latestResponse==="CONSTRAIN"||
     row.latestResponse==="ISOLATE"||
     row.latestResponse==="PREVENTED"
   ).length;
-  const normalCount=exposure.filter(row=>
-    row.findings.length===0&&row.latestResponse==="ALLOW"
-  ).length;
-  const reviewRows=attentionRows.slice(0,6);
-  const needReview=attentionRows.length;
-  const headline=findingCount>0
-    ?`${findingCount} integration${findingCount===1?"":"s"} crossed current rules`
-    :needReview>0
-      ?`${needReview} integration${needReview===1?" needs":"s need"} a rule or identity`
-      :"Observed access matches current rules";
+  const discoveryRows=exposure.slice(0,4);
 
-  return <div className="ts-overview-plain">
-    <section className="ts-overview-summary">
-      <div className="ts-overview-title">
-        <h1>{headline}</h1>
-        <span>{events[0]?evidenceFreshness(events[0].observedAt):"No persisted evidence yet"}</span>
-      </div>
-      <div className="ts-overview-counts" aria-label="Current integration state">
-        <span><b>{limitedCount}</b> limited or isolated</span>
-        <span><b>{normalCount}</b> within policy</span>
-        <span><b>{unregisteredCount}</b> unresolved</span>
-      </div>
-    </section>
+  return <div className="ts-control">
+    {primary&&copy?<>
+      <section className="ts-control-head">
+        <div>
+          <div className={"ts-control-signal "+copy.tone}><span/>{copy.label}</div>
+          <h1>{copy.title}</h1>
+          <p>{copy.summary}</p>
+        </div>
+        <div className="ts-control-time">
+          <b>{formatEvidenceDate(primary.observedAt)}</b>
+          <span>{primary.coverage.label==="BROWSER_ONLY"?"Browser evidence":humanize(primary.coverage.label)}</span>
+        </div>
+      </section>
 
-    <section className="ts-attention-ledger">
-      <div className="ts-ledger-heading">
-        <h2>Needs attention</h2>
-        <span>{needReview}</span>
-      </div>
-      <ReviewQueue rows={reviewRows} onOpen={onOpenRow}/>
-    </section>
+      <section className="ts-control-trace" aria-label="Evidence trace">
+        <ControlTraceRow label="Integration">
+          <strong>{integrationLabel(primary)}</strong>
+          <span>{primary.integrationId??primary.did.value?.destinationOrigin??"Identity unresolved"}</span>
+        </ControlTraceRow>
+        <ControlTraceRow label="Approved">
+          <strong>{primary.should.status==="KNOWN"?primary.should.value?.purpose??"Merchant rule present":"No merchant rule"}</strong>
+          <span>{primary.should.status==="KNOWN"?"Merchant Purpose Contract":"No Purpose Contract is attached to this observation."}</span>
+        </ControlTraceRow>
+        <ControlTraceRow label="Observed" tone={copy.tone==="normal"?undefined:"alert"}>
+          <strong>{didSummary(primary)}</strong>
+          {primary.did.value?.destinationOrigin?<code>{primary.did.value.destinationOrigin}</code>:null}
+        </ControlTraceRow>
+        <ControlTraceRow label="ThirdSight" tone="action">
+          <strong>{copy.response}</strong>
+          <span>{copy.responseDetail}</span>
+          <div className="ts-control-actions">
+            <button className="ts-control-primary" onClick={()=>primaryIndex>=0&&onOpenEvent(primaryIndex)}>Open evidence</button>
+            <button className="ts-control-secondary" onClick={onViewIntegrations}>Review integrations</button>
+          </div>
+        </ControlTraceRow>
+      </section>
+    </>:<section className="ts-control-empty">
+      <h1>No persisted evidence yet.</h1>
+      <p>ThirdSight will not substitute mock activity for the evidence feed.</p>
+    </section>}
 
-    <div className="ts-overview-footer">
-      <div>
-        <strong>{registeredCount} registered integrations</strong>
-        <span>{exposure.length} observed in this workspace</span>
-      </div>
-      <button onClick={onViewIntegrations}>All integrations <ArrowRight size={14}/></button>
+    <div className="ts-control-lower">
+      <section className="ts-discovery-list">
+        <div className="ts-control-section-head">
+          <h2>Public discovery</h2>
+          <span>Separate browser observations</span>
+        </div>
+        <div className="ts-discovery-rows">
+          {discoveryRows.map(row=>{
+            const profile=row.vendorIntelligence.profiles[0]??null;
+            return <button key={row.key} onClick={()=>onOpenRow(row)}>
+              <div><b>{profile?.family??row.label}</b><span>{profile?.vendor??"Identity unresolved"}</span></div>
+              <div><b>{row.destinations[0]??row.label}</b><span>{row.observations} observation{row.observations===1?"":"s"}</span></div>
+              <em>{row.integrationId?"Registered":"Review"}</em>
+            </button>;
+          })}
+          {discoveryRows.length===0?<EmptyState text="No public discovery rows are currently available."/>:null}
+        </div>
+        {exposure.length>discoveryRows.length?<button className="ts-discovery-more" onClick={onViewIntegrations}>See all {exposure.length} observed origins <ArrowRight size={13}/></button>:null}
+      </section>
+
+      <aside className="ts-control-aside">
+        <section>
+          <h3>Discovery scope</h3>
+          <div><span>Observed origins</span><b>{exposure.length}</b></div>
+          <div><span>Registered integrations</span><b>{registeredCount}</b></div>
+          <div><span>Limited or isolated</span><b>{limitedCount}</b></div>
+          <p>Browser-visible observations are evidence of request execution, not proof of backend access or downstream receipt.</p>
+        </section>
+
+        {primary?<section>
+          <h3>Why this is {primary.should.status==="KNOWN"&&primary.why.status==="KNOWN"?"decidable":"unresolved"}</h3>
+          <div><span>Merchant rule</span><b>{primary.should.status==="KNOWN"?"Known":"Missing"}</b></div>
+          <div><span>Business context</span><b>{primary.why.status==="KNOWN"?"Known":"Missing"}</b></div>
+          <div><span>Runtime request</span><b>{primary.did.status==="KNOWN"?"Observed":humanize(primary.did.status)}</b></div>
+          {findingCount>0?<div><span>Deterministic findings</span><b>{findingCount}</b></div>:null}
+        </section>:null}
+
+        {unregisteredCount>0?<section className="ts-control-aside-note">
+          <h3>{unregisteredCount} origins still lack merchant identity</h3>
+          <p>ThirdSight keeps missing identity separate from malicious intent.</p>
+        </section>:null}
+      </aside>
     </div>
   </div>;
+}
+
+function ControlTraceRow({
+  label,
+  tone,
+  children,
+}:{
+  label:string;
+  tone?:"alert"|"action";
+  children:React.ReactNode;
+}){
+  return <div className={"ts-control-trace-row "+(tone??"")}>
+    <div className="ts-control-trace-label">{label}</div>
+    <div className="ts-control-trace-value">{children}</div>
+  </div>;
+}
+
+function overviewIssueCopy(event:ConsoleEvent):{
+  label:string;
+  title:string;
+  summary:string;
+  response:string;
+  responseDetail:string;
+  tone:"alert"|"normal";
+}{
+  const finding=event.findings[0]??null;
+  if(finding?.type==="SHADOW_INTEGRATION"){
+    return {
+      label:"Unregistered integration",
+      title:"A request went to an integration with no rule.",
+      summary:"ThirdSight observed a cross-origin request to a destination that is not registered in merchant policy. Payload semantics and malicious intent remain unproven.",
+      response:"Watch and review",
+      responseDetail:"The evidence proves an unregistered destination, not malicious intent. Enforcement authority was not escalated.",
+      tone:"alert",
+    };
+  }
+  if(event.outcome==="PREVENTED"){
+    return {
+      label:"Access constrained",
+      title:"ThirdSight removed unapproved access before it continued.",
+      summary:"The managed boundary produced evidence of a policy mismatch and a pre-send prevention outcome.",
+      response:"Limited before send",
+      responseDetail:event.enforcement?.removedFields.length
+        ?`Removed ${event.enforcement.removedFields.join(", ")} before the receiver.`
+        :"The unapproved portion was removed before the receiver.",
+      tone:"alert",
+    };
+  }
+  if(event.outcome==="DETECTED"||event.findings.length>0){
+    return {
+      label:finding?humanize(finding.type):"Rule mismatch",
+      title:"An integration crossed a current rule.",
+      summary:finding?.reason??"Persisted evidence produced a deterministic finding.",
+      response:humanize(event.decision??finding?.action??"OBSERVE"),
+      responseDetail:eventSummary(event),
+      tone:"alert",
+    };
+  }
+  return {
+    label:"Latest evidence",
+    title:"Observed activity matches the evidence currently available.",
+    summary:"No deterministic rule mismatch is proven in this record.",
+    response:humanize(event.decision??"OBSERVE"),
+    responseDetail:eventSummary(event),
+    tone:"normal",
+  };
+}
+
+function formatEvidenceDate(value:string){
+  const date=new Date(value);
+  if(!Number.isFinite(date.getTime()))return "Timestamp unavailable";
+  return new Intl.DateTimeFormat(undefined,{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}).format(date);
 }
 
 function Integrations({rows,query,onQuery,onOpen}:{rows:readonly ExposureRow[];query:string;onQuery:(value:string)=>void;onOpen:(row:ExposureRow)=>void}){
