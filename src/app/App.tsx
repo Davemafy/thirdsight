@@ -159,7 +159,7 @@ export default function App(){
     <div className="ts-sidebar">
       <button className="ts-brand" onClick={()=>setView("overview")}>
         <span><ShieldCheck size={20}/></span>
-        <div><strong>ThirdSight</strong><small>Integration security</small></div>
+        <div><strong>ThirdSight</strong></div>
       </button>
 
       <div className="ts-nav">
@@ -175,8 +175,7 @@ export default function App(){
       </div>
 
       <div className="ts-sidebar-foot">
-        <strong>Commerce Lab</strong>
-        <small>Simulation workspace</small>
+        <strong>Commerce Lab · simulation</strong>
         <span>{events[0]?evidenceFreshness(events[0].observedAt):"No persisted evidence yet"}</span>
       </div>
     </div>
@@ -189,7 +188,6 @@ export default function App(){
         </div>
         <div className="ts-desktop-context">
           <strong>Commerce Lab</strong>
-          <span>Simulation workspace · {current.title}</span>
         </div>
         <div className="ts-topbar-actions">
           <span className="ts-evidence-freshness">{events[0]?evidenceFreshness(events[0].observedAt):"No persisted evidence yet"}</span>
@@ -279,7 +277,6 @@ function Overview({
     {primary&&copy?<>
       <section className="ts-control-head">
         <div>
-          <div className={"ts-control-signal "+copy.tone}><span/>{copy.label}</div>
           <h1>{copy.title}</h1>
           <p>{copy.summary}</p>
         </div>
@@ -346,7 +343,6 @@ function ControlTraceRow({
   tone,
   children,
 }:{
-  label:string;
   tone?:"alert"|"action";
   children:React.ReactNode;
 }){
@@ -367,7 +363,6 @@ function overviewIssueCopy(event:ConsoleEvent):{
   const finding=event.findings[0]??null;
   if(finding?.type==="SHADOW_INTEGRATION"){
     return {
-      label:"Unregistered integration",
       title:"A request went to an integration with no rule.",
       summary:"No merchant rule exists for this destination. Payload contents and intent are unknown.",
       response:"Keep watching",
@@ -377,7 +372,6 @@ function overviewIssueCopy(event:ConsoleEvent):{
   }
   if(event.outcome==="PREVENTED"){
     return {
-      label:"Access constrained",
       title:"ThirdSight removed unapproved access before it continued.",
       summary:"The managed boundary proved a policy mismatch before the request continued.",
       response:"Limited before send",
@@ -389,7 +383,6 @@ function overviewIssueCopy(event:ConsoleEvent):{
   }
   if(event.outcome==="DETECTED"||event.findings.length>0){
     return {
-      label:finding?humanize(finding.type):"Rule mismatch",
       title:"An integration crossed a current rule.",
       summary:finding?.reason??"Persisted evidence produced a deterministic finding.",
       response:humanize(event.decision??finding?.action??"OBSERVE"),
@@ -398,7 +391,6 @@ function overviewIssueCopy(event:ConsoleEvent):{
     };
   }
   return {
-    label:"Latest evidence",
     title:"Observed activity matches the evidence currently available.",
     summary:"No deterministic rule mismatch is proven in this record.",
     response:humanize(event.decision??"OBSERVE"),
