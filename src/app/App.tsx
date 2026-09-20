@@ -3,7 +3,7 @@ import { Activity, CircleAlert, Radio, ShieldCheck } from "lucide-react";
 import type { EvidenceClaim, PurposeEvidence, BrowserCapabilityLowerBound, RuntimeAccessEvidence, BusinessContextEvidence, EvidenceCoverage } from "../domain/evidence";
 import type { BlindSpotAssessment } from "../domain/blind-spot-assessment";
 import { LearningLoopPanel } from "./LearningLoopPanel";
-import { IntegrationExposureMap, type ChallengeProof, type ExposureRow } from "./IntegrationExposureMap";
+import { IntegrationExposureMap, type ChallengeProof, type ExposureRow } from "./IntegrationExposureMap";\nimport { RealWorldValidation } from "./RealWorldValidation";
 
 type Finding={type:string;action:string;field?:string;reason?:string};
 type Enforcement={action:"CONSTRAIN"|"ISOLATE";outcome:"PREVENTED";removedFields:readonly string[];continuedFields:readonly string[];receiver:{receivedFields:readonly string[];forbiddenFieldReceived:boolean}};
@@ -54,7 +54,7 @@ export default function App(){
     </aside>
     <main>
       <header><div><span className="eyebrow">Track G · commerce & consumer protection</span><h1>See what every integration can reach — and what it actually touches.</h1><p>ThirdSight compares approved purpose, technical reach, runtime behaviour and business context. Legitimate spikes pass; unjustified access is constrained.</p></div><span className="live"><Radio size={14}/> Live</span></header>
-      <IntegrationExposureMap rows={exposureMap} proof={challengeProof}/>
+      <IntegrationExposureMap rows={exposureMap} proof={challengeProof}/>\n      <RealWorldValidation/>
       {error?<Empty text="Live evidence is unavailable. ThirdSight will not substitute mock data."/>:!event?<Empty text="Waiting for persisted evidence. No demonstration cards are generated."/>:<>
         <section className="event-head"><div><span className="eyebrow">Selected integration evidence · SHOULD / COULD / DID / WHY</span><strong>{event.integrationId??destination??"Identity unresolved"}</strong><small>{event.recordId}</small></div><Outcome value={event.outcome??event.decision}/></section>
         {discoveryOnly?<section className="discovery-note"><b>Discovery only — browser visibility</b><span>No merchant Purpose Contract or business justification is available. ThirdSight does not infer backend permissions, server-to-server activity, database access, or downstream vendor behavior from this record.</span></section>:null}
