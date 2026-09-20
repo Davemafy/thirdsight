@@ -36,7 +36,7 @@ type Scenario={
 };
 
 export function HackathonControlRoom({exposure,proof}:Props){
-  const [scenarioId,setScenarioId]=useState<ScenarioId>("normal");
+  const [scenarioId,setScenarioId]=useState<ScenarioId>("drift");
   const [phase,setPhase]=useState<Phase>(2);
   const [running,setVerifying]=useState(false);
 
@@ -138,11 +138,11 @@ export function HackathonControlRoom({exposure,proof}:Props){
     <main className="hcr-main">
       <section className="hcr-intro">
         <div>
-          <span>Continuous assurance for third-party access</span>
-          <h1>Know what partners can reach. Prove what they actually do.</h1>
-          <div className="hcr-positioning"><b>Operational for businesses.</b><i/><b>Auditable for oversight.</b></div>
+          <span>Live third-party assurance</span>
+          <h1>See the access. Prove the boundary.</h1>
+          <div className="hcr-positioning"><b>Built for live commerce.</b><i/><b>Legible under scrutiny.</b></div>
         </div>
-        <p>ThirdSight continuously reconciles approved purpose, technical reach, observed access and business context — producing evidence-backed findings and the smallest justified intervention when those signals diverge.</p>
+        <p>One live view of what a partner was allowed to do, what it could reach, what it touched, and what ThirdSight changed before data left.</p>
       </section>
 
       <section className="hcr-assurance-band" aria-label="Assurance capabilities">
