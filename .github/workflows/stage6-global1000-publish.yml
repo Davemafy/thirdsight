@@ -92,6 +92,10 @@ jobs:
             git push origin HEAD:main
           fi
 
+      - name: Sync after status publication
+        if: ${{ env.BENCHMARK_STATUS == 'completed' && env.BENCHMARK_CONCLUSION == 'success' }}
+        run: git pull --rebase origin main
+
       - name: Download completed benchmark artifact
         if: ${{ env.BENCHMARK_STATUS == 'completed' && env.BENCHMARK_CONCLUSION == 'success' }}
         env:
@@ -134,7 +138,6 @@ jobs:
       - name: Commit benchmark result
         if: ${{ env.BENCHMARK_STATUS == 'completed' && env.BENCHMARK_CONCLUSION == 'success' }}
         run: |
-          git pull --rebase origin main
           git add \
             docs/stage6-global1000-benchmark.md \
             docs/stage6-global1000-summary.json \
