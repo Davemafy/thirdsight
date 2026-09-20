@@ -603,7 +603,6 @@ function ActivityRow({event,onClick,large=false}:{event:ConsoleEvent;onClick:()=
 }
 
 function EvidenceDrawer({event,aiPromoted,onClose}:{event:ConsoleEvent;aiPromoted:boolean;onClose:()=>void}){
-  const value=eventStatus(event);
   const discoveryOnly=event.coverage.label==="BROWSER_ONLY"&&event.should.status==="UNKNOWN"&&event.why.status==="UNKNOWN";
   const status=simpleEventStatus(event);
   const allowedFor=event.should.status==="KNOWN"
