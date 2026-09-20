@@ -19,6 +19,7 @@ describe("vendor intelligence registry",()=>{
     expect(resolveVendorOrigin("https://static.cloudflareinsights.com").profiles[0]?.family).toBe("Cloudflare Web Analytics");
     expect(resolveVendorOrigin("https://cdn.cookielaw.org").profiles[0]?.vendor).toBe("OneTrust");
     expect(resolveVendorOrigin("https://www.clarity.ms").profiles[0]?.vendor).toBe("Microsoft");
+    expect(resolveVendorOrigin("https://securepubads.g.doubleclick.net").profiles[0]?.family).toBe("Google Publisher Tag / Ad Manager");
   });
 
   it("keeps unknown domains unresolved",()=>{
