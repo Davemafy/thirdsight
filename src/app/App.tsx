@@ -722,16 +722,6 @@ function EmptyState({text}:{text:string}){
   return <div className="ts-empty"><Eye size={17}/><span>{text}</span></div>;
 }
 
-function evidenceFreshness(value:string){
-  const timestamp=new Date(value).getTime();
-  if(!Number.isFinite(timestamp))return "Evidence timestamp unavailable";
-  const elapsed=Math.max(0,Date.now()-timestamp);
-  if(elapsed<60_000)return `Last evidence ${Math.max(1,Math.floor(elapsed/1000))}s ago`;
-  if(elapsed<3_600_000)return `Last evidence ${Math.floor(elapsed/60_000)}m ago`;
-  if(elapsed<86_400_000)return `Last evidence ${Math.floor(elapsed/3_600_000)}h ago`;
-  return `Last evidence ${Math.floor(elapsed/86_400_000)}d ago`;
-}
-
 function eventStatus(event:ConsoleEvent){
   return event.outcome??event.decision??(event.coverage.label==="BROWSER_ONLY"?"DISCOVERY":"UNRESOLVED");
 }
