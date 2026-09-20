@@ -269,36 +269,49 @@ function Overview({
   onOpenEvent:(index:number)=>void;
 }){
   const prevented=proof?.scopePrevention.proven??false;
+  const totalObserved=exposure.length;
+  const reviewRows=[
+    ...exposure.filter(row=>row.findings.length>0),
+    ...exposure.filter(row=>row.findings.length===0&&!row.integrationId),
+  ].slice(0,3);
+  const statusTitle=findingCount>0
+    ? `${findingCount} integration${findingCount===1?"":"s"} need attention`
+    : `${totalObserved} third-party destination${totalObserved===1?"":"s"} observed`;
+  const statusDetail=findingCount>0
+    ? "Deterministic findings are present in the current operational evidence."
+    : unregisteredCount>0
+      ? `No deterministic policy violation is proven. ${unregisteredCount} destination${unregisteredCount===1?"":"s"} still need identity or purpose context.`
+      : "No deterministic policy violation is proven in the current operational evidence.";
+
   return <>
-    <div className="ts-hero">
-      <div className="ts-hero-copy">
-        <span className="ts-kicker">Third-party access control</span>
-        <h1>Know what integrations can reach — and when they go beyond it.</h1>
-        <p>ThirdSight compares approved purpose, technical reach, observed behaviour and business context, then applies the smallest justified response.</p>
+    <div className="ts-operational-hero">
+      <div className="ts-operational-copy">
+        <span className="ts-live-label"><i/> Discovery active · Commerce Lab</span>
+        <span className="ts-kicker">Current third-party posture</span>
+        <h1>{statusTitle}</h1>
+        <p>{statusDetail}</p>
         <div className="ts-hero-actions">
-          <button className="ts-primary" onClick={onViewIntegrations}>View integrations <ArrowRight size={15}/></button>
-          <button className="ts-secondary" onClick={onConnections}>How to connect a platform</button>
+          <button className="ts-primary" onClick={onViewIntegrations}>Review destinations <ArrowRight size={15}/></button>
+          <button className="ts-secondary" onClick={onConnections}>Connect enforcement</button>
         </div>
       </div>
-      <div className="ts-hero-model">
-        <span>Decision model</span>
-        <div><b>SHOULD</b><small>approved purpose</small></div>
-        <div><b>COULD</b><small>technical reach</small></div>
-        <div><b>DID</b><small>observed access</small></div>
-        <div><b>WHY</b><small>business context</small></div>
+      <div className="ts-operational-summary">
+        <span>How ThirdSight decides</span>
+        <p><b>Approved purpose</b> + technical reach + observed access + business context.</p>
+        <small>It escalates only as far as the evidence supports.</small>
       </div>
     </div>
 
     <div className="ts-stat-grid">
-      <StatCard label="Registered integrations" value={String(registeredCount)} detail="Purpose-aware identities" icon={<PlugZap size={17}/>}/>
-      <StatCard label="Unregistered destinations" value={String(unregisteredCount)} detail="Observed, not automatically malicious" icon={<Eye size={17}/>}/>
-      <StatCard label="Integrations with findings" value={String(findingCount)} detail="Deterministic evidence attached" icon={<AlertTriangle size={17}/>}/>
-      <StatCard label="Managed prevention" value={prevented?"Proven":"Not yet"} detail={prevented?"Unjustified field stopped pre-send":"No persisted pre-send proof"} icon={<ShieldCheck size={17}/>}/>
+      <StatCard label="Observed destinations" value={String(totalObserved)} detail="Third-party origins in this workspace" icon={<Eye size={17}/>}/>
+      <StatCard label="Purpose-aware" value={String(registeredCount)} detail="Registered integrations with identity context" icon={<PlugZap size={17}/>}/>
+      <StatCard label="Deterministic findings" value={String(findingCount)} detail={findingCount>0?"Evidence-backed violations":"No violation currently proven"} icon={<AlertTriangle size={17}/>}/>
+      <StatCard label="Pre-send prevention" value={prevented?"Proven":"No proof"} detail={prevented?"Unjustified field stopped before send":"No persisted prevention evidence"} icon={<ShieldCheck size={17}/>}/>
     </div>
 
-    <div className="ts-overview-grid">
-      <Panel title="Integration posture" subtitle="Highest-signal integrations and observed destinations." action="View all" onAction={onViewIntegrations}>
-        <CompactIntegrationTable rows={exposure.slice(0,6)} onOpen={onOpenRow}/>
+    <div className="ts-review-grid">
+      <Panel title="Review next" subtitle={reviewRows.length>0?"Unresolved or evidence-backed items worth opening next.":"Nothing currently requires review."} action="View all" onAction={onViewIntegrations}>
+        <ReviewQueue rows={reviewRows} onOpen={onOpenRow}/>
       </Panel>
       <Panel title="Recent activity" subtitle="Representative persisted evidence." >
         <div className="ts-activity-list">
@@ -456,6 +469,31 @@ function Validation({rows,proof}:{rows:readonly ExposureRow[];proof:ChallengePro
     <div className="ts-section-head"><div><span className="ts-kicker">Judge proof</span><h2>Challenge requirements, separated from product operations</h2><p>Commerce Lab proves correctness under ground truth. Public-site discovery proves external breadth under explicit visibility limits.</p></div></div>
     <IntegrationExposureMap rows={rows.slice(0,10)} proof={proof}/>
     <RealWorldValidation/>
+  </div>;
+}
+
+function ReviewQueue({rows,onOpen}:{rows:readonly ExposureRow[];onOpen:(row:ExposureRow)=>void}){
+  if(rows.length===0)return <EmptyState text="No unresolved or evidence-backed item is currently queued."/>;
+  return <div className="ts-review-list">
+    {rows.map(row=>{
+      const hasFinding=row.findings.length>0;
+      const reason=hasFinding
+        ? humanize(row.findings[0])
+        : row.integrationId
+          ? "Purpose or evidence context needs review"
+          : "Identity and merchant-approved purpose not registered";
+      return <button key={row.key} onClick={()=>onOpen(row)}>
+        <span className={"ts-review-icon "+(hasFinding?"finding":"unresolved")}>
+          {hasFinding?<AlertTriangle size={15}/>:<Eye size={15}/>}
+        </span>
+        <div>
+          <strong>{row.label}</strong>
+          <span>{reason}</span>
+          <small>{row.observations} observation{row.observations===1?"":"s"} · {row.lastSeen?new Date(row.lastSeen).toLocaleString():"no timestamp"}</small>
+        </div>
+        <ChevronRight size={15}/>
+      </button>;
+    })}
   </div>;
 }
 
