@@ -2,10 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Activity,
   AlertTriangle,
-  ArrowRight,
   Check,
   ChevronRight,
-  CircleDot,
   Eye,
   Play,
   RotateCcw,
