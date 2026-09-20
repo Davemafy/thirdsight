@@ -179,7 +179,7 @@ export default function App(){
           <span>{current.subtitle}</span>
         </div>
         <div className="ts-topbar-actions">
-          <span className="ts-env"><span/> Production</span>
+          <span className="ts-env"><span/> Commerce Lab</span>
           <button className="ts-connect-button" onClick={()=>setView("connections")}><PlugZap size={14}/> Connect platform</button>
         </div>
       </div>
