@@ -1,5 +1,6 @@
-# Standalone deployments have their own Vercel project roots.
-services/
+# Keep standalone service source available to Vercel projects whose Root Directory
+# is configured under services/. Repository-level ignores run before Vercel enters
+# the selected project root.
 
 # Local-only test output and documentation inputs.
 **/tests/
