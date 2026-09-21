@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="ThirdSight">
+  <rect width="64" height="64" rx="16" fill="#173d25"/>
+  <path d="M32 11.5 49 18v12.4c0 11.3-6.6 18.2-17 22.1-10.4-3.9-17-10.8-17-22.1V18l17-6.5Z" fill="#eef5eb"/>
+  <path d="M20.5 31.7c3-4.7 6.9-7 11.5-7s8.5 2.3 11.5 7c-3 4.7-6.9 7-11.5 7s-8.5-2.3-11.5-7Z" fill="#173d25"/>
+  <circle cx="32" cy="31.7" r="4.2" fill="#eef5eb"/>
+</svg>
