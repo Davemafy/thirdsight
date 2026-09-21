@@ -174,6 +174,12 @@ export default function App(){
     ].join(" ").toLowerCase().includes(normalizedQuery);
   }),[exposureMap,normalizedQuery]);
 
+  const openConnections=()=>{
+    setDetailOpen(false);
+    setView("connections");
+    window.requestAnimationFrame(()=>window.scrollTo({top:0,behavior:"smooth"}));
+  };
+
   const openEvent=(index:number)=>{
     if(index<0||index>=events.length)return;
     setSelected(index);
@@ -224,8 +230,8 @@ export default function App(){
           <strong>{current.title}</strong>
         </div>
         <div className="ts-topbar-actions">
-          <span className="ts-env"><span/> Commerce Lab</span>
-          <button className="ts-connect-button" onClick={()=>setView("connections")}><PlugZap size={14}/> Connect platform</button>
+          <span className="ts-env"><span/> CEDAR Commerce</span>
+          <button className="ts-connect-button" type="button" onClick={openConnections}><PlugZap size={14}/> Connect platform</button>
           <button className="ts-mobile-more" onClick={()=>setMobileMenuOpen(true)} aria-label="More navigation"><MoreHorizontal size={19}/></button>
         </div>
       </div>
@@ -239,7 +245,7 @@ export default function App(){
           unregisteredCount={unregistered.length}
           findingCount={findings.length}
           onViewIntegrations={()=>setView("integrations")}
-          onConnections={()=>setView("connections")}
+          onConnections={openConnections}
           onOpenRow={openRow}
           onOpenEvent={openEvent}
         />:null}
@@ -324,7 +330,7 @@ function Overview({
   return <>
     <div className="ts-operational-hero">
       <div className="ts-operational-copy">
-        <span className="ts-live-label">Discovery active · Commerce Lab</span>
+        <span className="ts-live-label">Discovery active · CEDAR Commerce</span>
         <h1>{statusTitle}</h1>
         <p>{statusDetail}</p>
         <div className="ts-hero-actions">
@@ -507,7 +513,7 @@ await thirdsight.integration("paystack").fetch(
 
 function Validation({rows,proof}:{rows:readonly ExposureRow[];proof:ChallengeProof|null}){
   return <div className="ts-validation-stack">
-    <div className="ts-section-head"><div><span className="ts-kicker">Judge proof</span><h2>Challenge requirements, separated from product operations</h2><p>Commerce Lab proves correctness under ground truth. Public-site discovery proves external breadth under explicit visibility limits.</p></div></div>
+    <div className="ts-section-head"><div><span className="ts-kicker">Judge proof</span><h2>Challenge requirements, separated from product operations</h2><p>CEDAR Commerce proves correctness under ground truth. Public-site discovery proves external breadth under explicit visibility limits.</p></div></div>
     <IntegrationExposureMap rows={rows.slice(0,10)} proof={proof}/>
     <RealWorldValidation/>
   </div>;
