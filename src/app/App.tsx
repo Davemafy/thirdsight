@@ -19,7 +19,6 @@ import {
   Search,
   ShieldCheck,
   ShieldEllipsis,
-  SlidersHorizontal,
   Workflow,
   X,
 } from "lucide-react";
@@ -528,87 +527,6 @@ function Validation({rows,proof}:{rows:readonly ExposureRow[];proof:ChallengePro
   </div>;
 }
 
-function ReviewQueue({rows,onOpen}:{rows:readonly ExposureRow[];onOpen:(row:ExposureRow)=>void}){
-  if(rows.length===0)return <EmptyState text="No unresolved or evidence-backed item is currently queued."/>;
-  return <div className="ts-review-list">
-    {rows.map(row=>{
-      const hasFinding=row.findings.length>0;
-      const reason=hasFinding
-        ? humanize(row.findings[0]??"finding")
-        : row.integrationId
-          ? "Purpose or evidence context needs review"
-          : "Identity and merchant-approved purpose not registered";
-      return <button key={row.key} onClick={()=>onOpen(row)}>
-        <span className={"ts-review-icon "+(hasFinding?"finding":"unresolved")}>
-          {hasFinding?<AlertTriangle size={15}/>:<Eye size={15}/>}
-        </span>
-        <div>
-          <strong>{row.label}</strong>
-          <span>{reason}</span>
-          <small>{row.observations} observation{row.observations===1?"":"s"} · {row.lastSeen?new Date(row.lastSeen).toLocaleString():"no timestamp"}</small>
-        </div>
-        <ChevronRight size={15}/>
-      </button>;
-    })}
-  </div>;
-}
-
-function IntegrationRow({row,onClick}:{row:ExposureRow;onClick:()=>void}){
-  const profile=row.vendorIntelligence.profiles[0]??null;
-  const expected=profile?.expectedPurposes.slice(0,1)??[];
-  const documentedCapability=profile?.documentedCapabilities.slice(0,2)??[];
-  const localCapability=row.canReachFields;
-  const capable=localCapability.length>0?localCapability:documentedCapability;
-
-  return <button className="ts-table-row integration" onClick={onClick}>
-    <div className="ts-integration-name">
-      <span className={"ts-integration-dot "+responseClass(row.latestResponse)}/>
-      <p>
-        <b>{profile?.family??row.label}</b>
-        <small>{profile?`${profile.vendor} · documented family`:(row.integrationId??"identity unresolved")} · {row.observations} observations</small>
-      </p>
-    </div>
-    <IntelCell
-      values={expected}
-      fallback="Documented purpose unavailable"
-      source={profile?"Vendor documented":"Unresolved"}
-    />
-    <IntelCell
-      values={capable}
-      fallback={row.reachSource==="OBSERVED_LOWER_BOUND"?"Browser-visible lower bound only":"Documented capability unavailable"}
-      source={localCapability.length>0?"Local capability":profile?"Vendor documented":row.reachSource==="OBSERVED_LOWER_BOUND"?"Browser sensor":"Unresolved"}
-    />
-    <IntelCell
-      values={row.attemptedFields}
-      blocked={row.preventedFields}
-      fallback={row.boundaries.length?row.boundaries.map(v=>v+" request metadata").join(", "):"Not observed"}
-      source={row.boundaries.includes("browser")?"Browser sensor":"Runtime evidence"}
-    />
-    <IntelCell
-      values={row.approvedFields}
-      fallback="Not supplied by merchant"
-      source="Merchant policy"
-      muted={row.approvedFields.length===0}
-    />
-    <div className="ts-response-cell"><StatusPill value={row.latestResponse}/>{row.findings.slice(0,1).map(value=><small key={value}>{humanize(value)}</small>)}</div>
-  </button>;
-}
-
-function ActivityRow({event,onClick,large=false}:{event:ConsoleEvent;onClick:()=>void;large?:boolean}){
-  const value=eventStatus(event);
-  return <button className={"ts-activity-row "+(large?"large":"")} onClick={onClick}>
-    <span className={"ts-activity-icon "+responseClass(value)}>{eventIcon(value)}</span>
-    <div className="ts-activity-copy">
-      <strong>{integrationLabel(event)}</strong>
-      <span>{eventSummary(event)}</span>
-      <small>{new Date(event.observedAt).toLocaleString()} · {event.coverage.label.replaceAll("_"," ").toLowerCase()}</small>
-    </div>
-    <StatusPill value={value}/>
-    <ChevronRight size={15}/>
-  </button>;
-}
-
-
 function EvidenceDrawer({event,aiPromoted,onClose}:{event:ConsoleEvent;aiPromoted:boolean;onClose:()=>void}){
   const value=eventStatus(event);
   const discoveryOnly=event.coverage.label==="BROWSER_ONLY"&&event.should.status==="UNKNOWN"&&event.why.status==="UNKNOWN";
@@ -671,94 +589,8 @@ function EvidenceLine({label,status,value,source}:{label:string;status:string;va
   return <div><p><strong>{label}</strong><span className={"ts-final-evidence-state "+status.toLowerCase()}>{humanize(status)}</span></p><b>{value}</b><small>{source}</small></div>;
 }
 
-function VendorIntelligencePanel({event}:{event:ConsoleEvent}){
-  const profile=event.vendorIntelligence.profiles[0]??null;
-  const approved=event.should.status==="KNOWN"
-    ? event.should.value?.purpose??"Merchant policy present"
-    : "Not supplied by merchant";
-  const observed=didSummary(event);
-  const context=event.why.value?.eventType
-    ? `${event.why.value.eventType} · ${event.why.value.correlationStrength}`
-    : "No authoritative customer-journey context";
-  const capability=profile?.documentedCapabilities.slice(0,2).join(" · ")
-    ?? event.could.value?.statement
-    ?? "Documented capability unavailable";
-
-  return <section className="ts-vendor-intel">
-    <div className="ts-vendor-intel-head">
-      <div>
-        <span className="ts-kicker">Vendor Intelligence · {event.vendorIntelligence.registryVersion}</span>
-        <strong>{profile?profile.family:"Vendor identity unresolved"}</strong>
-        <small>{profile?`${profile.vendor} · ${humanize(profile.category)}`:"No documentation-backed family matched this destination."}</small>
-      </div>
-      <span className={"ts-vendor-match "+(profile?"matched":"unresolved")}>{profile?"DOCUMENTED":"UNRESOLVED"}</span>
-    </div>
-
-    <div className="ts-intel-stack">
-      <IntelFact label="Expected" value={profile?.expectedPurposes[0]??"Documented purpose unavailable"} source={profile?"Vendor documented":"Unavailable"}/>
-      <IntelFact label="Approved" value={approved} source="Merchant policy"/>
-      <IntelFact label="Capable" value={capability} source={profile?"Vendor documentation":event.could.status!=="UNKNOWN"?"Local evidence":"Unavailable"}/>
-      <IntelFact label="Observed" value={observed} source={event.did.value?.boundary==="browser"?"Browser sensor":"Runtime evidence"}/>
-      <IntelFact label="Context" value={context} source={event.why.status==="UNKNOWN"?"Not supplied":"First-party business event"}/>
-    </div>
-
-    {profile?<div className="ts-vendor-docs">
-      <span>Documentation reviewed {profile.sources[0]?.reviewedAt}</span>
-      <div>{profile.sources.slice(0,3).map(item=><a href={item.url} target="_blank" rel="noreferrer" key={item.url}>{item.title}</a>)}</div>
-    </div>:null}
-    <p className="ts-vendor-boundary">{event.vendorIntelligence.authorityBoundary}</p>
-  </section>;
-}
-
-function IntelFact({label,value,source}:{label:string;value:string;source:string}){
-  return <div className="ts-intel-fact"><span>{label}</span><p><b>{value}</b><small>{source}</small></p></div>;
-}
-
-function IntelCell({values,blocked=[],fallback,source,muted=false}:{values:readonly string[];blocked?:readonly string[];fallback:string;source:string;muted?:boolean}){
-  return <div className={"ts-intel-cell "+(muted?"muted":"")}>
-    <div className="ts-intel-cell-values">
-      {values.length>0
-        ?values.slice(0,2).map(value=><span className={blocked.includes(value)?"blocked":""} key={value}>{value}{blocked.includes(value)?" · blocked":""}</span>)
-        :<span>{fallback}</span>}
-      {values.length>2?<small>+{values.length-2} more</small>:null}
-    </div>
-    <em>{source}</em>
-  </div>;
-}
-
-function DecisionCard({event}:{event:ConsoleEvent}){
-  const value=eventStatus(event);
-  return <div className={"ts-decision-card "+responseClass(value)}>
-    <div><span>What ThirdSight did</span><strong>{value}</strong></div>
-    <p>{eventSummary(event)}</p>
-    {event.findings.length>0?<div className="ts-decision-meta"><span>Finding <b>{humanize(event.findings[0].type)}</b></span><span>Response <b>{event.findings[0].action}</b></span></div>:null}
-    {event.enforcement?<div className="ts-enforcement-grid">
-      <div><span>Removed before send</span><b>{event.enforcement.removedFields.join(", ")||"none"}</b></div>
-      <div><span>Continued</span><b>{event.enforcement.continuedFields.join(", ")||"none"}</b></div>
-      <div><span>Receiver got</span><b>{event.enforcement.receiver.receivedFields.join(", ")||"none"}</b></div>
-      <div><span>Forbidden field received</span><b>{event.enforcement.receiver.forbiddenFieldReceived?"YES":"NO"}</b></div>
-    </div>:null}
-    {event.containment?<div className="ts-decision-meta"><span>Containment <b>{event.containment.action}</b></span><span>Applied <b>{event.containment.applied?"YES":"NO"}</b></span></div>:null}
-  </div>;
-}
-
-function EvidenceFact({title,status,value,detail}:{title:string;status:string;value:string;detail?:string}){
-  return <div className="ts-evidence-fact"><div><b>{title}</b><span className={"ts-evidence-status "+status.toLowerCase()}>{status}</span></div><strong>{value}</strong><p>{detail??"No explanatory note recorded."}</p></div>;
-}
-
 function RawEvidence({label,value}:{label:string;value:unknown}){
   return <div><span>{label}</span><pre>{JSON.stringify(value,null,2)}</pre></div>;
-}
-
-function Panel({title,subtitle,action,onAction,children}:{title:string;subtitle:string;action?:string;onAction?:()=>void;children:React.ReactNode}){
-  return <div className="ts-panel">
-    <div className="ts-panel-head"><div><strong>{title}</strong><span>{subtitle}</span></div>{action&&onAction?<button onClick={onAction}>{action}<ArrowRight size={13}/></button>:null}</div>
-    {children}
-  </div>;
-}
-
-function StatCard({label,value,detail,icon}:{label:string;value:string;detail:string;icon:React.ReactNode}){
-  return <div className="ts-stat-card"><div><span>{icon}</span><small>{label}</small></div><strong>{value}</strong><p>{detail}</p></div>;
 }
 
 function ConnectorCard({icon,title,badge,tone,summary,bullets}:{icon:React.ReactNode;title:string;badge:string;tone:"strong"|"neutral";summary:string;bullets:readonly string[]}){
