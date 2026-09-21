@@ -1,4 +1,5 @@
 import { createHash, randomUUID, timingSafeEqual } from "node:crypto";
+import { MerchantControlPlaneStore } from "../../control-plane/control-plane-store.js";
 import { CredentialUnavailableError } from "../../gateway/credential-provider.js";
 import { GatewayExecutionError, executeGatewayRequest } from "../../gateway/gateway-core.js";
 import { GatewaySecurityError } from "../../gateway/security.js";
@@ -25,18 +26,6 @@ export default async function handler(request:ApiRequest,response:ApiResponse):P
   if(!request.method){response.status(400).json({error:"METHOD_REQUIRED"});return;}
   if(request.method==="OPTIONS"){response.status(204).end();return;}
 
-  const env=runtimeEnv();
-  const gatewayKey=env.THIRDSIGHT_GATEWAY_API_KEY?.trim();
-  if(!gatewayKey||gatewayKey.length<16){response.status(503).json({error:"GATEWAY_NOT_CONFIGURED"});return;}
-  if(!authorizedBearer(header(request,"authorization"),gatewayKey)){
-    response.status(401).json({error:"UNAUTHORIZED"});
-    return;
-  }
-
-  const supabaseUrl=env.THIRDSIGHT_SUPABASE_URL?.trim();
-  const serviceRoleKey=env.THIRDSIGHT_SUPABASE_SERVICE_ROLE_KEY?.trim();
-  if(!supabaseUrl||!serviceRoleKey){response.status(503).json({error:"PERSISTENCE_NOT_CONFIGURED"});return;}
-
   const integration=queryValue(request,"integration");
   const path=queryValue(request,"path");
   const environment=queryValue(request,"environment")||undefined;
@@ -45,11 +34,48 @@ export default async function handler(request:ApiRequest,response:ApiResponse):P
     return;
   }
 
+  const env=runtimeEnv();
+  const supabaseUrl=env.THIRDSIGHT_SUPABASE_URL?.trim();
+  const serviceRoleKey=env.THIRDSIGHT_SUPABASE_SERVICE_ROLE_KEY?.trim();
+  if(!supabaseUrl||!serviceRoleKey){response.status(503).json({error:"PERSISTENCE_NOT_CONFIGURED"});return;}
+
+  const bearer=bearerToken(header(request,"authorization"));
+  if(!bearer){response.status(401).json({error:"UNAUTHORIZED"});return;}
+
+  let merchantId:string|null=null;
+  const globalGatewayKey=env.THIRDSIGHT_GATEWAY_API_KEY?.trim();
+  const isLegacyGlobalKey=Boolean(globalGatewayKey&&globalGatewayKey.length>=16&&sameSecret(bearer,globalGatewayKey));
+  if(!isLegacyGlobalKey){
+    try{
+      const controlPlane=new MerchantControlPlaneStore({projectUrl:supabaseUrl,serviceRoleKey});
+      const authenticated=await controlPlane.authenticateApiKey(bearer);
+      if(!authenticated){response.status(401).json({error:"UNAUTHORIZED"});return;}
+      const installed=await controlPlane.hasActiveIntegration(
+        authenticated.merchantId,
+        integration,
+        environment,
+      );
+      if(!installed){
+        response.status(403).json({error:"MERCHANT_INTEGRATION_NOT_INSTALLED"});
+        return;
+      }
+      merchantId=authenticated.merchantId;
+    }catch{
+      // Authentication/policy persistence is an enforcement dependency. Never forward when it is unavailable.
+      response.status(503).json({error:"MERCHANT_AUTH_UNAVAILABLE",message:"ThirdSight could not verify the merchant gateway key."});
+      return;
+    }
+  }
+
   const requestId=randomUUID();
   response.setHeader("x-thirdsight-request-id",requestId);
 
   try{
-    const store=new SupabaseEvidenceHistoryStore({projectUrl:supabaseUrl,serviceRoleKey});
+    const store=new SupabaseEvidenceHistoryStore({
+      projectUrl:supabaseUrl,
+      serviceRoleKey,
+      ...(merchantId?{merchantId}:{}),
+    });
     const context=parseContextHeader(header(request,"x-thirdsight-context"));
     const result=await executeGatewayRequest({
       requestId,
@@ -65,6 +91,7 @@ export default async function handler(request:ApiRequest,response:ApiResponse):P
 
     response.setHeader("x-thirdsight-decision",result.decision);
     response.setHeader("x-thirdsight-evidence",result.evidencePersisted?"persisted":"unavailable");
+    if(result.evidencePersisted) response.setHeader("x-thirdsight-evidence-id",`gateway-http:${requestId}`);
     if(result.degraded) response.setHeader("x-thirdsight-degraded","true");
     for(const [name,value] of Object.entries(result.responseHeaders)) response.setHeader(name,value);
     response.status(result.responseStatus).end(result.responseBody);
@@ -82,14 +109,16 @@ function parseContextHeader(value:string){
   return parseManagedRequestContext(parsed);
 }
 
-function authorizedBearer(value:string,expected:string):boolean{
-  const prefix="Bearer ";
-  if(!value.startsWith(prefix)) return false;
-  const provided=value.slice(prefix.length).trim();
-  if(!provided) return false;
+function bearerToken(value:string):string|null{
+  if(!value.startsWith("Bearer ")) return null;
+  const token=value.slice(7).trim();
+  return token||null;
+}
+
+function sameSecret(provided:string,expected:string):boolean{
   const left=createHash("sha256").update(provided).digest();
   const right=createHash("sha256").update(expected).digest();
-  return timingSafeEqual(left,right);
+  return left.length===right.length&&timingSafeEqual(left,right);
 }
 
 function flattenHeaders(input:Record<string,string|string[]|undefined>):Record<string,string>{

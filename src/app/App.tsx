@@ -36,6 +36,7 @@ import type { VendorIntelligenceResolution } from "../vendor-intelligence/vendor
 import { LearningLoopPanel } from "./LearningLoopPanel";
 import { IntegrationExposureMap, type ChallengeProof, type ExposureRow } from "./IntegrationExposureMap";
 import { RealWorldValidation } from "./RealWorldValidation";
+import { SelfServeOnboarding } from "./SelfServeOnboarding";
 import "./ProductConsole.css";
 
 type View="overview"|"integrations"|"activity"|"incidents"|"policies"|"connections"|"validation";
@@ -448,6 +449,8 @@ function Connections({rows,proof}:{rows:readonly ExposureRow[];proof:ChallengePr
         <span><b>4</b>Monitor & respond</span>
       </div>
     </div>
+
+    <SelfServeOnboarding/>
 
     <div className="ts-connector-grid">
       <ConnectorCard

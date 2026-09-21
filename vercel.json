@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/api/control-plane",
+      "destination": "/api/console-events?controlPlane=1"
+    },
+    {
       "source": "/api/managed-gateway",
       "destination": "/api/console-events?managedHttpGateway=1"
     },

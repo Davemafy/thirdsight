@@ -8,11 +8,13 @@ import {
 } from "../src/vendor-intelligence/vendor-intelligence.js";
 import gatewayHandler from "../src/infrastructure/gateway/gateway-handler.js";
 import managedGatewayHandler from "../src/infrastructure/gateway/managed-gateway-handler.js";
+import controlPlaneHandler from "../src/control-plane/control-plane-handler.js";
 
 interface ApiRequest { method?: string; url?:string; query?:Record<string,string|string[]|undefined>; body?:unknown; headers:Record<string,string|string[]|undefined> }
 interface ApiResponse { status(code:number):ApiResponse; setHeader(name:string,value:string):void; json(body:unknown):void; end():void }
 
 export default async function handler(request:ApiRequest,response:ApiResponse):Promise<void>{
+  if(request.url?.includes("controlPlane=1")) return controlPlaneHandler(request,response);
   if(request.url?.includes("managedHttpGateway=1")) return managedGatewayHandler(request,response);
   if(request.url?.includes("managedGateway=1")) return gatewayHandler(request,response);
   response.setHeader("Cache-Control","no-store");

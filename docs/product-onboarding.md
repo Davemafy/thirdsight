@@ -116,3 +116,9 @@ The browser sensor can retain a rolling local session buffer when ingestion is n
 Connection mode changes what ThirdSight can prove.
 
 The UI must therefore expose coverage state next to every decision instead of flattening managed, browser-only and audit evidence into the same certainty level.
+
+## Recording-ready self-service provisioning
+
+The current Connections flow can create a merchant workspace, install either the fixed CEDAR Analytics or CEDAR Delivery preset, approve its server-owned Purpose Contract, issue a one-time merchant-scoped key, and execute a real managed request. The browser cannot supply arbitrary upstreams, routes or Purpose Contracts. Merchant evidence is tagged in persistence and remains visible in the operator dashboard. The preview still uses a shared privileged operator setup secret and is not yet a full multi-user SaaS account system.
+
+For the installable Node preview and current limitations, see [self-service-control-plane.md](self-service-control-plane.md).

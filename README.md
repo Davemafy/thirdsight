@@ -120,3 +120,13 @@ topology, environment contract, routes, test commands and canonical demo path.
 ## Data handling
 
 The prototype and evaluation use synthetic or properly anonymised data only. Raw HAR captures, real customer data, cookies, tokens, credentials, and research archives must never be committed to this repository.
+
+## Recording-ready merchant self-service
+
+The Connections screen now supports a constrained merchant-scoped provisioning preview: create a workspace, approve one fixed CEDAR preset, receive a one-time merchant API key, and send a real request through the existing managed gateway. See [Recording-ready merchant self-service](docs/self-service-control-plane.md).
+
+The Node client is currently distributed as a repository-hosted preview tarball rather than an npm-registry release:
+
+```bash
+npm install https://raw.githubusercontent.com/Davemafy/thirdsight/main/packages/thirdsight-node/thirdsight-node-0.1.0.tgz
+```
