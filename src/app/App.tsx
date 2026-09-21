@@ -3,23 +3,25 @@ import {
   Activity,
   AlertTriangle,
   ArrowRight,
+  Bell,
   BookOpenCheck,
+  ChevronDown,
   ChevronRight,
   CircleCheck,
+  CircleHelp,
   Clock3,
   Code2,
   Database,
   Eye,
+  FlaskConical,
   Globe2,
+  Home,
   Layers3,
   Network,
   MoreHorizontal,
-  PlugZap,
-  Radio,
   Search,
   ShieldCheck,
   ShieldEllipsis,
-  SlidersHorizontal,
   Workflow,
   X,
 } from "lucide-react";
@@ -158,46 +160,49 @@ export default function App(){
 
   const current=viewCopy[view];
 
-  return <div className="ts-shell">
-    <div className="ts-sidebar">
-      <button className="ts-brand" onClick={()=>setView("overview")}>
-        <span><ShieldCheck size={20}/></span>
-        <div><strong>ThirdSight</strong><small>Integration security</small></div>
+  return <div className="ts-shell ts-master-shell">
+    <aside className="ts-sidebar ts-master-sidebar">
+      <button className="ts-brand ts-master-brand" onClick={()=>setView("overview")}>
+        <span className="ts-brand-symbol" aria-hidden="true"/>
+        <strong>ThirdSight</strong>
       </button>
 
-      <div className="ts-nav">
-        <NavButton active={view==="overview"} icon={<Layers3 size={16}/>} label="Overview" onClick={()=>setView("overview")}/>
-        <NavButton active={view==="integrations"} icon={<PlugZap size={16}/>} label="Integrations" onClick={()=>setView("integrations")}/>
-        <NavButton active={view==="activity"} icon={<Activity size={16}/>} label="Activity" onClick={()=>setView("activity")}/>
-        <NavButton active={view==="incidents"} icon={<AlertTriangle size={16}/>} label="Incidents" onClick={()=>setView("incidents")}/>
-        <NavButton active={view==="policies"} icon={<BookOpenCheck size={16}/>} label="Policies" onClick={()=>setView("policies")}/>
-        <NavButton active={view==="connections"} icon={<Network size={16}/>} label="Connections" onClick={()=>setView("connections")}/>
+      <nav className="ts-nav ts-master-nav">
+        <NavButton active={view==="overview"} icon={<Home size={17}/>} label="Overview" onClick={()=>setView("overview")}/>
+        <NavButton active={view==="integrations"} icon={<Layers3 size={17}/>} label="Integrations" onClick={()=>setView("integrations")}/>
+        <NavButton active={view==="activity"} icon={<Activity size={17}/>} label="Activity" onClick={()=>setView("activity")}/>
+        <NavButton active={view==="incidents"} icon={<AlertTriangle size={17}/>} label="Incidents" count={findings.length} onClick={()=>setView("incidents")}/>
+        <NavButton active={view==="policies"} icon={<BookOpenCheck size={17}/>} label="Policies" onClick={()=>setView("policies")}/>
+        <a className="ts-nav-link" href="/commerce-lab"><FlaskConical size={17}/><b>Commerce Lab</b></a>
         <div className="ts-nav-separator"/>
-        <NavButton active={view==="validation"} icon={<CircleCheck size={16}/>} label="Validation" onClick={()=>setView("validation")}/>
-      </div>
+        <NavButton active={view==="connections"} icon={<Network size={17}/>} label="Connections" onClick={()=>setView("connections")}/>
+        <NavButton active={view==="validation"} icon={<CircleCheck size={17}/>} label="Validation" onClick={()=>setView("validation")}/>
+      </nav>
 
-      <div className="ts-sidebar-foot">
-        <span><Radio size={12}/> Evidence live</span>
-        <small>Persisted evidence only. Unknown stays unknown.</small>
+      <div className="ts-sidebar-foot ts-master-sidebar-foot">
+        <span>Evidence-backed decisions</span>
+        <small>Unknown remains unresolved.</small>
       </div>
-    </div>
+    </aside>
 
-    <div className="ts-workspace">
-      <div className="ts-topbar">
-        <div className="ts-mobile-product">
-          <span><ShieldCheck size={17}/></span>
-          <div><b>ThirdSight</b><small>{current.title}</small></div>
-        </div>
-        <div className="ts-desktop-context">
-          <strong>{current.title}</strong>
-          <span>{current.subtitle}</span>
-        </div>
-        <div className="ts-topbar-actions">
-          <span className="ts-env"><span/> Commerce Lab</span>
-          <button className="ts-connect-button" onClick={()=>setView("connections")}><PlugZap size={14}/> Connect platform</button>
+    <div className="ts-workspace" aria-label={current.title+" workspace"}>
+      <header className="ts-topbar ts-master-topbar">
+        <button className="ts-workspace-switch" type="button">Commerce Lab <ChevronDown size={14}/></button>
+        <label className="ts-global-search">
+          <Search size={17}/>
+          <input
+            value={query}
+            onChange={event=>{setQuery(event.target.value);if(event.target.value.trim())setView("integrations")}}
+            placeholder="Search integrations, domains, or events..."
+          />
+        </label>
+        <div className="ts-topbar-actions ts-master-actions">
+          <button aria-label="Help"><CircleHelp size={18}/></button>
+          <button aria-label="Notifications" className="ts-notification-button"><Bell size={18}/>{findings.length>0?<i/>:null}</button>
+          <button aria-label="Account" className="ts-account-avatar">D</button>
           <button className="ts-mobile-more" onClick={()=>setMobileMenuOpen(true)} aria-label="More navigation"><MoreHorizontal size={19}/></button>
         </div>
-      </div>
+      </header>
 
       <div className="ts-content">
         {error?<div className="ts-error"><AlertTriangle size={16}/><div><strong>Live evidence is unavailable.</strong><span>ThirdSight will not substitute mock data for the production evidence feed.</span></div></div>:null}
@@ -210,7 +215,6 @@ export default function App(){
           unregisteredCount={unregistered.length}
           findingCount={findings.length}
           onViewIntegrations={()=>setView("integrations")}
-          onConnections={()=>setView("connections")}
           onOpenRow={openRow}
           onOpenEvent={openEvent}
         />:null}
@@ -262,7 +266,6 @@ function Overview({
   unregisteredCount,
   findingCount,
   onViewIntegrations,
-  onConnections,
   onOpenRow,
   onOpenEvent,
 }:{
@@ -273,82 +276,251 @@ function Overview({
   unregisteredCount:number;
   findingCount:number;
   onViewIntegrations:()=>void;
-  onConnections:()=>void;
   onOpenRow:(row:ExposureRow)=>void;
   onOpenEvent:(index:number)=>void;
 }){
-  const prevented=proof?.scopePrevention.proven??false;
-  const totalObserved=exposure.length;
+  const documentedFamilies=new Set(
+    exposure.flatMap(row=>row.vendorIntelligence.profiles.map(profile=>profile.family))
+  ).size;
+  const withinPolicy=exposure.filter(row=>row.latestResponse.toLowerCase()==="allow").length;
   const reviewRows=[
     ...exposure.filter(row=>row.findings.length>0),
     ...exposure.filter(row=>row.findings.length===0&&!row.integrationId),
   ].slice(0,3);
-  const statusTitle=findingCount>0
-    ? `${findingCount} integration${findingCount===1?"":"s"} need attention`
-    : `${totalObserved} third-party destination${totalObserved===1?"":"s"} observed`;
-  const statusDetail=findingCount>0
-    ? "Deterministic findings are present in the current operational evidence."
-    : unregisteredCount>0
-      ? `No deterministic policy violation is proven. ${unregisteredCount} destination${unregisteredCount===1?"":"s"} still need identity or purpose context.`
-      : "No deterministic policy violation is proven in the current operational evidence.";
+  const leadEvent=events.find(event=>event.outcome==="PREVENTED")
+    ??events.find(event=>event.outcome==="DETECTED")
+    ??events.find(event=>event.decision==="CONSTRAIN"||event.decision==="ISOLATE")
+    ??events.find(event=>event.findings.length>0)
+    ??events[0]
+    ??null;
+  const leadIndex=leadEvent?events.findIndex(event=>event.recordId===leadEvent.recordId):-1;
+  const lastEvidence=events.length
+    ?[...events].sort((a,b)=>Date.parse(b.observedAt)-Date.parse(a.observedAt))[0]
+    :null;
+  const documentationCoverage=exposure.length
+    ?Math.round((exposure.filter(row=>row.vendorIntelligence.profiles.length>0).length/exposure.length)*100)
+    :0;
 
-  return <>
-    <div className="ts-operational-hero">
-      <div className="ts-operational-copy">
-        <span className="ts-live-label"><i/> Discovery active · Commerce Lab</span>
-        <span className="ts-kicker">Current third-party posture</span>
-        <h1>{statusTitle}</h1>
-        <p>{statusDetail}</p>
-        <div className="ts-hero-actions">
-          <button className="ts-primary" onClick={onViewIntegrations}>Review destinations <ArrowRight size={15}/></button>
-          <button className="ts-secondary" onClick={onConnections}>Connect enforcement</button>
-        </div>
+  return <div className="ts-master-overview">
+    <div className="ts-master-page-head">
+      <div>
+        <h1>Your commerce data, under control.</h1>
+        <p>Monitor integrations, prevent unwanted sharing, and keep merchant policy separate from vendor claims.</p>
       </div>
-      <div className="ts-operational-summary">
-        <span>How ThirdSight decides</span>
-        <p><b>Approved purpose</b> + technical reach + observed access + business context.</p>
-        <small>It escalates only as far as the evidence supports.</small>
+      <div className="ts-master-page-meta">
+        <span><Clock3 size={15}/> Last evidence {lastEvidence?relativeTime(lastEvidence.observedAt):"—"}</span>
+        <button type="button">Last 7 days <ChevronDown size={14}/></button>
       </div>
     </div>
 
-    <div className="ts-stat-grid">
-      <StatCard label="Observed destinations" value={String(totalObserved)} detail="Third-party origins in this workspace" icon={<Eye size={17}/>}/>
-      <StatCard label="Purpose-aware" value={String(registeredCount)} detail="Registered integrations with identity context" icon={<PlugZap size={17}/>}/>
-      <StatCard label="Deterministic findings" value={String(findingCount)} detail={findingCount>0?"Evidence-backed violations":"No violation currently proven"} icon={<AlertTriangle size={17}/>}/>
-      <StatCard label="Pre-send prevention" value={prevented?"Proven":"No proof"} detail={prevented?"Unjustified field stopped before send":"No persisted prevention evidence"} icon={<ShieldCheck size={17}/>}/>
+    <section className="ts-master-metrics" aria-label="Workspace summary">
+      <MasterMetric value={String(unregisteredCount)} label="Unresolved integrations" tone="alert"/>
+      <MasterMetric value={String(documentedFamilies||registeredCount)} label="Documented families" tone="neutral"/>
+      <MasterMetric value={String(findingCount)} label="Active incidents" tone={findingCount>0?"alert":"neutral"}/>
+      <MasterMetric value={String(withinPolicy)} label="Within policy" tone="neutral"/>
+      <div className="ts-master-coverage">
+        <strong>{documentationCoverage}%</strong>
+        <span>of integrations are documented</span>
+        <button onClick={onViewIntegrations}>View inventory <ArrowRight size={12}/></button>
+      </div>
+    </section>
+
+    <div className="ts-master-main-grid">
+      <BoundaryDecision
+        event={leadEvent}
+        eventIndex={leadIndex}
+        onOpen={onOpenEvent}
+      />
+      <VendorIntelligenceRail event={leadEvent}/>
     </div>
 
-    <div className="ts-review-grid">
-      <Panel title="Review next" subtitle={reviewRows.length>0?"Unresolved or evidence-backed items worth opening next.":"Nothing currently requires review."} action="View all" onAction={onViewIntegrations}>
-        <ReviewQueue rows={reviewRows} onOpen={onOpenRow}/>
-      </Panel>
-      <Panel title="Recent activity" subtitle="Representative persisted evidence." >
-        <div className="ts-activity-list">
-          {events.slice(0,6).map((event,index)=><ActivityRow key={event.recordId} event={event} onClick={()=>onOpenEvent(index)}/>)}
+    <div className="ts-master-lower-grid">
+      <section className="ts-master-list-card">
+        <div className="ts-master-card-head"><h2>Recent activity</h2><button onClick={()=>leadIndex>=0&&onOpenEvent(leadIndex)}>View latest <ArrowRight size={13}/></button></div>
+        <div className="ts-master-compact-list">
+          {events.slice(0,4).map((event,index)=><MasterActivityRow key={event.recordId} event={event} onClick={()=>onOpenEvent(index)}/>)}
           {events.length===0?<EmptyState text="Waiting for persisted evidence."/>:null}
         </div>
-      </Panel>
+      </section>
+
+      <section className="ts-master-list-card">
+        <div className="ts-master-card-head"><h2>Needs review</h2><button onClick={onViewIntegrations}>View all ({unregisteredCount+findingCount}) <ArrowRight size={13}/></button></div>
+        <div className="ts-master-review-list">
+          {reviewRows.map(row=><button key={row.key} onClick={()=>onOpenRow(row)}>
+            <VendorMark label={row.vendorIntelligence.profiles[0]?.family??row.label}/>
+            <div><strong>{row.vendorIntelligence.profiles[0]?.family??row.label}</strong><span>{row.vendorIntelligence.profiles[0]?.vendor??"Unidentified"}</span></div>
+            <em>{row.findings.length>0?humanize(row.findings[0]):"Identity or rule missing"}</em>
+            <ChevronRight size={15}/>
+          </button>)}
+          {reviewRows.length===0?<EmptyState text="Nothing currently needs review."/>:null}
+        </div>
+      </section>
+
+      <section className="ts-master-commerce-card">
+        <span className="ts-master-commerce-icon"><FlaskConical size={18}/></span>
+        <h2>A real commerce environment behind the evidence.</h2>
+        <p>Open the synthetic storefront, create activity, then return here to inspect what ThirdSight proved.</p>
+        <a href="/commerce-lab">Open Commerce Lab <ArrowRight size={14}/></a>
+        <div className="ts-master-commerce-orbit" aria-hidden="true"/>
+      </section>
     </div>
 
-    <div className="ts-proof-strip">
-      <div>
-        <span><CircleCheck size={15}/></span>
-        <p><small>Busy sales day</small><b>{proof?.busySale.passed?"No false alarm":"Awaiting proof"}</b></p>
+    <div className="ts-master-proof-note">
+      <span>Controlled proof</span>
+      <p>
+        Busy-sale false alarm: <b>{proof?.busySale.passed?"none observed":"awaiting run"}</b>
+        <i/> managed scope prevention: <b>{proof?.scopePrevention.proven?"proven":"awaiting run"}</b>
+        <i/> abnormal behaviour: <b>{proof?.abnormalBehavior.observed?"caught":"not currently observed"}</b>
+      </p>
+    </div>
+  </div>;
+}
+
+function MasterMetric({value,label,tone}:{value:string;label:string;tone:"neutral"|"alert"}){
+  return <div className={"ts-master-metric "+tone}>
+    <strong>{value}</strong>
+    <span>{label}</span>
+    <i/>
+  </div>;
+}
+
+function BoundaryDecision({
+  event,
+  eventIndex,
+  onOpen,
+}:{
+  event:ConsoleEvent|null;
+  eventIndex:number;
+  onOpen:(index:number)=>void;
+}){
+  if(!event)return <section className="ts-master-decision empty"><EmptyState text="Waiting for a persisted decision."/></section>;
+
+  const profile=event.vendorIntelligence.profiles[0]??null;
+  const allowed=event.enforcement?.continuedFields??[];
+  const blocked=event.enforcement?.removedFields??[];
+  const observed=event.did.value?.dataCategories??[];
+  const fields=allowed.length+blocked.length>0
+    ?[
+      ...allowed.map(field=>({field,state:"allowed" as const})),
+      ...blocked.map(field=>({field,state:"blocked" as const})),
+    ]
+    :observed.slice(0,4).map(field=>({field,state:"observed" as const}));
+
+  const title=overviewDecisionTitle(event);
+  const destination=event.did.value?.destinationOrigin?safeHost(event.did.value.destinationOrigin):profile?.family??integrationLabel(event);
+
+  return <section className="ts-master-decision">
+    <div className="ts-master-decision-head">
+      <div><span>{event.why.value?.eventType?humanize(event.why.value.eventType):"Latest boundary decision"}</span><h2>{title}</h2></div>
+      <div className="ts-master-decision-actions"><time>{relativeTime(event.observedAt)}</time>{eventIndex>=0?<button onClick={()=>onOpen(eventIndex)}>View evidence <ArrowRight size={13}/></button>:null}</div>
+    </div>
+    <p className="ts-master-decision-copy">{overviewDecisionCopy(event)}</p>
+
+    <div className="ts-master-trace">
+      <div className="ts-master-trace-fields">
+        {(fields.length?fields:[{field:destination,state:"observed" as const}]).map(item=><div className={"ts-master-trace-row "+item.state} key={item.field}>
+          <div><strong>{item.field}</strong><span>{humanizeDataField(item.field)}</span></div>
+          <span className="ts-master-trace-line"><i/></span>
+          <b>{item.state==="blocked"?"Blocked":item.state==="allowed"?"Allowed":"Observed"}</b>
+        </div>)}
       </div>
-      <div>
-        <span><AlertTriangle size={15}/></span>
-        <p><small>Abnormal partner behaviour</small><b>{proof?.abnormalBehavior.observed?"Caught":"Not observed"}</b></p>
-      </div>
-      <div>
-        <span><SlidersHorizontal size={15}/></span>
-        <p><small>Graded response</small><b>ALLOW → OBSERVE → CONSTRAIN → ISOLATE</b></p>
-      </div>
-      <div>
-        <span><ShieldCheck size={15}/></span>
-        <p><small>Managed scope control</small><b>{proof?.scopePrevention.proven?"Prevented before send":"Awaiting proof"}</b></p>
+      <div className="ts-master-destination">
+        <VendorMark label={profile?.family??integrationLabel(event)} large/>
+        <div><strong>{profile?.family??integrationLabel(event)}</strong><span>{destination}</span></div>
+        <p>{profile?.expectedPurposes[0]??"Runtime destination observed; documented purpose unavailable."}</p>
       </div>
     </div>
-  </>;
+  </section>;
+}
+
+function VendorIntelligenceRail({event}:{event:ConsoleEvent|null}){
+  if(!event)return <aside className="ts-master-vendor"><h2>Vendor intelligence</h2><EmptyState text="No evidence selected."/></aside>;
+  const profile=event.vendorIntelligence.profiles[0]??null;
+  const sources=profile?.sources.slice(0,3)??[];
+  return <aside className="ts-master-vendor">
+    <div className="ts-master-vendor-head"><h2>Vendor intelligence</h2><span>{profile?"Known":"Unresolved"}</span></div>
+    <div className="ts-master-vendor-title"><VendorMark label={profile?.family??integrationLabel(event)}/><div><strong>{profile?.family??integrationLabel(event)}</strong><span>{event.did.value?.destinationOrigin?safeHost(event.did.value.destinationOrigin):"destination unavailable"}</span></div></div>
+    <VendorFact label="Expected" value={profile?.expectedPurposes[0]??"Documentation-backed purpose unavailable"}/>
+    <VendorFact label="Approved" value={event.should.value?.purpose??"Merchant approval not supplied"}/>
+    <VendorFact label="Capable" value={profile?.documentedCapabilities.slice(0,2).join(" · ")??event.could.value?.statement??"Capability evidence unavailable"}/>
+    <VendorFact label="Observed" value={event.did.value?.dataCategories?.slice(0,3).join(", ")??didSummary(event)}/>
+    <div className="ts-master-vendor-sources">
+      <strong>Sources</strong>
+      {sources.length?sources.map(source=><a key={source.url} href={source.url} target="_blank" rel="noreferrer">{source.title}</a>):<span>No documentation source matched.</span>}
+      <span>Merchant policy</span>
+      <span>{event.did.value?.boundary==="browser"?"Browser sensor":"Runtime evidence"}</span>
+    </div>
+  </aside>;
+}
+
+function VendorFact({label,value}:{label:string;value:string}){
+  return <div className="ts-master-vendor-fact"><strong>{label}</strong><span>{value}</span></div>;
+}
+
+function MasterActivityRow({event,onClick}:{event:ConsoleEvent;onClick:()=>void}){
+  const state=eventStatus(event);
+  return <button onClick={onClick}>
+    <span className={"ts-master-event-icon "+responseClass(state)}>{eventIcon(state)}</span>
+    <div><strong>{masterEventTitle(event)}</strong><span>{integrationLabel(event)} · {eventSummary(event)}</span></div>
+    <time>{relativeTime(event.observedAt)}</time>
+  </button>;
+}
+
+function VendorMark({label,large=false}:{label:string;large?:boolean}){
+  const lower=label.toLowerCase();
+  const kind=lower.includes("google")||lower.includes("analytics")?"google":lower.includes("tiktok")?"tiktok":lower.includes("meta")||lower.includes("facebook")?"meta":"default";
+  const glyph=kind==="tiktok"?"♪":kind==="google"?"G":kind==="meta"?"M":label.trim().charAt(0).toUpperCase()||"?";
+  return <span className={"ts-master-vendor-mark "+kind+(large?" large":"")}>{glyph}</span>;
+}
+
+function overviewDecisionTitle(event:ConsoleEvent){
+  const blocked=event.enforcement?.removedFields[0];
+  if(event.outcome==="PREVENTED"&&blocked)return `Blocked ${blocked} before transmission`;
+  if(event.outcome==="DETECTED")return "Detected access after it occurred";
+  if(event.decision==="CONSTRAIN")return "Constrained access outside approved scope";
+  if(event.decision==="ISOLATE")return "Isolated integration after deterministic finding";
+  if(event.decision==="ALLOW")return "Access matched approved purpose";
+  return "Integration activity needs review";
+}
+
+function overviewDecisionCopy(event:ConsoleEvent){
+  if(event.outcome==="PREVENTED"){
+    const allowed=event.enforcement?.continuedFields.length??0;
+    const blocked=event.enforcement?.removedFields.length??0;
+    return `During this event, ThirdSight allowed ${allowed} field${allowed===1?"":"s"} and blocked ${blocked} field${blocked===1?"":"s"} before the request reached the receiver.`;
+  }
+  return eventSummary(event);
+}
+
+function masterEventTitle(event:ConsoleEvent){
+  const field=event.enforcement?.removedFields[0]??event.findings.find(finding=>finding.field)?.field;
+  if(event.outcome==="PREVENTED")return field?`Blocked ${field}`:"Blocked field before transmission";
+  if(event.outcome==="DETECTED")return field?`Detected ${field}`:"Detected post-access activity";
+  if(event.decision==="ALLOW")return "Allowed integration activity";
+  if(event.findings.length)return humanize(event.findings[0].type);
+  return "Evidence collected";
+}
+
+function humanizeDataField(value:string){
+  const parts=value.split(".");
+  const leaf=parts[parts.length-1]??value;
+  return humanize(leaf);
+}
+
+function safeHost(value:string){
+  try{return new URL(value).hostname;}catch{return value;}
+}
+
+function relativeTime(value:string){
+  const stamp=Date.parse(value);
+  if(Number.isNaN(stamp))return "—";
+  const diff=Math.max(0,Date.now()-stamp);
+  const minutes=Math.floor(diff/60000);
+  if(minutes<1)return "now";
+  if(minutes<60)return minutes+"m ago";
+  const hours=Math.floor(minutes/60);
+  if(hours<24)return hours+"h ago";
+  return Math.floor(hours/24)+"d ago";
 }
 
 function Integrations({rows,query,onQuery,onOpen}:{rows:readonly ExposureRow[];query:string;onQuery:(value:string)=>void;onOpen:(row:ExposureRow)=>void}){
@@ -481,31 +653,6 @@ function Validation({rows,proof}:{rows:readonly ExposureRow[];proof:ChallengePro
     <div className="ts-section-head"><div><span className="ts-kicker">Judge proof</span><h2>Challenge requirements, separated from product operations</h2><p>Commerce Lab proves correctness under ground truth. Public-site discovery proves external breadth under explicit visibility limits.</p></div></div>
     <IntegrationExposureMap rows={rows.slice(0,10)} proof={proof}/>
     <RealWorldValidation/>
-  </div>;
-}
-
-function ReviewQueue({rows,onOpen}:{rows:readonly ExposureRow[];onOpen:(row:ExposureRow)=>void}){
-  if(rows.length===0)return <EmptyState text="No unresolved or evidence-backed item is currently queued."/>;
-  return <div className="ts-review-list">
-    {rows.map(row=>{
-      const hasFinding=row.findings.length>0;
-      const reason=hasFinding
-        ? humanize(row.findings[0]??"finding")
-        : row.integrationId
-          ? "Purpose or evidence context needs review"
-          : "Identity and merchant-approved purpose not registered";
-      return <button key={row.key} onClick={()=>onOpen(row)}>
-        <span className={"ts-review-icon "+(hasFinding?"finding":"unresolved")}>
-          {hasFinding?<AlertTriangle size={15}/>:<Eye size={15}/>}
-        </span>
-        <div>
-          <strong>{row.label}</strong>
-          <span>{reason}</span>
-          <small>{row.observations} observation{row.observations===1?"":"s"} · {row.lastSeen?new Date(row.lastSeen).toLocaleString():"no timestamp"}</small>
-        </div>
-        <ChevronRight size={15}/>
-      </button>;
-    })}
   </div>;
 }
 
@@ -696,17 +843,6 @@ function EvidenceFact({title,status,value,detail}:{title:string;status:string;va
 
 function RawEvidence({label,value}:{label:string;value:unknown}){
   return <div><span>{label}</span><pre>{JSON.stringify(value,null,2)}</pre></div>;
-}
-
-function Panel({title,subtitle,action,onAction,children}:{title:string;subtitle:string;action?:string;onAction?:()=>void;children:React.ReactNode}){
-  return <div className="ts-panel">
-    <div className="ts-panel-head"><div><strong>{title}</strong><span>{subtitle}</span></div>{action&&onAction?<button onClick={onAction}>{action}<ArrowRight size={13}/></button>:null}</div>
-    {children}
-  </div>;
-}
-
-function StatCard({label,value,detail,icon}:{label:string;value:string;detail:string;icon:React.ReactNode}){
-  return <div className="ts-stat-card"><div><span>{icon}</span><small>{label}</small></div><strong>{value}</strong><p>{detail}</p></div>;
 }
 
 function ConnectorCard({icon,title,badge,tone,summary,bullets}:{icon:React.ReactNode;title:string;badge:string;tone:"strong"|"neutral";summary:string;bullets:readonly string[]}){
