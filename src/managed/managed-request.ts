@@ -139,7 +139,7 @@ export function buildManagedHistoryEntry(input:{
   transmissionKnown:boolean;
   receiver?:{receivedFields:readonly string[];forbiddenFieldReceived:boolean};
 }):EvidenceHistoryEntry{
-  const phase=input.transmissionKnown&&input.upstreamContacted===true?"TRANSMITTED":"ATTEMPTED";
+  const phase:"ATTEMPTED"|"TRANSMITTED"=input.transmissionKnown&&input.upstreamContacted===true?"TRANSMITTED":"ATTEMPTED";
   const evidence=input.result.evidence.did.value
     ?{
       ...input.result.evidence,
