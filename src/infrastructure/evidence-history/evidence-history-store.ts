@@ -8,6 +8,7 @@ import type { VerificationAction, VerificationFinding } from "../../domain/deter
 import type { BlindSpotAssessment } from "../../domain/blind-spot-assessment.js";
 import type { BrowserObservationV1 } from "../browser-evidence/browser-evidence-adapter.js";
 import type { DbAuditObservationV1 } from "../db-audit/db-audit-adapter.js";
+import type { GatewayObservationV1 } from "../gateway/gateway-observation.js";
 
 export interface EnforcementRecord {
   action: "CONSTRAIN" | "ISOLATE";
@@ -20,7 +21,7 @@ export interface EnforcementRecord {
   };
 }
 
-export type EvidenceObservation = BrowserObservationV1 | DbAuditObservationV1;
+export type EvidenceObservation = BrowserObservationV1 | DbAuditObservationV1 | GatewayObservationV1;
 
 export interface ContainmentRecord {
   action: "ISOLATE";

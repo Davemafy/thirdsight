@@ -1,0 +1,3 @@
+import Link from"next/link";import{BagIcon}from"./icons";
+const steps=[["Contact","/checkout/contact"],["Delivery","/checkout/delivery"],["Payment","/checkout/payment"],["Review","/checkout/review"]];
+export function CheckoutShell({current,children}:{current:number;children:React.ReactNode}){return <><header className="checkout-header"><Link className="wordmark" href="/">CEDAR</Link><span>Secure synthetic checkout</span><Link href="/cart"><BagIcon/> Edit cart</Link></header><main className="checkout-main"><nav className="checkout-steps" aria-label="Checkout progress">{steps.map(([label,url],i)=><Link key={label} href={i<=current?url:"#"} className={i===current?"current":i<current?"complete":""}><span>{i+1}</span>{label}</Link>)}</nav>{children}</main></>}

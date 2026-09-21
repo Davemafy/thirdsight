@@ -1,0 +1,1 @@
+import{NextResponse}from"next/server";import{getOrder}from"@/lib/commerce-store";export async function GET(_:Request,{params}:{params:Promise<{id:string}>}){const o=await getOrder((await params).id);return o?NextResponse.json(o):NextResponse.json({error:"ORDER_NOT_FOUND"},{status:404});}

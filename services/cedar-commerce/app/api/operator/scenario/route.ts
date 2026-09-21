@@ -1,0 +1,4 @@
+import{NextRequest,NextResponse}from"next/server";import{getScenario,setScenario}from"@/lib/commerce-store";import{safeEqual}from"@/lib/security";import{scenarioSchema}from"@/lib/validation";
+function authorized(req:NextRequest){const expected=process.env.OPERATOR_ACCESS_SECRET??"";const provided=req.headers.get("authorization")?.replace(/^Bearer\s+/i,"")??"";return expected.length>=16&&safeEqual(expected,provided)}
+export async function GET(req:NextRequest){if(!authorized(req))return NextResponse.json({error:"UNAUTHORIZED"},{status:401});return NextResponse.json({scenario:await getScenario()})}
+export async function POST(req:NextRequest){if(!authorized(req))return NextResponse.json({error:"UNAUTHORIZED"},{status:401});const parsed=scenarioSchema.safeParse(await req.json());if(!parsed.success)return NextResponse.json({error:"INVALID_SCENARIO"},{status:422});return NextResponse.json({scenario:await setScenario(parsed.data.scenario)})}

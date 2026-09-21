@@ -1,0 +1,2 @@
+import { ReturnsIcon, ShieldIcon, TruckIcon } from "./icons";
+export function Reassurance(){return <section className="reassurance" aria-label="Delivery and support"><div><TruckIcon/><span><strong>Clear delivery dates</strong>Before you pay</span></div><div><ShieldIcon/><span><strong>Official warranty</strong>Local product support</span></div><div><ReturnsIcon/><span><strong>14-day returns</strong>On unused products</span></div></section>}

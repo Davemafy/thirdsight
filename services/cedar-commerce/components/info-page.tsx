@@ -1,0 +1,1 @@
+import{StoreHeader}from"./store-header";import{StoreFooter}from"./store-footer";export function InfoPage({title,intro,children}:{title:string;intro:string;children:React.ReactNode}){return <><StoreHeader/><main className="content-page prose"><p className="breadcrumbs">Home / {title}</p><h1>{title}</h1><p className="lead">{intro}</p>{children}</main><StoreFooter/></>}

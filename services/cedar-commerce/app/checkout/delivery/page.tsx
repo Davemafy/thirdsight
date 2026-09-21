@@ -1,0 +1,1 @@
+import{CheckoutShell}from"@/components/checkout-shell";import{CheckoutForm}from"@/components/checkout-form";export default function Page(){return <CheckoutShell current={1}><CheckoutForm kind="delivery"/></CheckoutShell>}

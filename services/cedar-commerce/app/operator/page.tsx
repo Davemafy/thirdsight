@@ -1,0 +1,1 @@
+import{OperatorClient}from"@/components/operator-client";export default function Page(){return <main className="operator-page"><p className="eyebrow">Restricted CEDAR operations</p><h1>Commerce scenario control</h1><p>Scenario changes are stored server-side and affect genuine checkout integration events.</p><OperatorClient/></main>}

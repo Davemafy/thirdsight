@@ -1,0 +1,2 @@
+import{NextRequest,NextResponse}from"next/server";import{listProducts}from"@/lib/commerce-store";
+export async function GET(req:NextRequest){const p=req.nextUrl.searchParams;return NextResponse.json(await listProducts({q:p.get("q"),category:p.get("category"),sort:p.get("sort"),inStock:p.get("stock")==="in",minPrice:p.has("min")?Number(p.get("min")):undefined,maxPrice:p.has("max")?Number(p.get("max")):undefined,page:Number(p.get("page")??1),limit:Number(p.get("limit")??12)}));}

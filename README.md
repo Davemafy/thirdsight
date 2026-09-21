@@ -79,6 +79,10 @@ Submission materials:
 │   ├── styles/
 │   │   └── global.css
 │   └── main.tsx                # Browser entrypoint
+├── services/
+│   ├── cedar-commerce/         # Independent Next.js store and commerce API
+│   └── partner-lab/            # Independent signed partner receivers and receipt UI
+├── api/gateway/v1/dispatch.ts  # Managed ThirdSight integration boundary
 ├── .editorconfig
 ├── .gitignore
 ├── CONTRIBUTING.md
@@ -104,6 +108,10 @@ Quality checks:
 npm run typecheck
 npm run build
 ```
+
+The standalone commerce ecosystem has separate install, migration and runtime
+boundaries. See [ThirdSight Commerce Lab](docs/commerce-ecosystem.md) for its
+topology, environment contract, routes, test commands and canonical demo path.
 
 ## Data handling
 

@@ -1,0 +1,1 @@
+import{NextResponse}from"next/server";import{getCollection}from"@/lib/commerce-store";export async function GET(_:Request,{params}:{params:Promise<{slug:string}>}){const c=await getCollection((await params).slug);return c?NextResponse.json(c):NextResponse.json({error:"COLLECTION_NOT_FOUND"},{status:404});}

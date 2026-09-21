@@ -1,0 +1,11 @@
+create index if not exists product_images_product_idx on cedar_commerce.product_images(product_id, sort_order);
+create index if not exists product_variants_product_idx on cedar_commerce.product_variants(product_id) where active;
+create index if not exists collection_products_product_idx on cedar_commerce.collection_products(product_id);
+create index if not exists cart_lines_variant_idx on cedar_commerce.cart_lines(variant_id);
+create index if not exists addresses_customer_idx on cedar_commerce.addresses(customer_id);
+create index if not exists orders_customer_idx on cedar_commerce.orders(customer_id);
+create index if not exists order_lines_order_idx on cedar_commerce.order_lines(order_id);
+create index if not exists order_lines_variant_idx on cedar_commerce.order_lines(variant_id);
+create index if not exists payment_attempts_checkout_idx on cedar_commerce.payment_attempts(checkout_id);
+create index if not exists fulfilments_order_idx on cedar_commerce.fulfilments(order_id);
+create index if not exists integration_events_order_idx on cedar_commerce.integration_events(order_id);

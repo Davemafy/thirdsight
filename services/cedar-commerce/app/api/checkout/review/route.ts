@@ -1,0 +1,1 @@
+import{apiError,session,withSession}from"@/lib/http";import{reviewCheckout}from"@/lib/commerce-store";export async function POST(){try{const s=await session();return withSession(await reviewCheckout(s.hash),s.fresh?s.token:undefined);}catch(e){return apiError(e)}}

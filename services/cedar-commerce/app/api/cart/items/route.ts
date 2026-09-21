@@ -1,0 +1,2 @@
+import{NextRequest,NextResponse}from"next/server";import{addCartItem}from"@/lib/commerce-store";import{apiError,mutationAllowed,session,withSession}from"@/lib/http";import{cartItemSchema}from"@/lib/validation";
+export async function POST(req:NextRequest){if(!mutationAllowed(req))return NextResponse.json({error:"RATE_LIMITED"},{status:429});try{const input=cartItemSchema.parse(await req.json());const s=await session();return withSession(await addCartItem(s.hash,input.variantId,input.quantity),s.fresh?s.token:undefined,201);}catch(e){return apiError(e)}}

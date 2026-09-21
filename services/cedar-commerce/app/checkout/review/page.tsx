@@ -1,0 +1,1 @@
+import{CheckoutShell}from"@/components/checkout-shell";import{ReviewClient}from"@/components/review-client";export default function Page(){return <CheckoutShell current={3}><ReviewClient/></CheckoutShell>}
