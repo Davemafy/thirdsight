@@ -313,7 +313,7 @@ function Overview({
     ...exposure.filter(row=>row.findings.length===0&&!row.integrationId),
   ].slice(0,3);
   const statusTitle=findingCount>0
-    ? `${findingCount} integration${findingCount===1?"":"s"} need attention`
+    ? `${findingCount} integration${findingCount===1?" needs":"s need"} attention`
     : `${totalObserved} third-party destination${totalObserved===1?"":"s"} observed`;
   const statusDetail=findingCount>0
     ? `${findingCount} proven policy issue${findingCount===1?"":"s"} need review.`

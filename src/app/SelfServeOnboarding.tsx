@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Clipboard, KeyRound, Play, ShieldCheck } from "lucide-react";
 import "./SelfServeOnboarding.css";
 
@@ -42,9 +42,14 @@ const PRESETS={
 
 const INSTALL_COMMAND="npm install https://raw.githubusercontent.com/Davemafy/thirdsight/main/packages/thirdsight-node/thirdsight-node-0.1.0.tgz";
 
+function recordingSlug(presetId:PresetId){
+  const kind=presetId==="cedar-analytics"?"analytics":"delivery";
+  return `recording-${kind}-${Date.now().toString(36).slice(-5)}`;
+}
+
 export function SelfServeOnboarding(){
   const [workspaceName,setWorkspaceName]=useState("Recording Merchant");
-  const [workspaceSlug,setWorkspaceSlug]=useState("recording-merchant");
+  const [workspaceSlug,setWorkspaceSlug]=useState(()=>recordingSlug("cedar-analytics"));
   const [presetId,setPresetId]=useState<PresetId>("cedar-analytics");
   const [approved,setApproved]=useState(false);
   const [operatorKey,setOperatorKey]=useState("");
@@ -52,6 +57,7 @@ export function SelfServeOnboarding(){
   const [managed,setManaged]=useState<ManagedResult|null>(null);
   const [busy,setBusy]=useState<"provision"|"test"|null>(null);
   const [error,setError]=useState("");
+  const proofRef=useRef<HTMLDivElement|null>(null);
 
   const preset=PRESETS[presetId];
   const canProvision=approved&&workspaceName.trim().length>=2&&workspaceSlug.trim().length>=3&&operatorKey.trim().length>=16&&!busy;
@@ -114,6 +120,7 @@ export function SelfServeOnboarding(){
         receivedFields,
         customerPhoneReceived,
       });
+      window.setTimeout(()=>proofRef.current?.scrollIntoView({behavior:"smooth",block:"center"}),80);
     }catch(caught){setError(caught instanceof Error?caught.message:"Managed request failed.");}
     finally{setBusy(null);}
   }
@@ -132,7 +139,7 @@ export function SelfServeOnboarding(){
       <div className="ts-selfserve-form">
         <label>Workspace name<input value={workspaceName} onChange={event=>setWorkspaceName(event.target.value)} autoComplete="off"/></label>
         <label>Workspace slug<input value={workspaceSlug} onChange={event=>setWorkspaceSlug(event.target.value.toLowerCase())} autoComplete="off"/></label>
-        <label>Integration preset<select value={presetId} onChange={event=>{setPresetId(event.target.value as PresetId);setApproved(false);setProvisioned(null);setManaged(null);}}><option value="cedar-analytics">CEDAR Analytics</option><option value="cedar-delivery">CEDAR Delivery</option></select></label>
+        <label>Integration preset<select value={presetId} onChange={event=>{const next=event.target.value as PresetId;setPresetId(next);setWorkspaceName(next==="cedar-analytics"?"Recording Analytics":"Recording Delivery");setWorkspaceSlug(recordingSlug(next));setApproved(false);setProvisioned(null);setManaged(null);}}><option value="cedar-analytics">CEDAR Analytics</option><option value="cedar-delivery">CEDAR Delivery</option></select></label>
         <label>Operator key<input type="password" value={operatorKey} onChange={event=>setOperatorKey(event.target.value)} autoComplete="new-password" placeholder="Shared setup secret"/></label>
 
         <div className="ts-purpose-contract">
@@ -153,7 +160,7 @@ export function SelfServeOnboarding(){
           <button className="ts-run-action" disabled={Boolean(busy)} onClick={runManagedTest}><Play size={15}/>{busy==="test"?"Sending through ThirdSight…":`Run ${preset.label} managed test`}</button>
         </>}
 
-        {managed?<div className="ts-managed-proof">
+        {managed?<div ref={proofRef} className="ts-managed-proof">
           <div className="ts-proof-top"><span className={`ts-proof-decision ${managed.decision.toLowerCase()}`}>{managed.decision}</span><b>{managed.status} · expected {preset.expected}</b></div>
           <div className="ts-result-line"><span>Evidence</span><b>{managed.evidence}</b></div>
           <div className="ts-result-line"><span>Evidence ID</span><code>{managed.evidenceId}</code></div>
