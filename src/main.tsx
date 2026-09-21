@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './app/App';
+import OriginalDashboard from './original/OriginalDashboard';
 import { CommerceLab, CommerceLabControl } from './commerce/CommerceLab';
 import './styles/global.css';
 
@@ -15,7 +16,11 @@ const surface=path==='/commerce-lab/control'
   ? <CommerceLabControl />
   : path.startsWith('/commerce-lab')
     ? <CommerceLab />
-    : <App />;
+    : path==='/app'||path.startsWith('/app/')
+      ? <OriginalDashboard />
+      : path==='/legacy'
+        ? <App />
+        : <OriginalDashboard />;
 
 createRoot(rootElement).render(
   <StrictMode>
