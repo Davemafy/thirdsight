@@ -64,31 +64,31 @@ export function RealWorldValidation(){
   return <section className="real-validation" id="real-world-validation">
     <div className="real-validation-head">
       <div>
-        <span className="eyebrow">Real-world validation · ground truth + discovery + documentation</span>
-        <h2>Prove correctness where ground truth exists. Add documented expectations where public evidence exists.</h2>
-        <p>Commerce Lab proves abuse and enforcement with known ground truth. Public-site discovery proves browser-visible breadth. Vendor Intelligence then resolves known destinations against first-party vendor documentation without pretending those documents are merchant authorization.</p>
+        <span className="eyebrow">Real-world validation</span>
+        <h2>Test what ThirdSight can prove — and show where its visibility stops.</h2>
+        <p>Commerce Lab gives us known ground truth. Public sites test browser visibility. Vendor documentation adds context without being treated as merchant approval.</p>
       </div>
-      <span className="validation-badge"><ShieldCheck size={13}/> claim-bounded</span>
+      <span className="validation-badge"><ShieldCheck size={13}/> Claims verified</span>
     </div>
 
     <div className="validation-compare">
       <article className="validation-lane controlled">
         <div className="validation-lane-title">
           <span className="validation-icon"><ShieldCheck size={16}/></span>
-          <div><small>CONTROLLED · COMMERCE LAB</small><strong>Ground-truth proof</strong></div>
+          <div><small>Commerce Lab</small><strong>Ground-truth proof</strong></div>
         </div>
         <p>Purpose Contracts, capabilities, runtime activity and first-party business context are known, so deterministic findings and enforcement can be verified.</p>
         <div className="validation-proof-lines">
-          <span><b>10× legitimate sale</b><em>ALLOW · no false alarm</em></span>
-          <span><b>Proportional abuse</b><em>PURPOSE_MISMATCH · caught</em></span>
-          <span><b>Scope violation</b><em>CONSTRAIN · phone removed · PREVENTED</em></span>
+          <span><b>10× legitimate sale</b><em>Allowed · no false alarm</em></span>
+          <span><b>Proportional abuse</b><em>Purpose mismatch · caught</em></span>
+          <span><b>Scope violation</b><em>Phone removed before send</em></span>
         </div>
       </article>
 
       <article className="validation-lane public">
         <div className="validation-lane-title">
           <span className="validation-icon"><Globe2 size={16}/></span>
-          <div><small>PUBLIC · PASSIVE BROWSER</small><strong>External discovery breadth</strong></div>
+          <div><small>Public web</small><strong>External discovery breadth</strong></div>
         </div>
         <p>Logged-out homepage observation only. No accounts, clicks, forms, fuzzing, bypasses, request mutation, payload inspection or private/customer data.</p>
         <div className="validation-metrics">
@@ -104,11 +104,11 @@ export function RealWorldValidation(){
     <div className="validation-intelligence">
       <div className="validation-intelligence-head">
         <div>
-          <span><BookOpenCheck size={14}/> Vendor Intelligence · {VENDOR_INTELLIGENCE_VERSION}</span>
-          <strong>Known destinations no longer have to stay anonymous.</strong>
-          <p>This is post-hoc documentation enrichment. Original benchmark records keep their frozen browser evidence semantics.</p>
+          <span><BookOpenCheck size={14}/> Vendor context</span>
+          <strong>Known destinations can be matched to documented products.</strong>
+          <p>The original browser evidence stays unchanged; documentation only adds context.</p>
         </div>
-        <small>Vendor docs ≠ merchant approval</small>
+        <small>Documentation is not approval</small>
       </div>
       <div className="validation-intelligence-rows">
         {documentedOrigins.map(({origin,sites,intelligence})=>{
@@ -127,11 +127,11 @@ export function RealWorldValidation(){
     <div className="validation-origin-coverage">
       <div className="validation-origin-coverage-head">
         <div>
-          <span>Complete origin coverage</span>
+          <span>Origin coverage</span>
           <strong>{originCoverage?`${originCoverage.indexed.toLocaleString()} / ${globalBenchmark.uniqueOrigins.toLocaleString()}`:"3,354 / 3,354"} indexed</strong>
-          <p>Every unique origin from the scale run gets a deterministic disposition. Documentation-backed identity is counted separately so “covered” never means “we guessed the vendor.”</p>
+          <p>Every origin from the scale run is indexed. Unknown vendors stay unknown instead of being guessed.</p>
         </div>
-        <b>{originCoverage?"100% inventory":"manifest publishing"}</b>
+        <b>{originCoverage?"100% indexed":"Loading manifest"}</b>
       </div>
       <div className="validation-origin-coverage-grid">
         <CoverageMetric
@@ -161,15 +161,15 @@ export function RealWorldValidation(){
           detail="indexed even when vendor remains unresolved"
         />
       </div>
-      <small className="validation-origin-coverage-note">Full manifest: /vendor-intelligence/global1000-origins.json · benchmark {globalBenchmark.runId}. An unresolved origin is still covered by the inventory; it simply remains unresolved rather than receiving a fabricated product identity.</small>
+      <small className="validation-origin-coverage-note">An unresolved origin is still indexed; ThirdSight simply does not invent a product identity for it.</small>
     </div>
 
     <div className="validation-semantics">
-      <div><span>EXPECTED</span><b>DOC-BACKED WHEN RESOLVED</b><small>vendor's documented product purpose</small></div>
-      <div><span>APPROVED / SHOULD</span><b>MERCHANT ONLY</b><small>Purpose Contract remains authoritative</small></div>
-      <div><span>CAPABLE</span><b>DOCS + LOCAL CONFIG</b><small>documented surface, narrowed by local evidence</small></div>
-      <div><span>OBSERVED / DID</span><b>RUNTIME</b><small>browser-visible request metadata</small></div>
-      <div><span>CONTEXT / WHY</span><b>FIRST-PARTY STRONGEST</b><small>vendor use case supports but does not prove justification</small></div>
+      <div><span>Expected</span><b>Vendor documentation</b><small>what the product says it is for</small></div>
+      <div><span>Allowed</span><b>Your policy</b><small>what this integration may do here</small></div>
+      <div><span>Can access</span><b>Docs + local setup</b><small>the reachable surface we can support</small></div>
+      <div><span>Observed</span><b>Runtime evidence</b><small>what ThirdSight actually saw</small></div>
+      <div><span>Context</span><b>Business activity</b><small>what was happening at the time</small></div>
     </div>
 
     <div className="validation-footer">
@@ -184,7 +184,7 @@ export function RealWorldValidation(){
         <p>Tranco snapshot {globalBenchmark.sourceVersion}. This is a reproducible 1,000-site high-traffic public-web sample, not “10% of the landscape.”</p>
       </div>
       <div className="validation-boundary">
-        <b>What documentation enrichment still does not prove</b>
+        <b>What this still cannot prove</b>
         <p>Vendor docs do not prove merchant approval, merchant-specific configuration, maliciousness, necessity, backend permissions, database access, server-to-server activity or what data actually reached a downstream vendor. Those require stronger evidence.</p>
         <small>Nigeria run {publicBenchmark.workflowRun} · {publicBenchmark.runId} · scale run {globalBenchmark.workflowRun} · {globalBenchmark.runId}</small>
       </div>

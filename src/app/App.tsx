@@ -77,13 +77,13 @@ type ConsoleEvent={
 };
 
 const viewCopy:Record<View,{title:string;subtitle:string}>={
-  overview:{title:"Overview",subtitle:"Third-party access posture across your connected stack."},
-  integrations:{title:"Integrations",subtitle:"Vendor-documented expectation, merchant approval and observed behaviour — kept as separate evidence."},
-  activity:{title:"Activity",subtitle:"Representative persisted integration evidence from the operational workspace."},
-  incidents:{title:"Incidents",subtitle:"Representative deterministic findings, prevented access and post-access detections."},
-  policies:{title:"Policies",subtitle:"Approved purposes and data scope for registered integrations."},
-  connections:{title:"Connections",subtitle:"How another platform connects ThirdSight to its browser, backend and audit surfaces."},
-  validation:{title:"Validation",subtitle:"Controlled ground-truth proof and bounded public-site discovery evidence."},
+  overview:{title:"Overview",subtitle:"What changed across your integrations."},
+  integrations:{title:"Integrations",subtitle:"What each integration is for, what it can reach, and what it touched."},
+  activity:{title:"Activity",subtitle:"Everything ThirdSight has observed, newest first."},
+  incidents:{title:"Incidents",subtitle:"Events that need investigation or action."},
+  policies:{title:"Policies",subtitle:"What each integration is allowed to access."},
+  connections:{title:"Connections",subtitle:"Where ThirdSight is watching and enforcing."},
+  validation:{title:"Validation",subtitle:"How ThirdSight performs in controlled and public-web tests."},
 };
 
 export default function App(){
@@ -178,7 +178,7 @@ export default function App(){
 
       <div className="ts-sidebar-foot">
         <span><Radio size={12}/> Evidence live</span>
-        <small>Persisted evidence only. Unknown stays unknown.</small>
+        <small>Live monitoring from your connected sources.</small>
       </div>
     </div>
 
@@ -200,7 +200,7 @@ export default function App(){
       </div>
 
       <div className="ts-content">
-        {error?<div className="ts-error"><AlertTriangle size={16}/><div><strong>Live evidence is unavailable.</strong><span>ThirdSight will not substitute mock data for the production evidence feed.</span></div></div>:null}
+        {error?<div className="ts-error"><AlertTriangle size={16}/><div><strong>Monitoring is temporarily unavailable.</strong><span>New activity will appear here when the connection returns.</span></div></div>:null}
 
         {view==="overview"?<Overview
           exposure={exposureMap}
@@ -287,16 +287,15 @@ function Overview({
     ? `${findingCount} integration${findingCount===1?"":"s"} need attention`
     : `${totalObserved} third-party destination${totalObserved===1?"":"s"} observed`;
   const statusDetail=findingCount>0
-    ? "Deterministic findings are present in the current operational evidence."
+    ? "Open the items below to see what changed and what ThirdSight did."
     : unregisteredCount>0
-      ? `No deterministic policy violation is proven. ${unregisteredCount} destination${unregisteredCount===1?"":"s"} still need identity or purpose context.`
-      : "No deterministic policy violation is proven in the current operational evidence.";
+      ? `${unregisteredCount} destination${unregisteredCount===1?"":"s"} still need an owner or policy before ThirdSight can judge them safely.`
+      : "Everything observed is currently within the approved scope.";
 
   return <>
     <div className="ts-operational-hero">
       <div className="ts-operational-copy">
-        <span className="ts-live-label"><i/> Discovery active · Commerce Lab</span>
-        <span className="ts-kicker">Current third-party posture</span>
+        <span className="ts-live-label">Commerce Lab · Monitoring</span>
         <h1>{statusTitle}</h1>
         <p>{statusDetail}</p>
         <div className="ts-hero-actions">
@@ -305,24 +304,24 @@ function Overview({
         </div>
       </div>
       <div className="ts-operational-summary">
-        <span>How ThirdSight decides</span>
-        <p><b>Approved purpose</b> + technical reach + observed access + business context.</p>
-        <small>It escalates only as far as the evidence supports.</small>
+        <span>How decisions work</span>
+        <p>ThirdSight compares what an integration is allowed to do with what it actually does.</p>
+        <small>If the evidence is incomplete, it asks for review instead of blocking blindly.</small>
       </div>
     </div>
 
     <div className="ts-stat-grid">
-      <StatCard label="Observed destinations" value={String(totalObserved)} detail="Third-party origins in this workspace" icon={<Eye size={17}/>}/>
-      <StatCard label="Purpose-aware" value={String(registeredCount)} detail="Registered integrations with identity context" icon={<PlugZap size={17}/>}/>
-      <StatCard label="Deterministic findings" value={String(findingCount)} detail={findingCount>0?"Evidence-backed violations":"No violation currently proven"} icon={<AlertTriangle size={17}/>}/>
-      <StatCard label="Pre-send prevention" value={prevented?"Proven":"No proof"} detail={prevented?"Unjustified field stopped before send":"No persisted prevention evidence"} icon={<ShieldCheck size={17}/>}/>
+      <StatCard label="Observed" value={String(totalObserved)} detail="Third-party destinations seen" icon={<Eye size={17}/>}/>
+      <StatCard label="Identified" value={String(registeredCount)} detail="Integrations with an owner or policy" icon={<PlugZap size={17}/>}/>
+      <StatCard label="Needs attention" value={String(findingCount)} detail={findingCount>0?"Policy or evidence issue found":"Nothing needs action"} icon={<AlertTriangle size={17}/>}/>
+      <StatCard label="Stopped before send" value={prevented?"Yes":"—"} detail={prevented?"Unapproved data was removed":"No prevention event yet"} icon={<ShieldCheck size={17}/>}/>
     </div>
 
     <div className="ts-review-grid">
-      <Panel title="Review next" subtitle={reviewRows.length>0?"Unresolved or evidence-backed items worth opening next.":"Nothing currently requires review."} action="View all" onAction={onViewIntegrations}>
+      <Panel title="Review next" subtitle={reviewRows.length>0?"These items need a decision or more context.":"Nothing needs review."} action="View all" onAction={onViewIntegrations}>
         <ReviewQueue rows={reviewRows} onOpen={onOpenRow}/>
       </Panel>
-      <Panel title="Recent activity" subtitle="Representative persisted evidence." >
+      <Panel title="Recent activity" subtitle="Latest activity across your integrations." >
         <div className="ts-activity-list">
           {events.slice(0,6).map((event,index)=><ActivityRow key={event.recordId} event={event} onClick={()=>onOpenEvent(index)}/>)}
           {events.length===0?<EmptyState text="Waiting for persisted evidence."/>:null}
@@ -341,7 +340,7 @@ function Overview({
       </div>
       <div>
         <span><SlidersHorizontal size={15}/></span>
-        <p><small>Graded response</small><b>ALLOW → OBSERVE → CONSTRAIN → ISOLATE</b></p>
+        <p><small>Response range</small><b>4 levels, from allow to isolate</b></p>
       </div>
       <div>
         <span><ShieldCheck size={15}/></span>
@@ -354,15 +353,15 @@ function Overview({
 function Integrations({rows,query,onQuery,onOpen}:{rows:readonly ExposureRow[];query:string;onQuery:(value:string)=>void;onOpen:(row:ExposureRow)=>void}){
   return <div className="ts-page-stack">
     <div className="ts-section-head">
-      <div><span className="ts-kicker">Inventory · Vendor Intelligence</span><h2>Integration exposure</h2><p>Expected, approved, capable and observed are separate evidence. Vendor documentation adds context; it never becomes merchant authorization.</p></div>
-      <label className="ts-search"><Search size={15}/><input value={query} onChange={e=>onQuery(e.target.value)} placeholder="Search vendors, capabilities, fields, destinations…"/></label>
+      <div><h2>Integrations</h2><p>See what each integration is for, what it can access, what it touched, and what your policy allows.</p></div>
+      <label className="ts-search"><Search size={15}/><input value={query} onChange={e=>onQuery(e.target.value)} placeholder="Search integrations, data, or domains"/></label>
     </div>
     <div className="ts-intel-principle">
-      <span>Approval authority</span><b>Merchant policy</b><i>›</i><span>Product context</span><b>Vendor documentation</b><i>›</i><span>Runtime truth</span><b>Observed evidence</b>
+      <span>Allowed by</span><b>Your policy</b><i>›</i><span>Product says</span><b>Vendor documentation</b><i>›</i><span>Actually happened</span><b>Observed activity</b>
     </div>
     <div className="ts-table-card">
       <div className="ts-table-head integration">
-        <span>Integration</span><span>Expected</span><span>Capable</span><span>Observed</span><span>Approved</span><span>Response</span>
+        <span>Integration</span><span>Expected use</span><span>Can access</span><span>Observed</span><span>Allowed</span><span>Status</span>
       </div>
       {rows.map(row=><IntegrationRow key={row.key} row={row} onClick={()=>onOpen(row)}/>)}
       {rows.length===0?<EmptyState text="No integrations match this search."/>:null}
@@ -372,7 +371,7 @@ function Integrations({rows,query,onQuery,onOpen}:{rows:readonly ExposureRow[];q
 
 function ActivityView({events,onOpen}:{events:readonly ConsoleEvent[];onOpen:(index:number)=>void}){
   return <div className="ts-page-stack">
-    <div className="ts-section-head"><div><span className="ts-kicker">Evidence history</span><h2>What integrations actually did</h2><p>Representative persisted evidence from the operational workspace. Every row opens the evidence behind the decision.</p></div></div>
+    <div className="ts-section-head"><div><h2>Activity</h2><p>Every observed action, with the evidence behind it.</p></div></div>
     <div className="ts-list-card">
       {events.map((event,index)=><ActivityRow key={event.recordId} event={event} onClick={()=>onOpen(index)} large/>)}
       {events.length===0?<EmptyState text="No persisted evidence is available yet."/>:null}
@@ -383,7 +382,7 @@ function ActivityView({events,onOpen}:{events:readonly ConsoleEvent[];onOpen:(in
 function IncidentView({events,onOpen}:{events:readonly ConsoleEvent[];onOpen:(index:number)=>void}){
   const incidents=events.map((event,index)=>({event,index})).filter(item=>isIncident(item.event));
   return <div className="ts-page-stack">
-    <div className="ts-section-head"><div><span className="ts-kicker">Deterministic findings</span><h2>Incident evidence</h2><p>Representative violations and detections from persisted evidence. Prevention and detection remain separate outcomes.</p></div></div>
+    <div className="ts-section-head"><div><h2>Incidents</h2><p>Only events that crossed a policy boundary or need investigation.</p></div></div>
     <div className="ts-list-card">
       {incidents.map(({event,index})=><ActivityRow key={event.recordId} event={event} onClick={()=>onOpen(index)} large/>)}
       {incidents.length===0?<EmptyState text="No representative incident evidence is currently in the queue."/>:null}
@@ -418,7 +417,7 @@ function Connections({rows,proof}:{rows:readonly ExposureRow[];proof:ChallengePr
   const managedProven=proof?.scopePrevention.proven??false;
   return <div className="ts-page-stack">
     <div className="ts-connect-hero">
-      <div><span className="ts-kicker">Platform onboarding</span><h2>Connect ThirdSight where third parties touch customer data.</h2><p>You do not rebuild your platform around ThirdSight. Choose the boundary that matches the integration: inline managed requests for prevention, browser observation for discovery, or audit evidence for post-access detection.</p></div>
+      <div><h2>Connect your platform</h2><p>Choose where ThirdSight should watch: before a request leaves, in the browser, or from your existing audit trail.</p></div>
       <div className="ts-connection-flow">
         <span><b>1</b>Choose boundary</span><i><ArrowRight size={14}/></i>
         <span><b>2</b>Register purpose</span><i><ArrowRight size={14}/></i>
@@ -478,7 +477,7 @@ function Connections({rows,proof}:{rows:readonly ExposureRow[];proof:ChallengePr
 
 function Validation({rows,proof}:{rows:readonly ExposureRow[];proof:ChallengeProof|null}){
   return <div className="ts-validation-stack">
-    <div className="ts-section-head"><div><span className="ts-kicker">Judge proof</span><h2>Challenge requirements, separated from product operations</h2><p>Commerce Lab proves correctness under ground truth. Public-site discovery proves external breadth under explicit visibility limits.</p></div></div>
+    <div className="ts-section-head"><div><h2>Validation</h2><p>Controlled tests show what ThirdSight gets right. Public-web tests show what it can observe outside the lab.</p></div></div>
     <IntegrationExposureMap rows={rows.slice(0,10)} proof={proof}/>
     <RealWorldValidation/>
   </div>;
@@ -492,8 +491,8 @@ function ReviewQueue({rows,onOpen}:{rows:readonly ExposureRow[];onOpen:(row:Expo
       const reason=hasFinding
         ? humanize(row.findings[0]??"finding")
         : row.integrationId
-          ? "Purpose or evidence context needs review"
-          : "Identity and merchant-approved purpose not registered";
+          ? "Needs more context"
+          : "Owner or policy is missing";
       return <button key={row.key} onClick={()=>onOpen(row)}>
         <span className={"ts-review-icon "+(hasFinding?"finding":"unresolved")}>
           {hasFinding?<AlertTriangle size={15}/>:<Eye size={15}/>}
@@ -521,18 +520,18 @@ function IntegrationRow({row,onClick}:{row:ExposureRow;onClick:()=>void}){
       <span className={"ts-integration-dot "+responseClass(row.latestResponse)}/>
       <p>
         <b>{profile?.family??row.label}</b>
-        <small>{profile?`${profile.vendor} · documented family`:(row.integrationId??"identity unresolved")} · {row.observations} observations</small>
+        <small>{profile?profile.vendor:(row.integrationId??"Identity unresolved")} · {row.observations} observations</small>
       </p>
     </div>
     <IntelCell
       values={expected}
-      fallback="Documented purpose unavailable"
-      source={profile?"Vendor documented":"Unresolved"}
+      fallback="Purpose not documented"
+      source={profile?"Vendor documentation":"Not identified"}
     />
     <IntelCell
       values={capable}
-      fallback={row.reachSource==="OBSERVED_LOWER_BOUND"?"Browser-visible lower bound only":"Documented capability unavailable"}
-      source={localCapability.length>0?"Local capability":profile?"Vendor documented":row.reachSource==="OBSERVED_LOWER_BOUND"?"Browser sensor":"Unresolved"}
+      fallback={row.reachSource==="OBSERVED_LOWER_BOUND"?"Only browser-visible access is known":"Access not documented"}
+      source={localCapability.length>0?"Local configuration":profile?"Vendor documentation":row.reachSource==="OBSERVED_LOWER_BOUND"?"Browser":"Not identified"}
     />
     <IntelCell
       values={row.attemptedFields}
@@ -542,8 +541,8 @@ function IntegrationRow({row,onClick}:{row:ExposureRow;onClick:()=>void}){
     />
     <IntelCell
       values={row.approvedFields}
-      fallback="Not supplied by merchant"
-      source="Merchant policy"
+      fallback="No policy provided"
+      source="Your policy"
       muted={row.approvedFields.length===0}
     />
     <div className="ts-response-cell"><StatusPill value={row.latestResponse}/>{row.findings.slice(0,1).map(value=><small key={value}>{humanize(value)}</small>)}</div>
@@ -571,22 +570,22 @@ function EvidenceDrawer({event,aiPromoted,onClose}:{event:ConsoleEvent;aiPromote
     <button className="ts-drawer-backdrop" aria-label="Close evidence detail" onClick={onClose}/>
     <div className="ts-drawer">
       <div className="ts-drawer-head">
-        <div><span className="ts-kicker">Evidence detail</span><h2>{integrationLabel(event)}</h2><p>{event.recordId}</p></div>
+        <div><h2>{integrationLabel(event)}</h2><p>{new Date(event.observedAt).toLocaleString()}</p></div>
         <button className="ts-icon-button" onClick={onClose} aria-label="Close"><X size={18}/></button>
       </div>
       <div className="ts-drawer-status"><StatusPill value={value}/><span>{eventSummary(event)}</span></div>
 
-      {discoveryOnly?<div className="ts-boundary-note"><Eye size={16}/><p><b>Discovery only.</b> Runtime metadata proves the observation boundary. Vendor documentation may describe expected product behaviour, but it does not establish this merchant's approval, configuration or internal justification.</p></div>:null}
-      {event.blindSpotAssessment?<div className="ts-boundary-note warning"><AlertTriangle size={16}/><p><b>Known benchmark blind spot.</b> {event.blindSpotAssessment.reason}</p></div>:null}
+      {discoveryOnly?<div className="ts-boundary-note"><Eye size={16}/><p><b>Observed in the browser.</b> ThirdSight can confirm the request happened, but this source alone cannot prove why the merchant allowed it.</p></div>:null}
+      {event.blindSpotAssessment?<div className="ts-boundary-note warning"><AlertTriangle size={16}/><p><b>Needs care.</b> {event.blindSpotAssessment.reason}</p></div>:null}
 
       <VendorIntelligencePanel event={event}/>
 
-      <div className="ts-proof-model-label"><span>Frozen proof model</span><small>Merchant-authoritative SHOULD / local COULD / runtime DID / first-party WHY</small></div>
+      <div className="ts-proof-model-label"><span>Evidence</span><small>What was allowed, possible, observed, and happening at the time</small></div>
       <div className="ts-evidence-grid">
-        <EvidenceFact title="Should" status={event.should.status} value={event.should.value?.purpose??"No Purpose Contract provided"} detail={event.should.reason}/>
-        <EvidenceFact title="Could" status={event.could.status} value={event.could.value?.statement??"Complete capability surface not available"} detail={event.could.reason}/>
-        <EvidenceFact title="Did" status={event.did.status} value={didSummary(event)} detail={event.did.reason}/>
-        <EvidenceFact title="Why" status={event.why.status} value={event.why.value?.eventType?event.why.value.eventType+" · "+event.why.value.correlationStrength:"No authoritative business context"} detail={event.why.reason}/>
+        <EvidenceFact title="Allowed" status={event.should.status} value={event.should.value?.purpose??"No merchant policy provided"} detail={event.should.reason}/>
+        <EvidenceFact title="Can access" status={event.could.status} value={event.could.value?.statement??"Full access surface is not known"} detail={event.could.reason}/>
+        <EvidenceFact title="Observed" status={event.did.status} value={didSummary(event)} detail={event.did.reason}/>
+        <EvidenceFact title="Context" status={event.why.status} value={event.why.value?.eventType?event.why.value.eventType+" · "+event.why.value.correlationStrength:"No business context available"} detail={event.why.reason}/>
       </div>
 
       <DecisionCard event={event}/>
@@ -635,11 +634,11 @@ function VendorIntelligencePanel({event}:{event:ConsoleEvent}){
   return <section className="ts-vendor-intel">
     <div className="ts-vendor-intel-head">
       <div>
-        <span className="ts-kicker">Vendor Intelligence · {event.vendorIntelligence.registryVersion}</span>
+        <span className="ts-kicker">Vendor context</span>
         <strong>{profile?profile.family:"Vendor identity unresolved"}</strong>
         <small>{profile?`${profile.vendor} · ${humanize(profile.category)}`:"No documentation-backed family matched this destination."}</small>
       </div>
-      <span className={"ts-vendor-match "+(profile?"matched":"unresolved")}>{profile?"DOCUMENTED":"UNRESOLVED"}</span>
+      <span className={"ts-vendor-match "+(profile?"matched":"unresolved")}>{profile?"Documented":"Unresolved"}</span>
     </div>
 
     <div className="ts-intel-stack">
@@ -654,7 +653,7 @@ function VendorIntelligencePanel({event}:{event:ConsoleEvent}){
       <span>Documentation reviewed {profile.sources[0]?.reviewedAt}</span>
       <div>{profile.sources.slice(0,3).map(item=><a href={item.url} target="_blank" rel="noreferrer" key={item.url}>{item.title}</a>)}</div>
     </div>:null}
-    <p className="ts-vendor-boundary">{event.vendorIntelligence.authorityBoundary}</p>
+    <p className="ts-vendor-boundary">Vendor documentation explains the product. Your policy decides what this integration is allowed to do.</p>
   </section>;
 }
 
@@ -677,16 +676,16 @@ function IntelCell({values,blocked=[],fallback,source,muted=false}:{values:reado
 function DecisionCard({event}:{event:ConsoleEvent}){
   const value=eventStatus(event);
   return <div className={"ts-decision-card "+responseClass(value)}>
-    <div><span>What ThirdSight did</span><strong>{value}</strong></div>
+    <div><span>Response</span><strong>{humanize(value)}</strong></div>
     <p>{eventSummary(event)}</p>
     {event.findings.length>0?<div className="ts-decision-meta"><span>Finding <b>{humanize(event.findings[0].type)}</b></span><span>Response <b>{event.findings[0].action}</b></span></div>:null}
     {event.enforcement?<div className="ts-enforcement-grid">
       <div><span>Removed before send</span><b>{event.enforcement.removedFields.join(", ")||"none"}</b></div>
       <div><span>Continued</span><b>{event.enforcement.continuedFields.join(", ")||"none"}</b></div>
       <div><span>Receiver got</span><b>{event.enforcement.receiver.receivedFields.join(", ")||"none"}</b></div>
-      <div><span>Forbidden field received</span><b>{event.enforcement.receiver.forbiddenFieldReceived?"YES":"NO"}</b></div>
+      <div><span>Blocked field reached partner</span><b>{event.enforcement.receiver.forbiddenFieldReceived?"Yes":"No"}</b></div>
     </div>:null}
-    {event.containment?<div className="ts-decision-meta"><span>Containment <b>{event.containment.action}</b></span><span>Applied <b>{event.containment.applied?"YES":"NO"}</b></span></div>:null}
+    {event.containment?<div className="ts-decision-meta"><span>Containment <b>{humanize(event.containment.action)}</b></span><span>Applied <b>{event.containment.applied?"Yes":"No"}</b></span></div>:null}
   </div>;
 }
 
@@ -735,14 +734,14 @@ function eventStatus(event:ConsoleEvent){
 }
 
 function eventSummary(event:ConsoleEvent){
-  if(event.outcome==="PREVENTED")return "An unjustified field was removed at the managed boundary before transmission.";
-  if(event.outcome==="DETECTED")return event.did.value?.boundary==="db-audit"?"Access was observed after it occurred; future credential use may be contained.":"Runtime evidence proves the access occurred before the finding.";
-  if(event.decision==="ALLOW")return "Observed access is consistent with approved scope and available business context.";
-  if(event.decision==="CONSTRAIN")return "ThirdSight recorded a deterministic policy violation and a constrained response.";
-  if(event.decision==="ISOLATE")return "ThirdSight recorded deterministic evidence strong enough to isolate future integration access.";
-  if(event.decision==="OBSERVE")return "Evidence is incomplete or ambiguous, so ThirdSight keeps the integration under observation instead of escalating authority.";
-  if(event.coverage.label==="BROWSER_ONLY")return "Browser-visible cross-origin request metadata was discovered and persisted.";
-  return "Persisted evidence does not support a stronger enforcement claim.";
+  if(event.outcome==="PREVENTED")return "ThirdSight removed an unapproved field before it left your platform.";
+  if(event.outcome==="DETECTED")return event.did.value?.boundary==="db-audit"?"This access had already happened when ThirdSight detected it.":"ThirdSight detected this access after it occurred.";
+  if(event.decision==="ALLOW")return "This access matched the approved scope and current business activity.";
+  if(event.decision==="CONSTRAIN")return "ThirdSight limited this request to the data your policy allows.";
+  if(event.decision==="ISOLATE")return "ThirdSight isolated this integration after a confirmed policy violation.";
+  if(event.decision==="OBSERVE")return "There is not enough evidence to block this safely, so it stays under review.";
+  if(event.coverage.label==="BROWSER_ONLY")return "ThirdSight saw this third-party request in the browser.";
+  return "ThirdSight does not have enough evidence to make a stronger decision.";
 }
 
 function integrationLabel(event:ConsoleEvent){

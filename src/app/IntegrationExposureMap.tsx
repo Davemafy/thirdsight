@@ -45,18 +45,18 @@ export function IntegrationExposureMap({
   return <section className="exposure-section">
     <div className="exposure-intro">
       <div>
-        <span className="eyebrow">Track G · live integration exposure</span>
-        <h2>What can each integration reach — and what did it actually touch?</h2>
-        <p>Capability, approved purpose and runtime evidence stay separate. Missing visibility is shown as unknown, not inferred.</p>
+        <span className="eyebrow">Integration exposure</span>
+        <h2>What can each integration access, and what did it actually touch?</h2>
+        <p>ThirdSight keeps approved access separate from observed activity, and leaves gaps visible when the evidence is incomplete.</p>
       </div>
-      <span className="exposure-live"><Activity size={13}/> persisted evidence</span>
+      <span className="exposure-live"><Activity size={13}/> Live evidence</span>
     </div>
 
     {proof?<div className="challenge-proof">
       <ProofCard
         icon={<CheckCircle2 size={15}/>}
         label="Busy sales day"
-        value={proof.busySale.passed?"NO FALSE ALARM":"NOT YET PROVEN"}
+        value={proof.busySale.passed?"No false alarm":"Not yet proven"}
         detail={proof.busySale.observed>0
           ?`${proof.busySale.allowed}/${proof.busySale.observed} legitimate flash-sale events allowed · ${proof.busySale.falseAlarms} false alarms`
           :"No persisted flash-sale run available"}
@@ -65,7 +65,7 @@ export function IntegrationExposureMap({
       <ProofCard
         icon={<ShieldAlert size={15}/>}
         label="Abnormal partner behaviour"
-        value={proof.abnormalBehavior.observed?"CAUGHT":"NOT OBSERVED"}
+        value={proof.abnormalBehavior.observed?"Caught":"Not observed"}
         detail={proof.abnormalBehavior.observed
           ?`${proof.abnormalBehavior.persistedFindings} persisted findings · ${proof.abnormalBehavior.findingTypes.slice(0,3).join(" · ")}`
           :"No deterministic finding persisted"}
@@ -74,14 +74,14 @@ export function IntegrationExposureMap({
       <ProofCard
         icon={<Layers3 size={15}/>}
         label="Graded response"
-        value="4 LEVELS"
+        value="4 levels"
         detail={proof.gradedResponse.levels.join(" → ")}
         state="neutral"
       />
       <ProofCard
         icon={<CheckCircle2 size={15}/>}
         label="Managed prevention"
-        value={proof.scopePrevention.proven?"PREVENTED":"NOT YET PROVEN"}
+        value={proof.scopePrevention.proven?"Prevented":"Not yet proven"}
         detail={proof.scopePrevention.proven
           ?`${proof.scopePrevention.removedFields.join(", ")||"unjustified field"} removed before receiver · forbidden field received: ${proof.scopePrevention.forbiddenFieldReceived?"YES":"NO"}`
           :"No persisted pre-send scope prevention"}
@@ -93,9 +93,9 @@ export function IntegrationExposureMap({
       <div className="exposure-table-head">
         <span>Integration</span>
         <span>Can reach</span>
-        <span>Actually touched / attempted</span>
-        <span>Merchant approved</span>
-        <span>Latest response</span>
+        <span>Observed / attempted</span>
+        <span>Allowed by policy</span>
+        <span>Status</span>
       </div>
       <div className="exposure-rows">
         {rows.length===0?<div className="exposure-empty">No persisted third-party exposure evidence yet.</div>:rows.map((row)=>
@@ -124,7 +124,7 @@ export function IntegrationExposureMap({
         )}
       </div>
     </div>
-    <small className="exposure-footnote">Vendor documentation is contextual evidence, not merchant authorization. “Can reach” remains declared/local capability evidence where available; “Touched / attempted” remains persisted runtime evidence. Public browser discovery never claims complete backend access.</small>
+    <small className="exposure-footnote">Vendor documentation explains the product; your policy decides what it is allowed to do. Browser-only observations do not reveal complete backend access.</small>
   </section>;
 }
 
