@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - feat/browser-evidence-adapter
+      - design/incident-first-v2
   pull_request:
     branches:
       - main
