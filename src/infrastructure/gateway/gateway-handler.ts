@@ -1,11 +1,11 @@
-import { businessEventEvidence } from "../../../src/domain/evidence-sources.js";
-import type { EvidenceGraphRecord } from "../../../src/domain/evidence.js";
-import { decideVerification } from "../../../src/domain/deterministic-verifier.js";
-import { verifyAndConstrainManagedRequest } from "../../../src/domain/managed-verification.js";
-import { parseGatewayInput, resolveRegisteredIntegration, signatureHash, verifyGatewaySignature } from "../../../src/domain/gateway-policy.js";
-import type { GatewayObservationV1 } from "../../../src/infrastructure/gateway/gateway-observation.js";
-import type { EvidenceHistoryEntry } from "../../../src/infrastructure/evidence-history/evidence-history-store.js";
-import { SupabaseEvidenceHistoryStore } from "../../../src/infrastructure/evidence-history/supabase-evidence-history-store.js";
+import { businessEventEvidence } from "../../domain/evidence-sources.js";
+import type { EvidenceGraphRecord } from "../../domain/evidence.js";
+import { decideVerification } from "../../domain/deterministic-verifier.js";
+import { verifyAndConstrainManagedRequest } from "../../domain/managed-verification.js";
+import { parseGatewayInput, resolveRegisteredIntegration, signatureHash, verifyGatewaySignature } from "../../domain/gateway-policy.js";
+import type { GatewayObservationV1 } from "./gateway-observation.js";
+import type { EvidenceHistoryEntry } from "../evidence-history/evidence-history-store.js";
+import { SupabaseEvidenceHistoryStore } from "../evidence-history/supabase-evidence-history-store.js";
 import { createHmac, randomUUID } from "node:crypto";
 
 interface ApiRequest {method?:string;body?:unknown;headers:Record<string,string|string[]|undefined>}

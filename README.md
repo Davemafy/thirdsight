@@ -82,7 +82,7 @@ Submission materials:
 ├── services/
 │   ├── cedar-commerce/         # Independent Next.js store and commerce API
 │   └── partner-lab/            # Independent signed partner receivers and receipt UI
-├── api/gateway/v1/dispatch.ts  # Managed ThirdSight integration boundary
+├── src/infrastructure/gateway/ # Managed ThirdSight integration boundary
 ├── .editorconfig
 ├── .gitignore
 ├── CONTRIBUTING.md

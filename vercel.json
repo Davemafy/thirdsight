@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/api/gateway/v1/dispatch",
+      "destination": "/api/console-events?managedGateway=1"
+    },
+    {
       "source": "/commerce-lab",
       "destination": "/index.html"
     },
