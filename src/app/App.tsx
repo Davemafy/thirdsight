@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  Activity,
   AlertTriangle,
   ChevronRight,
   CircleCheck,
@@ -8,7 +7,6 @@ import {
   Database,
   Eye,
   Globe2,
-  Network,
   Search,
   ShieldEllipsis,
   Workflow,
