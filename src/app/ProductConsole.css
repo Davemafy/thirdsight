@@ -777,3 +777,24 @@
     font-size:10.5px
   }
 }
+
+
+.ts-evidence-toast button:disabled{
+  opacity:.58;
+  cursor:default;
+}
+.ts-evidence-toast.success{
+  grid-template-columns:20px minmax(0,1fr);
+  border-color:#cfe2d4;
+  background:#f7fbf8;
+  color:#31533b;
+}
+.ts-evidence-toast.success>svg{
+  color:#3d7b50;
+}
+.ts-evidence-toast.success strong{
+  color:#294331;
+}
+.ts-evidence-toast.success span{
+  color:#5e7163;
+}

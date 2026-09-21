@@ -91,6 +91,8 @@ export default function App(){
   const [view,setView]=useState<View>("overview");
   const [detailOpen,setDetailOpen]=useState(false);
   const [error,setError]=useState(false);
+  const [retrying,setRetrying]=useState(false);
+  const [recovered,setRecovered]=useState(false);
   const [aiPromoted,setAiPromoted]=useState(false);
   const [exposureMap,setExposureMap]=useState<ExposureRow[]>([]);
   const [challengeProof,setChallengeProof]=useState<ChallengeProof|null>(null);
@@ -100,7 +102,8 @@ export default function App(){
 
   useEffect(()=>{
     let live=true;
-    const load=()=>fetch("/api/console-events",{cache:"no-store"})
+    let recoveredTimer:number|undefined;
+    const load=(manual=false)=>fetch("/api/console-events",{cache:"no-store"})
       .then(r=>{if(!r.ok)throw new Error("evidence unavailable");return r.json()})
       .then(d=>{
         if(!live)return;
@@ -111,11 +114,24 @@ export default function App(){
         setAiPromoted(Boolean(d.aiAnalyst?.promoted));
         setSelected(current=>current<history.length?current:0);
         setError(false);
+        if(manual){
+          setRetrying(false);
+          setRecovered(true);
+          recoveredTimer=window.setTimeout(()=>live&&setRecovered(false),2400);
+        }
       })
-      .catch(()=>live&&setError(true));
-    load();
-    const id=window.setInterval(load,5000);
-    return()=>{live=false;window.clearInterval(id)};
+      .catch(()=>{
+        if(!live)return;
+        setError(true);
+        if(manual)setRetrying(false);
+      });
+    load(retryKey>0);
+    const id=window.setInterval(()=>load(false),5000);
+    return()=>{
+      live=false;
+      window.clearInterval(id);
+      if(recoveredTimer)window.clearTimeout(recoveredTimer);
+    };
   },[retryKey]);
 
   const selectedEvent=events[selected]??events[0]??null;
@@ -200,8 +216,22 @@ export default function App(){
 
       {error?<div className="ts-evidence-toast" role="status" aria-live="polite">
         <AlertTriangle size={17}/>
-        <div><strong>Live evidence is unavailable</strong><span>We couldn't refresh your latest activity.</span></div>
-        <button onClick={()=>setRetryKey(value=>value+1)}>Retry</button>
+        <div>
+          <strong>{retrying?"Retrying connection…":"Live evidence is unavailable"}</strong>
+          <span>{retrying?"Checking the evidence feed now.":"We couldn't refresh your latest activity."}</span>
+        </div>
+        <button
+          disabled={retrying}
+          onClick={()=>{
+            setRecovered(false);
+            setRetrying(true);
+            setRetryKey(value=>value+1);
+          }}
+        >{retrying?"Retrying…":"Retry"}</button>
+      </div>:null}
+      {recovered?<div className="ts-evidence-toast success" role="status" aria-live="polite">
+        <CircleCheck size={17}/>
+        <div><strong>Connection restored</strong><span>Latest evidence is available again.</span></div>
       </div>:null}
 
       <div className="ts-content">
