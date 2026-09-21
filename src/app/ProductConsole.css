@@ -1324,3 +1324,136 @@
 @media(max-width:560px){
   .ts-control-boundary{font-size:13px}
 }
+
+
+/* Boundary-map product shell */
+.ts-shell{display:grid;grid-template-columns:1fr;grid-template-rows:74px minmax(0,1fr);min-height:100vh;background:#f3f1ea}
+.ts-sidebar{position:sticky;top:0;z-index:20;display:grid;grid-template-columns:220px minmax(0,1fr) auto;align-items:center;height:74px;padding:0 34px;border:0;border-bottom:1px solid #c8cbc4;background:#f3f1ea}
+.ts-brand{display:flex;align-items:center;gap:12px;padding:0;margin:0}
+.ts-brand>span{display:grid;width:26px;height:26px;place-items:center;border:2px solid #101512;border-radius:7px;background:transparent;color:#101512}
+.ts-brand>div strong{font-size:20px;letter-spacing:-.03em}
+.ts-nav{display:flex;justify-content:center;gap:26px;margin:0}
+.ts-nav-button{display:block;width:auto;min-height:auto;padding:0;border:0;background:transparent;color:#68716b}
+.ts-nav-button>span,.ts-nav-button em{display:none}
+.ts-nav-button b{font-size:14px;font-weight:500}
+.ts-nav-button.active{border:0;background:transparent;box-shadow:none;color:#101512}
+.ts-nav-button.active b{font-weight:700}
+.ts-nav-secondary{display:none}
+.ts-sidebar-foot{margin:0;padding:0;border:0;text-align:right}
+.ts-sidebar-foot strong,.ts-sidebar-foot span{display:block}
+.ts-sidebar-foot strong{font-size:13px}
+.ts-sidebar-foot span{margin-top:3px;font-size:12px;color:#68716b;font-weight:500}
+.ts-workspace{min-width:0}
+.ts-topbar{display:none}
+.ts-content{max-width:1500px;padding:34px 40px 36px;margin:0 auto;width:100%}
+
+.ts-boundary-screen{color:#101512}
+.ts-boundary-head{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:40px;align-items:end;padding-bottom:24px;border-bottom:1px solid #c8cbc4}
+.ts-boundary-head h1{max-width:920px;margin:0;font-size:48px;line-height:1.02;letter-spacing:-.055em;font-weight:760}
+.ts-boundary-head p{max-width:760px;margin:12px 0 0;color:#667069;font-size:16px;line-height:1.55}
+.ts-boundary-result{text-align:right}
+.ts-boundary-result strong{display:block;color:#1f6b45;font-size:27px;letter-spacing:-.035em}
+.ts-boundary-result span{display:block;margin-top:7px;color:#667069;font-size:14px;line-height:1.4}
+
+.ts-boundary-column-head{display:grid;grid-template-columns:280px minmax(0,1fr) 310px;padding:24px 0 10px;color:#505b54;font-size:14px;font-weight:700}
+.ts-boundary-column-head span:nth-child(2){text-align:center}
+.ts-boundary-column-head span:nth-child(3){text-align:right}
+
+.ts-boundary-map{display:grid;grid-template-columns:280px minmax(0,1fr) 310px;min-height:430px;border-top:1px solid #c8cbc4;border-bottom:1px solid #c8cbc4}
+.ts-boundary-fields,.ts-boundary-receiver{position:relative;z-index:2;padding:24px 0}
+.ts-boundary-fields{border-right:1px solid #c8cbc4}
+.ts-boundary-receiver{padding-left:26px;border-left:1px solid #c8cbc4}
+.ts-boundary-field,.ts-boundary-dest{display:flex;height:82px;flex-direction:column;justify-content:center}
+.ts-boundary-field{padding-right:24px}
+.ts-boundary-field code{font:700 15px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;color:#101512}
+.ts-boundary-field span,.ts-boundary-dest span{margin-top:8px;color:#667069;font-size:13px}
+.ts-boundary-field.danger code{color:#c24d1e}
+.ts-boundary-dest strong{font-size:17px;letter-spacing:-.02em}
+.ts-boundary-dest.muted strong{color:#7a817d}
+.ts-receiver-proof{margin-top:18px;padding-top:18px;border-top:1px solid #c8cbc4}
+.ts-receiver-proof strong,.ts-receiver-proof span{display:block}
+.ts-receiver-proof strong{color:#1f6b45;font-size:18px;letter-spacing:-.02em}
+.ts-receiver-proof span{margin-top:5px;color:#667069;font-size:13px}
+
+.ts-boundary-flow{position:relative;overflow:hidden}
+.ts-contract-line{position:absolute;top:0;bottom:0;left:50%;width:2px;background:#101512}
+.ts-contract-title,.ts-contract-fields{position:absolute;left:50%;transform:translateX(-50%);background:#f3f1ea;white-space:nowrap}
+.ts-contract-title{top:18px;padding:0 12px;font-size:14px;font-weight:760}
+.ts-contract-fields{top:42px;padding:0 10px;color:#667069;font-size:13px}
+.ts-boundary-flow svg{position:absolute;inset:0;width:100%;height:100%}
+.ts-flow-line{fill:none;stroke:#2c4034;stroke-width:2.5}
+.ts-flow-line.danger{stroke:#c24d1e;stroke-width:4}
+.ts-flow-label{fill:#445047;font:700 13px Inter,system-ui,sans-serif}
+.ts-flow-label.danger{fill:#c24d1e}
+.ts-flow-stop{fill:#f3f1ea;stroke:#c24d1e;stroke-width:3}
+.ts-flow-x{stroke:#c24d1e;stroke-width:3}
+
+.ts-boundary-below{display:grid;grid-template-columns:1fr 1fr;gap:32px;padding-top:26px}
+.ts-boundary-section{padding-top:16px;border-top:1px solid #c8cbc4}
+.ts-boundary-section h2{margin:0 0 12px;font-size:18px;letter-spacing:-.02em}
+.ts-boundary-section-head{display:flex;align-items:center;justify-content:space-between;gap:20px}
+.ts-boundary-section-head button{display:inline-flex;align-items:center;gap:6px;border:0;background:transparent;color:#364139;font-size:13px;font-weight:700;cursor:pointer}
+.ts-boundary-facts{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #e7e5de}
+.ts-boundary-facts>div{padding:14px 0;border-bottom:1px solid #e7e5de}
+.ts-boundary-facts>div:nth-child(odd){padding-right:20px}
+.ts-boundary-facts>div:nth-child(even){padding-left:20px;border-left:1px solid #e7e5de}
+.ts-boundary-facts span,.ts-boundary-facts b{display:block}
+.ts-boundary-facts span{color:#667069;font-size:13px}
+.ts-boundary-facts b{margin-top:5px;font-size:15px;line-height:1.35}
+.ts-evaluation-note,.ts-boundary-note{margin:13px 0 0;color:#667069;font-size:13px;line-height:1.5}
+.ts-public-observations{display:grid;border-top:1px solid #e7e5de}
+.ts-public-observations>button{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center;padding:12px 0;border:0;border-bottom:1px solid #e7e5de;background:transparent;text-align:left;cursor:pointer}
+.ts-public-observations>button:hover{background:#edeae2}
+.ts-public-observations strong,.ts-public-observations span{display:block}
+.ts-public-observations strong{font-size:14px}
+.ts-public-observations span{margin-top:4px;color:#667069;font-size:13px}
+.ts-public-observations b{font-size:13px}
+.ts-boundary-footer{display:flex;justify-content:space-between;gap:24px;margin-top:26px;padding-top:14px;border-top:1px solid #c8cbc4;color:#667069;font-size:13px}
+.ts-boundary-footer strong{color:#101512}
+
+@media(max-width:900px){
+  .ts-shell{grid-template-rows:auto 1fr}
+  .ts-sidebar{position:sticky;display:grid;grid-template-columns:1fr auto;height:auto;min-height:64px;padding:10px 18px}
+  .ts-brand>div strong{font-size:18px}
+  .ts-nav{grid-column:1/-1;justify-content:flex-start;gap:20px;overflow-x:auto;padding-top:10px}
+  .ts-nav-button b{font-size:13px}
+  .ts-sidebar-foot{grid-column:2;grid-row:1}
+  .ts-sidebar-foot span{font-size:11px}
+  .ts-content{padding:22px 18px 28px}
+  .ts-boundary-head{grid-template-columns:1fr}
+  .ts-boundary-head h1{font-size:38px}
+  .ts-boundary-head p{font-size:15px}
+  .ts-boundary-result{text-align:left}
+  .ts-boundary-column-head{grid-template-columns:150px 1fr 180px}
+  .ts-boundary-column-head span:nth-child(2){display:none}
+  .ts-boundary-map{grid-template-columns:150px minmax(0,1fr) 180px;min-height:410px}
+  .ts-boundary-field{padding-right:12px}
+  .ts-boundary-field code{font-size:13px}
+  .ts-boundary-field span,.ts-boundary-dest span{font-size:12px}
+  .ts-boundary-receiver{padding-left:14px}
+  .ts-boundary-dest strong{font-size:14px}
+  .ts-contract-title{font-size:12px}
+  .ts-contract-fields{display:none}
+  .ts-boundary-below{grid-template-columns:1fr}
+}
+@media(max-width:620px){
+  .ts-sidebar{grid-template-columns:1fr}
+  .ts-sidebar-foot{display:none}
+  .ts-nav{grid-column:1;gap:16px}
+  .ts-nav-button b{font-size:13px}
+  .ts-boundary-head h1{font-size:34px}
+  .ts-boundary-column-head{grid-template-columns:122px minmax(0,1fr) 142px;font-size:12px}
+  .ts-boundary-map{grid-template-columns:122px minmax(0,1fr) 142px}
+  .ts-boundary-field,.ts-boundary-dest{height:82px}
+  .ts-boundary-field code{font-size:12px}
+  .ts-boundary-field span,.ts-boundary-dest span{font-size:12px}
+  .ts-boundary-dest strong{font-size:12px}
+  .ts-contract-title{max-width:150px;white-space:normal;text-align:center}
+  .ts-flow-label{font-size:11px}
+  .ts-receiver-proof strong{font-size:14px}
+  .ts-receiver-proof span{font-size:12px}
+  .ts-boundary-facts{grid-template-columns:1fr}
+  .ts-boundary-facts>div:nth-child(odd),.ts-boundary-facts>div:nth-child(even){padding:12px 0;border-left:0}
+  .ts-boundary-footer{display:block}
+  .ts-boundary-footer span{display:block;margin-top:6px}
+}
