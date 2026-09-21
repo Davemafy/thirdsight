@@ -411,7 +411,7 @@ function MobileBoundaryTrace({
     const continued=event.enforcement?.continuedFields??[];
     const removed=event.enforcement?.removedFields??[];
     const observed=event.did.value?.dataCategories??[];
-    const traceLines=[
+    const traceLines:Array<{field:string;state:"passed"|"stopped"|"observed";label:string}>=[
       ...continued.map(field=>({field,state:"passed" as const,label:"Passed"})),
       ...removed.map(field=>({field,state:"stopped" as const,label:"Stopped"})),
     ];
