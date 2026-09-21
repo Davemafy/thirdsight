@@ -294,15 +294,6 @@ function Overview({
     .sort((a,b)=>String(b.lastSeen??"").localeCompare(String(a.lastSeen??"")))
     .slice(0,5);
   const actionCount=Math.max(findingCount,incidentPairs.length);
-  const stoppedCount=events.filter(event=>event.outcome==="PREVENTED").length;
-  const mobileTitle=stoppedCount>0
-    ? `${stoppedCount} access attempt${stoppedCount===1?"":"s"} stopped`
-    : actionCount>0
-      ? `${actionCount} item${actionCount===1?"":"s"} need review`
-      : "No policy violation proven";
-  const mobileDetail=unregisteredCount>0
-    ? `${totalObserved} destinations observed. ${unregisteredCount} still need merchant identity or policy context.`
-    : `${totalObserved} destinations observed across the connected workspace.`;
   const statusTitle=findingCount>0
     ? `${findingCount} integration${findingCount===1?"":"s"} need attention`
     : `${totalObserved} third-party destination${totalObserved===1?"":"s"} observed`;
@@ -315,34 +306,38 @@ function Overview({
   return <>
     <div className="ts-mobile-overview">
       <section className="ts-mobile-home-intro">
-        <span className="ts-mobile-live"><i/> Commerce Lab · monitoring</span>
-        <h1>{mobileTitle}</h1>
-        <p>{mobileDetail}</p>
+        <div className="ts-mobile-title-row">
+          <h1>Today</h1>
+          <span className="ts-mobile-monitor"><i/> Monitoring</span>
+        </div>
+        <p><b>{totalObserved}</b> integrations observed · <b>{documentedCount}</b> identified · <b>{actionCount}</b> need review</p>
       </section>
 
-      <MobilePriorityCard
-        incident={priorityIncident}
-        fallback={reviewRows[0]??recentRows[0]??null}
-        onOpenEvent={onOpenEvent}
-        onOpenRow={onOpenRow}
-      />
-
-      <section className="ts-mobile-posture" aria-label="Integration posture">
-        <div><strong>{totalObserved}</strong><span>Observed</span></div>
-        <div><strong>{documentedCount}</strong><span>Identified</span></div>
-        <div><strong>{actionCount}</strong><span>Review</span></div>
+      <section className="ts-mobile-latest">
+        <span className="ts-mobile-section-label">Latest</span>
+        <MobilePriorityCard
+          incident={priorityIncident}
+          fallback={reviewRows[0]??recentRows[0]??null}
+          onOpenEvent={onOpenEvent}
+          onOpenRow={onOpenRow}
+        />
       </section>
 
       <section className="ts-mobile-recent">
         <div className="ts-mobile-section-head">
-          <h2>Recent integrations</h2>
-          <button onClick={onViewIntegrations}>See all</button>
+          <h2>Integrations</h2>
+          <button onClick={onViewIntegrations}>All {totalObserved}</button>
         </div>
         <div className="ts-mobile-integration-list">
           {recentRows.map(row=><button key={row.key} onClick={()=>onOpenRow(row)}><MobileIntegrationContent row={row}/></button>)}
           {recentRows.length===0?<EmptyState text="Waiting for integration evidence."/>:null}
         </div>
       </section>
+
+      <footer className="ts-mobile-context-line">
+        <span>Commerce Lab</span>
+        <button onClick={onConnections}>Connection coverage <ArrowRight size={13}/></button>
+      </footer>
     </div>
 
     <div className="ts-desktop-overview">
@@ -426,10 +421,13 @@ function MobilePriorityCard({
           ?"Detected after access"
           :"Needs review";
     return <button className={"ts-mobile-priority "+responseClass(value)} onClick={()=>onOpenEvent(incident.index)}>
-      <div className="ts-mobile-priority-meta"><span>{label}</span><small>{new Date(incident.event.observedAt).toLocaleDateString()}</small></div>
+      <div className="ts-mobile-priority-meta">
+        <span>{label}</span>
+        <small>{new Date(incident.event.observedAt).toLocaleDateString()}</small>
+      </div>
       <h2>{integrationLabel(incident.event)}</h2>
       <p>{eventSummary(incident.event)}</p>
-      <span className="ts-mobile-priority-action">View evidence <ArrowRight size={15}/></span>
+      <span className="ts-mobile-priority-action">View evidence <ChevronRight size={15}/></span>
     </button>;
   }
 
@@ -438,8 +436,8 @@ function MobilePriorityCard({
     return <button className="ts-mobile-priority review" onClick={()=>onOpenRow(fallback)}>
       <div className="ts-mobile-priority-meta"><span>Needs context</span><small>{fallback.observations} observation{fallback.observations===1?"":"s"}</small></div>
       <h2>{profile?.family??fallback.label}</h2>
-      <p>{profile?.expectedPurposes[0]??"ThirdSight observed this destination, but no merchant-approved identity or purpose is registered."}</p>
-      <span className="ts-mobile-priority-action">Review integration <ArrowRight size={15}/></span>
+      <p>{profile?.expectedPurposes[0]??"Observed destination has no merchant-approved identity or purpose registered."}</p>
+      <span className="ts-mobile-priority-action">Review integration <ChevronRight size={15}/></span>
     </button>;
   }
 
@@ -460,11 +458,10 @@ function MobileIntegrationContent({row}:{row:ExposureRow}){
       :`${row.observations} observation${row.observations===1?"":"s"}`;
 
   return <div className="ts-mobile-integration-content">
-    <span className={"ts-mobile-integration-icon "+state.tone}>{profile?<PlugZap size={16}/>:<Eye size={16}/>}</span>
+    <i className={"ts-mobile-state-dot "+state.tone}/>
     <div className="ts-mobile-integration-copy">
       <strong>{profile?.family??row.label}</strong>
-      <span>{profile?.vendor??"Unidentified integration"}</span>
-      <small>{observed}</small>
+      <small>{profile?.vendor??"Unidentified integration"} · {observed}</small>
     </div>
     <span className={"ts-mobile-integration-state "+state.tone}>{state.label}</span>
     <ChevronRight size={16}/>
