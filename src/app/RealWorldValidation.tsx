@@ -1,9 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { BookOpenCheck, Eye, Globe2, ShieldCheck } from "lucide-react";
-import {
-  VENDOR_INTELLIGENCE_VERSION,
-  resolveVendorOrigin,
-} from "../vendor-intelligence/vendor-intelligence";
+import { resolveVendorOrigin } from "../vendor-intelligence/vendor-intelligence";
 import {
   summarizeOriginCoverage,
   type BenchmarkOriginInventory,
