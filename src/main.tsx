@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './app/App';
+import ThirdSightDesktop from './desktop/ThirdSightDesktop';
 import { CommerceLab, CommerceLabControl } from './commerce/CommerceLab';
 import ThirdSightLanding from './marketing/ThirdSightLanding';
 import './styles/global.css';
@@ -17,8 +18,10 @@ const surface=path==='/commerce-lab/control'
   : path.startsWith('/commerce-lab')
     ? <CommerceLab />
     : path==='/app'||path.startsWith('/app/')
-      ? <App />
-      : <ThirdSightLanding />;
+      ? <ThirdSightDesktop />
+      : path==='/legacy'
+        ? <App />
+        : <ThirdSightLanding />;
 
 createRoot(rootElement).render(
   <StrictMode>
