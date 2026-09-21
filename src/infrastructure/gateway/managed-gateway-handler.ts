@@ -1,10 +1,10 @@
 import { createHash, randomUUID, timingSafeEqual } from "node:crypto";
-import { CredentialUnavailableError } from "../src/gateway/credential-provider.js";
-import { GatewayExecutionError, executeGatewayRequest } from "../src/gateway/gateway-core.js";
-import { GatewaySecurityError } from "../src/gateway/security.js";
-import { SupabaseEvidenceHistoryStore } from "../src/infrastructure/evidence-history/supabase-evidence-history-store.js";
-import { parseManagedRequestContext } from "../src/managed/context.js";
-import { ManagedPayloadError } from "../src/managed/payload-paths.js";
+import { CredentialUnavailableError } from "../../gateway/credential-provider.js";
+import { GatewayExecutionError, executeGatewayRequest } from "../../gateway/gateway-core.js";
+import { GatewaySecurityError } from "../../gateway/security.js";
+import { parseManagedRequestContext } from "../../managed/context.js";
+import { ManagedPayloadError } from "../../managed/payload-paths.js";
+import { SupabaseEvidenceHistoryStore } from "../evidence-history/supabase-evidence-history-store.js";
 
 interface ApiRequest {
   method?:string;
@@ -12,6 +12,7 @@ interface ApiRequest {
   headers?:Record<string,string|string[]|undefined>;
   body?:unknown;
 }
+
 interface ApiResponse {
   status(code:number):ApiResponse;
   setHeader(name:string,value:string):void;

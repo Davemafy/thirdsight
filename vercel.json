@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/api/managed-gateway",
+      "destination": "/api/console-events?managedHttpGateway=1"
+    },
+    {
       "source": "/api/gateway/v1/dispatch",
       "destination": "/api/console-events?managedGateway=1"
     },
