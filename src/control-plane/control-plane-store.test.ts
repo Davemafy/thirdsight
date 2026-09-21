@@ -22,10 +22,11 @@ describe("MerchantControlPlaneStore",()=>{
 
     expect(created.rawKey).toMatch(/^ts_live_/);
     expect(persisted).not.toBeNull();
-    expect(persisted).not.toHaveProperty("rawKey");
-    expect(persisted).not.toHaveProperty("api_key");
-    expect(persisted?.key_hash).toBe(hashApiKey(created.rawKey));
-    expect(String(persisted?.key_hash)).not.toContain(created.rawKey);
+    const persistedRecord=persisted as Record<string,unknown>;
+    expect(persistedRecord).not.toHaveProperty("rawKey");
+    expect(persistedRecord).not.toHaveProperty("api_key");
+    expect(persistedRecord.key_hash).toBe(hashApiKey(created.rawKey));
+    expect(String(persistedRecord.key_hash)).not.toContain(created.rawKey);
   });
 
   it("checks the merchant installation independently of the API key",async()=>{
