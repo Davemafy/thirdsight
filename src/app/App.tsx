@@ -2,20 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Activity,
   AlertTriangle,
-  ArrowRight,
-  BookOpenCheck,
   ChevronRight,
   CircleCheck,
   Code2,
   Database,
   Eye,
   Globe2,
-  Layers3,
   Network,
-  MoreHorizontal,
-  PlugZap,
   Search,
-  ShieldCheck,
   ShieldEllipsis,
   Workflow,
   X,
@@ -73,15 +67,7 @@ type ConsoleEvent={
   vendorIntelligence:VendorIntelligenceResolution;
 };
 
-const viewCopy:Record<View,{title:string}>={
-  overview:{title:"Overview"},
-  integrations:{title:"Integrations"},
-  activity:{title:"Activity"},
-  incidents:{title:"Incidents"},
-  policies:{title:"Policies"},
-  connections:{title:"Connections"},
-  validation:{title:"Validation"},
-};
+const V4_CSS="\n.ts-v4-app{min-height:100vh;background:#f7f6f2;color:#121714}\n.ts-v4-topbar{height:68px;display:grid;grid-template-columns:220px 1fr 220px;align-items:center;padding:0 34px;border-bottom:1px solid #d3d5cf;background:#f7f6f2}\n.ts-v4-brand{border:0;background:transparent;color:#121714;padding:0;text-align:left;font-size:20px;font-weight:760;letter-spacing:-.035em;cursor:pointer}\n.ts-v4-nav{display:flex;justify-content:center;gap:28px}.ts-v4-nav button{padding:24px 0 20px;border:0;border-bottom:2px solid transparent;background:transparent;color:#6a736d;font-size:14px;cursor:pointer}\n.ts-v4-nav button.active{color:#121714;border-bottom-color:#121714;font-weight:700}.ts-v4-context{text-align:right;font-size:13px;color:#687069}.ts-v4-context b{color:#121714;font-weight:700}\n.ts-v4-main{max-width:1480px;width:100%;margin:0 auto;padding:28px 40px 42px}\n.ts-boundary-page{--paper:#f7f6f2;--ink:#121714;--muted:#687069;--line:#d3d5cf;--faint:#e8e7e2;--alert:#b9491f;--ok:#285d3d;color:var(--ink)}\n.ts-demo-strip{display:flex;gap:22px;align-items:center;padding-bottom:20px;border-bottom:1px solid var(--line);font-size:14px;overflow:auto}.ts-demo-strip button{border:0;background:transparent;padding:0 0 8px;color:#778079;white-space:nowrap;cursor:pointer}.ts-demo-strip button.active{color:var(--ink);font-weight:750;border-bottom:2px solid var(--ink)}.ts-demo-strip span{margin-left:auto;color:#7c857f;white-space:nowrap}\n.ts-boundary-hero{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:42px;align-items:end;padding:26px 0 28px;border-bottom:1px solid var(--line)}.ts-boundary-hero h1{margin:0;max-width:920px;font-size:54px;line-height:.98;letter-spacing:-.058em;font-weight:760}.ts-boundary-hero p{margin:12px 0 0;max-width:760px;font-size:17px;line-height:1.55;color:var(--muted)}\n.ts-boundary-verdict{text-align:right}.ts-boundary-verdict strong{display:block;font-size:28px;letter-spacing:-.04em;color:var(--alert)}.ts-boundary-verdict span{display:block;margin-top:8px;font-size:14px;line-height:1.4;color:var(--muted)}\n.ts-map-wrap{padding:24px 0 0}.ts-map-title{display:grid;grid-template-columns:260px 1fr 320px;align-items:end;padding:0 0 12px;font-size:14px;color:#535d56;font-weight:700}.ts-map-title div:nth-child(2){text-align:center}.ts-map-title div:nth-child(3){text-align:right}\n.ts-boundary-map{position:relative;display:grid;grid-template-columns:260px 1fr 320px;min-height:500px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.ts-map-left,.ts-map-right{position:relative;z-index:2;padding:24px 0}.ts-map-left{border-right:1px solid var(--line)}.ts-map-right{border-left:1px solid var(--line);padding-left:28px}\n.ts-field-group{padding:0 22px 18px 0;margin-bottom:18px;border-bottom:1px solid var(--faint)}.ts-field-group:last-child{border-bottom:0;margin-bottom:0}.ts-field-group h3{margin:0 0 10px;font-size:15px;letter-spacing:-.015em}\n.ts-map-field{display:flex;justify-content:space-between;gap:16px;align-items:center;padding:10px 0;font-size:14px}.ts-map-field code{font:700 14px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace}.ts-map-field span{color:#7a837d;font-size:13px}.ts-map-field.bad code{color:var(--alert)}\n.ts-map-center{position:relative;overflow:hidden}.ts-contract-line{position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--ink)}.ts-contract-name{position:absolute;left:50%;top:18px;transform:translateX(-50%);padding:0 12px;background:var(--paper);font-size:15px;font-weight:760;white-space:nowrap}.ts-contract-fields{position:absolute;left:50%;top:46px;transform:translateX(-50%);padding:0 10px;background:var(--paper);font-size:13px;color:var(--muted);white-space:nowrap}\n.ts-map-center svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}.ts-path{fill:none;stroke:#32453a;stroke-width:2.4}.ts-path.bad{stroke:var(--alert);stroke-width:4}.ts-path-label{font:700 13px Inter,system-ui,sans-serif;fill:#4b5750}.ts-path-label.bad{fill:var(--alert)}.ts-stop{fill:var(--paper);stroke:var(--alert);stroke-width:3}.ts-stop-x{stroke:var(--alert);stroke-width:3}\n.ts-map-integration{padding:0 0 20px;margin-bottom:18px;border-bottom:1px solid var(--faint)}.ts-map-integration:last-child{border-bottom:0}.ts-map-integration>strong{display:block;font-size:18px;letter-spacing:-.025em}.ts-map-integration .purpose{display:block;margin-top:6px;font-size:14px;color:var(--muted)}\n.ts-receiver{margin-top:14px;display:grid;gap:8px}.ts-receiver div{display:flex;justify-content:space-between;gap:16px;font-size:14px}.ts-receiver span{color:#6f7972}.ts-receiver b{font-weight:700}.ts-receiver .blocked b{color:var(--alert)}.ts-receiver .ok b{color:var(--ok)}\n.ts-map-evidence{margin-top:14px;padding:8px 10px;border:1px solid #121714;border-radius:4px;background:#121714;color:#fff;font-size:13px;font-weight:700;cursor:pointer}\n.ts-boundary-after{display:grid;grid-template-columns:1fr 1fr;gap:34px;padding-top:26px}.ts-boundary-section{border-top:1px solid var(--line);padding-top:16px}.ts-boundary-section h2{margin:0 0 14px;font-size:20px;letter-spacing:-.025em}\n.ts-reason{display:grid;grid-template-columns:180px 1fr;gap:14px;padding:12px 0;border-top:1px solid var(--faint);font-size:14px}.ts-reason:first-of-type{border-top:0}.ts-reason span{color:var(--muted)}.ts-reason b{font-weight:700}\n.ts-proof-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid var(--faint)}.ts-proof-grid div{padding:14px 0;border-bottom:1px solid var(--faint)}.ts-proof-grid div:nth-child(odd){padding-right:20px}.ts-proof-grid div:nth-child(even){padding-left:20px;border-left:1px solid var(--faint)}.ts-proof-grid span,.ts-proof-grid b{display:block}.ts-proof-grid span{font-size:13px;color:var(--muted)}.ts-proof-grid b{margin-top:5px;font-size:15px;line-height:1.35}\n.ts-boundary-note{margin-top:14px;font-size:14px;line-height:1.5;color:var(--muted)}\n.ts-scenario-sheet{padding-top:30px}.ts-scenario-head{display:grid;grid-template-columns:minmax(0,1fr) 200px;gap:32px;align-items:end;padding-bottom:28px;border-bottom:1px solid var(--line)}.ts-scenario-head h1{margin:0;max-width:900px;font-size:48px;line-height:1;letter-spacing:-.05em}.ts-scenario-head p{margin:12px 0 0;font-size:16px;line-height:1.5;color:var(--muted)}.ts-scenario-head>strong{text-align:right;font-size:27px;color:var(--ok);letter-spacing:-.035em}\n.ts-scenario-facts{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--line)}.ts-scenario-facts>div{padding:18px 16px;border-left:1px solid var(--faint)}.ts-scenario-facts>div:first-child{padding-left:0;border-left:0}.ts-scenario-facts span,.ts-scenario-facts b{display:block}.ts-scenario-facts span{font-size:13px;color:var(--muted)}.ts-scenario-facts b{margin-top:6px;font-size:15px;line-height:1.4}.ts-scenario-actions{display:flex;gap:10px;padding-top:18px}.ts-scenario-actions button{padding:9px 12px;border:1px solid #cfd2cc;border-radius:4px;background:transparent;color:#26312a;font-size:13px;font-weight:700;cursor:pointer}\n@media(max-width:900px){.ts-v4-topbar{grid-template-columns:1fr auto;padding:0 18px}.ts-v4-nav{display:none}.ts-v4-context{font-size:12px}.ts-v4-main{padding:22px 18px 30px}.ts-boundary-hero{grid-template-columns:1fr}.ts-boundary-hero h1{font-size:42px}.ts-boundary-verdict{text-align:left}.ts-map-title{grid-template-columns:150px 1fr 180px}.ts-map-title div:nth-child(2){font-size:0}.ts-map-title div:nth-child(2):after{content:\"Boundary\";font-size:14px}.ts-boundary-map{grid-template-columns:150px 1fr 180px}.ts-field-group{padding-right:12px}.ts-map-right{padding-left:14px}.ts-contract-fields{display:none}.ts-map-field,.ts-map-field code{font-size:13px}.ts-map-integration>strong{font-size:15px}.ts-map-integration .purpose,.ts-receiver div{font-size:12px}.ts-boundary-after{grid-template-columns:1fr}.ts-reason{grid-template-columns:140px 1fr}.ts-scenario-head{grid-template-columns:1fr}.ts-scenario-head>strong{text-align:left}.ts-scenario-facts{grid-template-columns:1fr 1fr}}\n@media(max-width:560px){.ts-v4-topbar{height:58px}.ts-v4-brand{font-size:18px}.ts-v4-context{font-size:11px}.ts-demo-strip{font-size:13px;gap:16px}.ts-demo-strip span{display:none}.ts-boundary-hero{padding-top:20px}.ts-boundary-hero h1{font-size:36px}.ts-boundary-hero p{font-size:15px}.ts-boundary-verdict strong{font-size:24px}.ts-boundary-verdict span{font-size:13px}.ts-map-title{display:none}.ts-boundary-map{display:block;min-height:0;border-top:0}.ts-map-left,.ts-map-right{border:0;padding:18px 0}.ts-map-center{height:260px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.ts-contract-name{font-size:14px}.ts-map-field{padding:8px 0}.ts-boundary-after{padding-top:20px}.ts-reason{grid-template-columns:1fr;gap:4px}.ts-proof-grid{grid-template-columns:1fr}.ts-proof-grid div:nth-child(even){padding-left:0;border-left:0}.ts-proof-grid div:nth-child(odd){padding-right:0}.ts-scenario-head h1{font-size:36px}.ts-scenario-head p{font-size:15px}.ts-scenario-facts{grid-template-columns:1fr}.ts-scenario-facts>div{padding:14px 0;border-left:0;border-top:1px solid var(--faint)}.ts-scenario-facts>div:first-child{border-top:0}}\n";
 
 export default function App(){
   const [events,setEvents]=useState<ConsoleEvent[]>([]);
@@ -93,7 +79,6 @@ export default function App(){
   const [exposureMap,setExposureMap]=useState<ExposureRow[]>([]);
   const [challengeProof,setChallengeProof]=useState<ChallengeProof|null>(null);
   const [query,setQuery]=useState("");
-  const [mobileMenuOpen,setMobileMenuOpen]=useState(false);
 
   useEffect(()=>{
     let live=true;
@@ -117,8 +102,6 @@ export default function App(){
 
   const selectedEvent=events[selected]??events[0]??null;
   const registered=exposureMap.filter(row=>Boolean(row.integrationId));
-  const unregistered=exposureMap.filter(row=>!row.integrationId);
-  const findings=exposureMap.filter(row=>row.findings.length>0);
   const normalizedQuery=query.trim().toLowerCase();
   const filteredExposure=useMemo(()=>exposureMap.filter(row=>{
     if(!normalizedQuery)return true;
@@ -153,170 +136,245 @@ export default function App(){
     if(index>=0)openEvent(index);
   };
 
-  const current=viewCopy[view];
 
-  return <div className="ts-shell">
-    <div className="ts-sidebar">
-      <button className="ts-brand" onClick={()=>setView("overview")}>
-        <span><ShieldCheck size={20}/></span>
-        <div><strong>ThirdSight</strong><small>Integration security</small></div>
-      </button>
+  return <div className="ts-v4-app">
+    <style>{V4_CSS}</style>
+    <header className="ts-v4-topbar">
+      <button className="ts-v4-brand" onClick={()=>setView("overview")}>ThirdSight</button>
+      <nav className="ts-v4-nav" aria-label="Primary">
+        <button className={view==="overview"?"active":""} onClick={()=>setView("overview")}>Boundary</button>
+        <button className={view==="integrations"?"active":""} onClick={()=>setView("integrations")}>Integrations</button>
+        <button className={view==="activity"||view==="incidents"?"active":""} onClick={()=>setView("activity")}>Evidence</button>
+        <button className={view==="validation"?"active":""} onClick={()=>setView("validation")}>Validation</button>
+      </nav>
+      <div className="ts-v4-context"><b>Commerce Lab</b><span> · simulation</span></div>
+    </header>
 
-      <div className="ts-nav">
-        <NavButton active={view==="overview"} icon={<Layers3 size={16}/>} label="Overview" onClick={()=>setView("overview")}/>
-        <NavButton active={view==="integrations"} icon={<PlugZap size={16}/>} label="Integrations" onClick={()=>setView("integrations")}/>
-        <NavButton active={view==="activity"} icon={<Activity size={16}/>} label="Activity" onClick={()=>setView("activity")}/>
-        <NavButton active={view==="incidents"} icon={<AlertTriangle size={16}/>} label="Incidents" onClick={()=>setView("incidents")}/>
-        <NavButton active={view==="policies"} icon={<BookOpenCheck size={16}/>} label="Policies" onClick={()=>setView("policies")}/>
-        <NavButton active={view==="connections"} icon={<Network size={16}/>} label="Connections" onClick={()=>setView("connections")}/>
-        <div className="ts-nav-separator"/>
-        <NavButton active={view==="validation"} icon={<CircleCheck size={16}/>} label="Validation" onClick={()=>setView("validation")}/>
-      </div>
+    <main className="ts-v4-main">
+      {error?<div className="ts-error"><AlertTriangle size={16}/><div><strong>Evidence feed unavailable.</strong><span>ThirdSight will not substitute mock data.</span></div></div>:null}
 
-      <div className="ts-sidebar-foot">
-        <span>{events[0]?evidenceFreshness(events[0].observedAt):"No persisted evidence yet"}</span>
-      </div>
-    </div>
+      {view==="overview"?<Overview events={events} proof={challengeProof} onOpenEvent={openEvent} onViewIntegrations={()=>setView("integrations")}/>:null}
+      {view==="integrations"?<Integrations rows={filteredExposure} query={query} onQuery={setQuery} onOpen={openRow}/>:null}
+      {view==="activity"?<ActivityView events={events} onOpen={openEvent}/>:null}
+      {view==="incidents"?<IncidentView events={events} onOpen={openEvent}/>:null}
+      {view==="policies"?<Policies rows={registered} events={events} onOpen={openRow}/>:null}
+      {view==="connections"?<Connections rows={exposureMap} proof={challengeProof}/>:null}
+      {view==="validation"?<Validation rows={exposureMap} proof={challengeProof}/>:null}
+    </main>
 
-    <div className="ts-workspace">
-      <div className="ts-topbar">
-        <div className="ts-mobile-product">
-          <span><ShieldCheck size={17}/></span>
-          <div><b>ThirdSight</b><small>{current.title}</small></div>
-        </div>
-        <div className="ts-desktop-context">
-          <strong>{current.title}</strong>
-        </div>
-        <div className="ts-topbar-actions">
-          <span className="ts-env">Commerce Lab</span>
-          <button className="ts-connect-button" onClick={()=>setView("connections")}><PlugZap size={14}/> Connect platform</button>
-          <button className="ts-mobile-more" onClick={()=>setMobileMenuOpen(true)} aria-label="More navigation"><MoreHorizontal size={19}/></button>
-        </div>
-      </div>
-
-      <div className="ts-content">
-        {error?<div className="ts-error"><AlertTriangle size={16}/><div><strong>Live evidence is unavailable.</strong><span>ThirdSight will not substitute mock data for the production evidence feed.</span></div></div>:null}
-
-        {view==="overview"?<Overview
-          exposure={exposureMap}
-          events={events}
-          registeredCount={registered.length}
-          unregisteredCount={unregistered.length}
-          findingCount={findings.length}
-          onViewIntegrations={()=>setView("integrations")}
-          onOpenRow={openRow}
-        />:null}
-
-        {view==="integrations"?<Integrations
-          rows={filteredExposure}
-          query={query}
-          onQuery={setQuery}
-          onOpen={openRow}
-        />:null}
-
-        {view==="activity"?<ActivityView events={events} onOpen={openEvent}/>:null}
-        {view==="incidents"?<IncidentView events={events} onOpen={openEvent}/>:null}
-        {view==="policies"?<Policies rows={registered} events={events} onOpen={openRow}/>:null}
-        {view==="connections"?<Connections rows={exposureMap} proof={challengeProof}/>:null}
-        {view==="validation"?<Validation rows={exposureMap} proof={challengeProof}/>:null}
-      </div>
-    </div>
-
-    {mobileMenuOpen?<div className="ts-mobile-menu-layer">
-      <button className="ts-mobile-menu-backdrop" aria-label="Close menu" onClick={()=>setMobileMenuOpen(false)}/>
-      <div className="ts-mobile-menu">
-        <div className="ts-mobile-menu-head"><div><strong>ThirdSight</strong><span>More</span></div><button onClick={()=>setMobileMenuOpen(false)} aria-label="Close"><X size={18}/></button></div>
-        <button onClick={()=>{setView("policies");setMobileMenuOpen(false)}}><BookOpenCheck size={18}/><div><b>Policies</b><span>Approved purpose and data scope</span></div><ChevronRight size={16}/></button>
-        <button onClick={()=>{setView("connections");setMobileMenuOpen(false)}}><Network size={18}/><div><b>Connections</b><span>Connect browser, backend and audit evidence</span></div><ChevronRight size={16}/></button>
-        <button onClick={()=>{setView("validation");setMobileMenuOpen(false)}}><CircleCheck size={18}/><div><b>Validation</b><span>Controlled proof and public-site breadth</span></div><ChevronRight size={16}/></button>
-      </div>
-    </div>:null}
-
-    {detailOpen&&selectedEvent?<EvidenceDrawer
-      event={selectedEvent}
-      aiPromoted={aiPromoted}
-      onClose={()=>setDetailOpen(false)}
-    />:null}
+    {detailOpen&&selectedEvent?<EvidenceDrawer event={selectedEvent} aiPromoted={aiPromoted} onClose={()=>setDetailOpen(false)}/>:null}
   </div>;
 }
 
-function NavButton({active,icon,label,count,onClick}:{active:boolean;icon:React.ReactNode;label:string;count?:number;onClick:()=>void}){
-  return <button className={"ts-nav-button "+(active?"active":"")} onClick={onClick}>
-    <span>{icon}</span><b>{label}</b>{typeof count==="number"&&count>0?<em>{count}</em>:null}
-  </button>;
-}
 
 function Overview({
-  exposure,
   events,
-  registeredCount,
-  unregisteredCount,
-  findingCount,
+  proof,
+  onOpenEvent,
   onViewIntegrations,
-  onOpenRow,
 }:{
-  exposure:readonly ExposureRow[];
   events:readonly ConsoleEvent[];
-  registeredCount:number;
-  unregisteredCount:number;
-  findingCount:number;
+  proof:ChallengeProof|null;
+  onOpenEvent:(index:number)=>void;
   onViewIntegrations:()=>void;
-  onOpenRow:(row:ExposureRow)=>void;
 }){
-  const attentionRows=exposure.filter(row=>
-    row.findings.length>0||
-    !row.integrationId||
-    row.latestResponse==="CONSTRAIN"||
-    row.latestResponse==="ISOLATE"||
-    row.latestResponse==="PREVENTED"||
-    row.latestResponse==="DETECTED"
-  );
-  const limitedCount=exposure.filter(row=>
-    row.preventedFields.length>0||
-    row.latestResponse==="CONSTRAIN"||
-    row.latestResponse==="ISOLATE"||
-    row.latestResponse==="PREVENTED"
-  ).length;
-  const normalCount=exposure.filter(row=>
-    row.findings.length===0&&row.latestResponse==="ALLOW"
-  ).length;
-  const reviewRows=attentionRows.slice(0,6);
-  const needReview=attentionRows.length;
-  const headline=findingCount>0
-    ?`${findingCount} integration${findingCount===1?"":"s"} crossed current rules`
-    :needReview>0
-      ?`${needReview} integration${needReview===1?" needs":"s need"} a rule or identity`
-      :"Observed access matches current rules";
+  const [scenario,setScenario]=useState<"normal"|"scope"|"busy"|"abuse"|"shadow">("scope");
+  const scopeEvent=(proof?.scopePrevention.recordId
+    ?events.find(event=>event.recordId===proof.scopePrevention.recordId)
+    :undefined)??events.find(event=>event.outcome==="PREVENTED"&&Boolean(event.enforcement));
+  const normalEvent=events.find(event=>event.decision==="ALLOW"&&!event.recordId.toLowerCase().includes("flash"));
+  const abuseEvent=events.find(event=>event.findings.some(finding=>finding.type==="PURPOSE_MISMATCH"));
+  const shadowEvent=events.find(event=>event.findings.some(finding=>finding.type==="SHADOW_INTEGRATION"));
 
-  return <div className="ts-overview-plain">
-    <section className="ts-overview-summary">
-      <div className="ts-overview-title">
-        <h1>{headline}</h1>
-        <span>{events[0]?evidenceFreshness(events[0].observedAt):"No persisted evidence yet"}</span>
-      </div>
-      <div className="ts-overview-counts" aria-label="Current integration state">
-        <span><b>{limitedCount}</b> limited or isolated</span>
-        <span><b>{normalCount}</b> within policy</span>
-        <span><b>{unregisteredCount}</b> unresolved</span>
-      </div>
-    </section>
+  const scopeIndex=scopeEvent?events.findIndex(event=>event.recordId===scopeEvent.recordId):-1;
+  const approved=(scopeEvent?.should.value?.fields??[]).slice(0,3);
+  const removed=scopeEvent?.enforcement?.removedFields??proof?.scopePrevention.removedFields??[];
+  const continued=scopeEvent?.enforcement?.continuedFields??approved;
+  const received=scopeEvent?.enforcement?.receiver.receivedFields??proof?.scopePrevention.receivedFields??[];
+  const blockedField=removed[0]??"unapproved field";
+  const purpose=scopeEvent?.should.value?.purpose?humanize(scopeEvent.should.value.purpose):"Approved purpose";
+  const integration=scopeEvent?integrationLabel(scopeEvent):"Integration";
+  const scopeProven=Boolean(proof?.scopePrevention.proven&&scopeEvent);
 
-    <section className="ts-attention-ledger">
-      <div className="ts-ledger-heading">
-        <h2>Needs attention</h2>
-        <span>{needReview}</span>
-      </div>
-      <ReviewQueue rows={reviewRows} onOpen={onOpenRow}/>
-    </section>
+  const scenarioTabs=[
+    ["normal","Normal traffic"],
+    ["scope","Scope violation"],
+    ["busy","Busy sale"],
+    ["abuse","Proportional abuse"],
+    ["shadow","Shadow integration"],
+  ] as const;
 
-    <div className="ts-overview-footer">
-      <div>
-        <strong>{registeredCount} registered integrations</strong>
-        <span>{exposure.length} observed in this workspace</span>
-      </div>
-      <button onClick={onViewIntegrations}>All integrations <ArrowRight size={14}/></button>
+  return <div className="ts-boundary-page">
+    <div className="ts-demo-strip">
+      {scenarioTabs.map(([id,label])=><button key={id} className={scenario===id?"active":""} onClick={()=>setScenario(id)}>{label}</button>)}
+      <span>Controlled judge scenario</span>
     </div>
+
+    {scenario==="scope"?<>
+      <section className="ts-boundary-hero">
+        <div>
+          <h1>{scopeProven?`${integration} tried to take ${fieldPhrase(blockedField)}.`:"Scope-prevention proof is not available yet."}</h1>
+          <p>{scopeProven
+            ?`The contract allows ${purpose.toLowerCase()} data only. ThirdSight removed ${fieldShort(blockedField)} and let approved fields continue.`
+            :"ThirdSight will not manufacture a prevention story without persisted enforcement evidence."}</p>
+        </div>
+        <div className="ts-boundary-verdict">
+          <strong>{scopeProven?"Prevented":"Unproven"}</strong>
+          <span>{scopeProven?`${blockedField} never reached ${integration}`:"No persisted pre-send prevention record"}</span>
+        </div>
+      </section>
+
+      {scopeProven?<section className="ts-map-wrap">
+        <div className="ts-map-title"><div>Store data</div><div>Purpose contract</div><div>{integration}</div></div>
+        <div className="ts-boundary-map">
+          <div className="ts-map-left">
+            <div className="ts-field-group">
+              <h3>Approved</h3>
+              {approved.map(field=><div className="ts-map-field" key={field}><code>{field}</code><span>approved</span></div>)}
+            </div>
+            <div className="ts-field-group">
+              <h3>Outside contract</h3>
+              {removed.map(field=><div className="ts-map-field bad" key={field}><code>{field}</code><span>not approved</span></div>)}
+            </div>
+          </div>
+
+          <div className="ts-map-center">
+            <div className="ts-contract-line"/>
+            <div className="ts-contract-name">{purpose}</div>
+            <div className="ts-contract-fields">{approved.join(" · ")}</div>
+            <svg viewBox="0 0 760 500" preserveAspectRatio="none" aria-hidden="true">
+              <path className="ts-path" d="M0 94 C185 94 520 94 760 94"/>
+              <path className="ts-path" d="M0 150 C185 150 520 150 760 150"/>
+              <path className="ts-path" d="M0 206 C185 206 520 206 760 206"/>
+              <path className="ts-path bad" d="M0 360 C150 360 265 360 374 360"/>
+              <circle className="ts-stop" cx="380" cy="360" r="14"/>
+              <path className="ts-stop-x" d="M372 352 L388 368 M388 352 L372 368"/>
+              <text className="ts-path-label" x="520" y="88">continued</text>
+              <text className="ts-path-label" x="520" y="144">continued</text>
+              <text className="ts-path-label" x="520" y="200">continued</text>
+              <text className="ts-path-label bad" x="414" y="352">removed here</text>
+            </svg>
+          </div>
+
+          <div className="ts-map-right">
+            <div className="ts-map-integration">
+              <strong>{integration}</strong>
+              <span className="purpose">Purpose: {purpose.toLowerCase()}</span>
+              <div className="ts-receiver">
+                {continued.slice(0,3).map(field=><div className="ok" key={field}><span>{field}</span><b>{received.includes(field)?"received":"continued"}</b></div>)}
+                {removed.map(field=><div className="blocked" key={field}><span>{field}</span><b>{received.includes(field)?"received":"not received"}</b></div>)}
+              </div>
+            </div>
+            <div className="ts-map-integration">
+              <strong>Response</strong>
+              <span className="purpose">Constrain only the field outside the contract.</span>
+              {scopeIndex>=0?<button className="ts-map-evidence" onClick={()=>onOpenEvent(scopeIndex)}>Open evidence</button>:null}
+            </div>
+          </div>
+        </div>
+      </section>:null}
+
+      <div className="ts-boundary-after">
+        <section className="ts-boundary-section">
+          <h2>Why it was stopped</h2>
+          <div className="ts-reason"><span>Approved purpose</span><b>{purpose}</b></div>
+          <div className="ts-reason"><span>Observed access</span><b>{blockedField}</b></div>
+          <div className="ts-reason"><span>Finding</span><b>{scopeEvent?.findings[0]?humanize(scopeEvent.findings[0].type):"Scope drift"}</b></div>
+          <div className="ts-reason"><span>Response</span><b>Constrain the unapproved field</b></div>
+        </section>
+
+        <section className="ts-boundary-section">
+          <h2>Proof</h2>
+          <div className="ts-proof-grid">
+            <div><span>Legitimate fields</span><b>{continued.length>0?"continued":"not recorded"}</b></div>
+            <div><span>{fieldShort(blockedField)}</span><b>{removed.length>0?"removed before send":"not recorded"}</b></div>
+            <div><span>Receiver evidence</span><b>{proof?.scopePrevention.forbiddenFieldReceived===false?"forbidden field absent":"not proven"}</b></div>
+            <div><span>Outcome</span><b>{scopeEvent?.outcome??"UNPROVEN"}</b></div>
+          </div>
+          <p className="ts-boundary-note">Public browser discovery stays separate. It can prove a request happened, but not merchant intent, backend access, downstream receipt, or maliciousness.</p>
+        </section>
+      </div>
+    </>:<ScenarioSummary scenario={scenario} normalEvent={normalEvent} abuseEvent={abuseEvent} shadowEvent={shadowEvent} proof={proof} onOpenEvent={onOpenEvent} events={events} onViewIntegrations={onViewIntegrations}/>}
   </div>;
+}
+
+function ScenarioSummary({
+  scenario,
+  normalEvent,
+  abuseEvent,
+  shadowEvent,
+  proof,
+  onOpenEvent,
+  events,
+  onViewIntegrations,
+}:{
+  scenario:"normal"|"busy"|"abuse"|"shadow";
+  normalEvent:ConsoleEvent|undefined;
+  abuseEvent:ConsoleEvent|undefined;
+  shadowEvent:ConsoleEvent|undefined;
+  proof:ChallengeProof|null;
+  onOpenEvent:(index:number)=>void;
+  events:readonly ConsoleEvent[];
+  onViewIntegrations:()=>void;
+}){
+  const event=scenario==="normal"?normalEvent:scenario==="abuse"?abuseEvent:scenario==="shadow"?shadowEvent:undefined;
+  const index=event?events.findIndex(item=>item.recordId===event.recordId):-1;
+  const busy=proof?.busySale;
+
+  const title=scenario==="normal"
+    ?"Normal integration traffic stayed inside its contract."
+    :scenario==="busy"
+      ?"Busy-sale traffic did not trigger a false alarm."
+      :scenario==="abuse"
+        ?"Plausible volume. Wrong business context."
+        :"An integration appeared with no merchant rule.";
+
+  const verdict=scenario==="normal"
+    ?"Allowed"
+    :scenario==="busy"
+      ?busy?.passed?"Allowed":"Not proven"
+      :scenario==="abuse"
+        ?proof?.abnormalBehavior.observed?"Detected":"Not proven"
+        :"Review";
+
+  const detail=scenario==="busy"
+    ?busy&&busy.observed>0?`${busy.allowed}/${busy.observed} legitimate events allowed · ${busy.falseAlarms} false alarms.`:"No persisted busy-sale proof."
+    :event?eventSummary(event):"No persisted evidence for this scenario.";
+
+  return <section className="ts-scenario-sheet">
+    <div className="ts-scenario-head">
+      <div><h1>{title}</h1><p>{detail}</p></div>
+      <strong>{verdict}</strong>
+    </div>
+    <div className="ts-scenario-facts">
+      {event?<>
+        <div><span>Approved</span><b>{event.should.value?.purpose?humanize(event.should.value.purpose):"Not provided"}</b></div>
+        <div><span>Observed</span><b>{didSummary(event)}</b></div>
+        <div><span>Business context</span><b>{event.why.value?.eventType?humanize(event.why.value.eventType):"Not provided"}</b></div>
+        <div><span>Decision</span><b>{humanize(event.outcome??event.decision??"OBSERVE")}</b></div>
+      </>:scenario==="busy"&&busy?<>
+        <div><span>Observed</span><b>{busy.observed}</b></div>
+        <div><span>Allowed</span><b>{busy.allowed}</b></div>
+        <div><span>False alarms</span><b>{busy.falseAlarms}</b></div>
+        <div><span>Result</span><b>{busy.passed?"Passed":"Not proven"}</b></div>
+      </>:null}
+    </div>
+    <div className="ts-scenario-actions">
+      {index>=0?<button onClick={()=>onOpenEvent(index)}>Open evidence</button>:null}
+      <button onClick={onViewIntegrations}>View integrations</button>
+    </div>
+  </section>;
+}
+
+function fieldShort(field:string){
+  if(field==="unapproved field")return field;
+  return field.split(".").at(-1)??field;
+}
+
+function fieldPhrase(field:string){
+  if(field.toLowerCase().endsWith(".phone"))return "a customer phone number";
+  if(field==="unapproved field")return "an unapproved field";
+  return field.replaceAll("."," ");
 }
 
 function Integrations({rows,query,onQuery,onOpen}:{rows:readonly ExposureRow[];query:string;onQuery:(value:string)=>void;onOpen:(row:ExposureRow)=>void}){
@@ -438,32 +496,6 @@ function Validation({rows,proof}:{rows:readonly ExposureRow[];proof:ChallengePro
   return <div className="ts-validation-stack">
     <IntegrationExposureMap rows={rows.slice(0,10)} proof={proof}/>
     <RealWorldValidation/>
-  </div>;
-}
-
-function ReviewQueue({rows,onOpen}:{rows:readonly ExposureRow[];onOpen:(row:ExposureRow)=>void}){
-  if(rows.length===0)return <EmptyState text="Nothing needs attention right now."/>;
-  return <div className="ts-review-list simple">
-    {rows.map(row=>{
-      const status=simpleRowStatus(row);
-      const profile=row.vendorIntelligence.profiles[0]??null;
-      const approved=row.approvedFields.length>0?row.approvedFields.slice(0,3).join(", "):"No merchant rule";
-      const reason=row.findings.length>0
-        ?humanize(row.findings[0]??"finding")
-        :!row.integrationId
-          ?"Identity or policy missing"
-          :status.detail;
-      return <button key={row.key} onClick={()=>onOpen(row)}>
-        <div className="ts-review-name">
-          <strong>{profile?.family??row.label}</strong>
-          <small>{profile?.vendor??row.integrationId??"Unidentified integration"}</small>
-        </div>
-        <div className="ts-review-fact"><span>Approved</span><b>{approved}</b></div>
-        <div className="ts-review-fact"><span>Observed</span><b>{simpleObservedRow(row)}</b></div>
-        <div className={"ts-review-result "+status.tone}><b>{status.label}</b><span>{reason}</span></div>
-        <ChevronRight size={15}/>
-      </button>;
-    })}
   </div>;
 }
 
@@ -719,16 +751,6 @@ function StatusPill({value}:{value:string}){
 
 function EmptyState({text}:{text:string}){
   return <div className="ts-empty"><Eye size={17}/><span>{text}</span></div>;
-}
-
-function evidenceFreshness(value:string){
-  const timestamp=new Date(value).getTime();
-  if(!Number.isFinite(timestamp))return "Evidence timestamp unavailable";
-  const elapsed=Math.max(0,Date.now()-timestamp);
-  if(elapsed<60_000)return `Last evidence ${Math.max(1,Math.floor(elapsed/1000))}s ago`;
-  if(elapsed<3_600_000)return `Last evidence ${Math.floor(elapsed/60_000)}m ago`;
-  if(elapsed<86_400_000)return `Last evidence ${Math.floor(elapsed/3_600_000)}h ago`;
-  return `Last evidence ${Math.floor(elapsed/86_400_000)}d ago`;
 }
 
 function eventStatus(event:ConsoleEvent){
