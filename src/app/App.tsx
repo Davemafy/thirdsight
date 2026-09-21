@@ -200,7 +200,6 @@ export default function App(){
         {view==="overview"?<Overview
           exposure={exposureMap}
           events={events}
-          proof={challengeProof}
           registeredCount={registered.length}
           unregisteredCount={unregistered.length}
           findingCount={findings.length}
@@ -250,7 +249,6 @@ function NavButton({active,icon,label,count,onClick}:{active:boolean;icon:React.
 function Overview({
   exposure,
   events,
-  proof,
   registeredCount,
   unregisteredCount,
   findingCount,
@@ -259,7 +257,6 @@ function Overview({
 }:{
   exposure:readonly ExposureRow[];
   events:readonly ConsoleEvent[];
-  proof:ChallengeProof|null;
   registeredCount:number;
   unregisteredCount:number;
   findingCount:number;
@@ -304,8 +301,6 @@ function Overview({
       </div>
     </section>
 
-    <ChallengeProofRail proof={proof}/>
-
     <section className="ts-attention-ledger">
       <div className="ts-ledger-heading">
         <h2>Needs attention</h2>
@@ -324,43 +319,6 @@ function Overview({
   </div>;
 }
 
-function ChallengeProofRail({proof}:{proof:ChallengeProof|null}){
-  const items=[
-    {
-      label:"Busy sales day",
-      value:proof?.busySale.passed?"No false alarm":"Awaiting proof",
-      detail:proof?.busySale.observed
-        ?String(proof.busySale.allowed)+"/"+String(proof.busySale.observed)+" legitimate events allowed"
-        :"No persisted sale run",
-    },
-    {
-      label:"Abnormal behaviour",
-      value:proof?.abnormalBehavior.observed?"Caught":"Not observed",
-      detail:proof?.abnormalBehavior.findingTypes.slice(0,2).map(humanize).join(" · ")||"No deterministic finding",
-    },
-    {
-      label:"Graded response",
-      value:proof?String(proof.gradedResponse.levels.length)+" levels":"Awaiting proof",
-      detail:proof?.gradedResponse.levels.map(humanize).join(" → ")||"No response evidence",
-    },
-    {
-      label:"Managed prevention",
-      value:proof?.scopePrevention.proven?"Prevented before send":"Not proven",
-      detail:proof?.scopePrevention.proven
-        ?(proof.scopePrevention.removedFields.join(", ")||"Unapproved field")+" removed · receiver got forbidden field: "+(proof.scopePrevention.forbiddenFieldReceived?"yes":"no")
-        :"No persisted pre-send proof",
-    },
-  ];
-
-  return <section className="ts-proof-ledger" aria-label="Track G proof">
-    {items.map(item=><div key={item.label}>
-      <span>{item.label}</span>
-      <strong>{item.value}</strong>
-      <small>{item.detail}</small>
-    </div>)}
-  </section>;
-}
-
 function Integrations({rows,query,onQuery,onOpen}:{rows:readonly ExposureRow[];query:string;onQuery:(value:string)=>void;onOpen:(row:ExposureRow)=>void}){
   return <div className="ts-page-stack">
     <div className="ts-page-toolbar">
@@ -369,7 +327,7 @@ function Integrations({rows,query,onQuery,onOpen}:{rows:readonly ExposureRow[];q
     </div>
     <div className="ts-table-card ts-flat-table">
       <div className="ts-table-head integration simple">
-        <span>Integration</span><span>Expected</span><span>Approved</span><span>Observed</span><span>Result</span>
+        <span>Integration</span><span>Approved data</span><span>Observed</span><span>Result</span>
       </div>
       {rows.map(row=><IntegrationRow key={row.key} row={row} onClick={()=>onOpen(row)}/>)}
       {rows.length===0?<EmptyState text="No integrations match this search."/>:null}
@@ -425,14 +383,8 @@ function Connections({rows,proof}:{rows:readonly ExposureRow[];proof:ChallengePr
   const managedProven=proof?.scopePrevention.proven??false;
   return <div className="ts-page-stack">
     <div className="ts-connection-title">
-      <h2>Connect your platform</h2>
-      <span>Use the boundary you already control. ThirdSight does not require a platform rewrite.</span>
-    </div>
-
-    <div className="ts-connect-steps" aria-label="Connection sequence">
-      <div><b>1</b><span><strong>Choose a boundary</strong><small>Browser, managed request, or audit</small></span></div>
-      <div><b>2</b><span><strong>Register approved purpose</strong><small>What this merchant allows</small></span></div>
-      <div><b>3</b><span><strong>Stream evidence</strong><small>ThirdSight compares policy to behaviour</small></span></div>
+      <h2>Choose the boundary</h2>
+      <span>Pre-send control, browser discovery, or audit evidence.</span>
     </div>
 
     <div className="ts-connector-grid ts-connector-list">
@@ -518,10 +470,9 @@ function ReviewQueue({rows,onOpen}:{rows:readonly ExposureRow[];onOpen:(row:Expo
 function IntegrationRow({row,onClick}:{row:ExposureRow;onClick:()=>void}){
   const profile=row.vendorIntelligence.profiles[0]??null;
   const status=simpleRowStatus(row);
-  const expected=profile?.expectedPurposes[0]??"No documentation-backed purpose";
   const approved=row.approvedFields.length>0
     ?row.approvedFields.slice(0,4).join(", ")+(row.approvedFields.length>4?" + more":"")
-    :"Not supplied by merchant";
+    :"No merchant policy";
 
   return <button className="ts-table-row integration simple" onClick={onClick}>
     <div className="ts-integration-name">
@@ -530,17 +481,10 @@ function IntegrationRow({row,onClick}:{row:ExposureRow;onClick:()=>void}){
         <small>{profile?.vendor??row.integrationId??"Unidentified integration"}</small>
       </p>
     </div>
-    <div className="ts-simple-cell ts-expected-cell">
-      <b>{expected}</b>
-      <small>{profile?"Vendor documented":"Vendor unresolved"}</small>
-    </div>
-    <div className="ts-simple-cell">
-      <b>{approved}</b>
-      <small>Merchant policy</small>
-    </div>
+    <div className="ts-simple-cell"><b>{approved}</b></div>
     <div className="ts-simple-cell">
       <b>{simpleObservedRow(row)}</b>
-      <small>{row.observations} observation{row.observations===1?"":"s"} · runtime evidence</small>
+      <small>{row.observations} observation{row.observations===1?"":"s"}</small>
     </div>
     <div className="ts-simple-response">
       <span className={"ts-result-word "+status.tone}>{status.label}</span>
@@ -600,8 +544,6 @@ function ActivityRow({event,onClick,large=false}:{event:ConsoleEvent;onClick:()=
 function EvidenceDrawer({event,aiPromoted,onClose}:{event:ConsoleEvent;aiPromoted:boolean;onClose:()=>void}){
   const discoveryOnly=event.coverage.label==="BROWSER_ONLY"&&event.should.status==="UNKNOWN"&&event.why.status==="UNKNOWN";
   const status=simpleEventStatus(event);
-  const vendorProfile=event.vendorIntelligence.profiles[0]??null;
-  const expectedByVendor=vendorProfile?.expectedPurposes[0]??"No documentation-backed purpose";
   const allowedFor=event.should.status==="KNOWN"
     ?event.should.value?.purpose??"Merchant rule present"
     :"No merchant rule supplied";
@@ -625,7 +567,6 @@ function EvidenceDrawer({event,aiPromoted,onClose}:{event:ConsoleEvent;aiPromote
       </div>
 
       <div className="ts-simple-why">
-        <div><span>Expected</span><b>{expectedByVendor}</b></div>
         <div><span>Approved purpose</span><b>{allowedFor}</b></div>
         <div><span>Observed</span><b>{observed}</b></div>
         <div><span>Reason</span><b>{reason}</b></div>
@@ -795,17 +736,12 @@ function eventStatus(event:ConsoleEvent){
 }
 
 function eventSummary(event:ConsoleEvent){
-  const findingTypes=event.findings.map(finding=>finding.type);
-  if(event.outcome==="PREVENTED")return "An unapproved field was removed before transmission; approved fields continued.";
+  if(event.outcome==="PREVENTED")return "An unjustified field was removed at the managed boundary before transmission.";
   if(event.outcome==="DETECTED")return event.did.value?.boundary==="db-audit"?"Access was observed after it occurred; future credential use may be contained.":"Runtime evidence proves the access occurred before the finding.";
-  if(findingTypes.includes("PURPOSE_MISMATCH"))return "Traffic volume looked plausible, but the access did not correlate with the expected first-party business object.";
-  if(findingTypes.includes("SHADOW_INTEGRATION"))return "A destination has no registered integration identity; deterministic action stays observational.";
-  if(findingTypes.includes("STALE_INTEGRATION"))return "An integration remained active outside its current approved lifecycle.";
-  if(event.recordId.includes(":flash-sale:")&&event.decision==="ALLOW")return "10× flash-sale traffic matched first-party business objects; no false alarm.";
   if(event.decision==="ALLOW")return "Observed access is consistent with approved scope and available business context.";
-  if(event.decision==="CONSTRAIN")return "ThirdSight recorded a deterministic policy violation and constrained only the unjustified access.";
-  if(event.decision==="ISOLATE")return "Deterministic evidence justified isolating future integration access.";
-  if(event.decision==="OBSERVE")return "Evidence is incomplete or ambiguous, so ThirdSight keeps this under observation instead of escalating authority.";
+  if(event.decision==="CONSTRAIN")return "ThirdSight recorded a deterministic policy violation and a constrained response.";
+  if(event.decision==="ISOLATE")return "ThirdSight recorded deterministic evidence strong enough to isolate future integration access.";
+  if(event.decision==="OBSERVE")return "Evidence is incomplete or ambiguous, so ThirdSight keeps the integration under observation instead of escalating authority.";
   if(event.coverage.label==="BROWSER_ONLY")return "Browser-visible cross-origin request metadata was discovered and persisted.";
   return "Persisted evidence does not support a stronger enforcement claim.";
 }
