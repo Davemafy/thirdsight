@@ -96,6 +96,7 @@ export default function App(){
   const [challengeProof,setChallengeProof]=useState<ChallengeProof|null>(null);
   const [query,setQuery]=useState("");
   const [mobileMenuOpen,setMobileMenuOpen]=useState(false);
+  const [retryKey,setRetryKey]=useState(0);
 
   useEffect(()=>{
     let live=true;
@@ -115,7 +116,7 @@ export default function App(){
     load();
     const id=window.setInterval(load,5000);
     return()=>{live=false;window.clearInterval(id)};
-  },[]);
+  },[retryKey]);
 
   const selectedEvent=events[selected]??events[0]??null;
   const registered=exposureMap.filter(row=>Boolean(row.integrationId));
@@ -189,7 +190,6 @@ export default function App(){
         </div>
         <div className="ts-desktop-context">
           <strong>{current.title}</strong>
-          <span>{current.subtitle}</span>
         </div>
         <div className="ts-topbar-actions">
           <span className="ts-env"><span/> Commerce Lab</span>
@@ -198,9 +198,13 @@ export default function App(){
         </div>
       </div>
 
-      <div className="ts-content">
-        {error?<div className="ts-error"><AlertTriangle size={16}/><div><strong>Live evidence is unavailable.</strong><span>ThirdSight will not substitute mock data for the production evidence feed.</span></div></div>:null}
+      {error?<div className="ts-evidence-toast" role="status" aria-live="polite">
+        <AlertTriangle size={17}/>
+        <div><strong>Live evidence is unavailable</strong><span>We couldn't refresh your latest activity.</span></div>
+        <button onClick={()=>setRetryKey(value=>value+1)}>Retry</button>
+      </div>:null}
 
+      <div className="ts-content">
         {view==="overview"?<Overview
           exposure={exposureMap}
           events={events}
