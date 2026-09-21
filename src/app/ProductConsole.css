@@ -463,3 +463,133 @@
   .ts-review-list small{font-size:8px}
   .ts-proof-strip{margin-top:8px}
 }
+
+
+/* Focused mobile polish — preserve the current ThirdSight layout */
+.ts-operational-hero{
+  grid-template-columns:1fr;
+  background:#fff;
+}
+.ts-live-label{
+  margin-bottom:13px;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  color:#356144;
+  font-size:10px;
+  font-weight:750;
+  letter-spacing:0;
+}
+.ts-live-label i{display:none}
+.ts-operational-copy>p{color:#505d55;font-size:12px}
+.ts-stat-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.ts-stat-card small{color:#59665d;font-size:10px}
+.ts-stat-card p{color:#6c786f;font-size:10px}
+.ts-stat-card>div>span{
+  width:20px;
+  height:20px;
+  border-radius:0;
+  background:transparent;
+  color:#315e3d;
+}
+.ts-panel-head span{color:#66736a;font-size:10px}
+
+@media(max-width:1180px){
+  .ts-stat-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+
+@media(max-width:650px){
+  .ts-shell{padding-bottom:calc(88px + env(safe-area-inset-bottom))}
+  .ts-sidebar{
+    height:calc(70px + env(safe-area-inset-bottom));
+    padding-bottom:calc(7px + env(safe-area-inset-bottom))
+  }
+  .ts-content{padding:16px 16px 30px}
+  .ts-operational-hero{
+    padding:18px;
+    border-radius:16px
+  }
+  .ts-operational-copy h1{
+    margin:7px 0 10px;
+    font-size:29px;
+    line-height:1.04
+  }
+  .ts-operational-copy>p{
+    font-size:12.5px;
+    line-height:1.5;
+    color:#4f5c54
+  }
+  .ts-live-label{
+    margin-bottom:12px;
+    font-size:10.5px
+  }
+  .ts-operational-hero .ts-primary{
+    min-height:46px;
+    font-size:12px
+  }
+
+  .ts-stat-grid{
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+    margin-top:9px
+  }
+  .ts-stat-card{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:3px 16px;
+    align-items:center;
+    min-height:0;
+    padding:12px 14px;
+    border-radius:12px
+  }
+  .ts-stat-card>div{
+    grid-column:1;
+    grid-row:1;
+    gap:7px
+  }
+  .ts-stat-card>div>span{
+    width:18px;
+    height:18px
+  }
+  .ts-stat-card small{
+    font-size:11.5px;
+    line-height:1.25;
+    color:#4f5d54
+  }
+  .ts-stat-card>strong{
+    grid-column:2;
+    grid-row:1;
+    margin:0;
+    font-size:20px;
+    line-height:1;
+    color:#1d2b22
+  }
+  .ts-stat-card p{
+    grid-column:1/-1;
+    grid-row:2;
+    margin:2px 0 0 25px;
+    font-size:10.5px;
+    line-height:1.35;
+    color:#6a766e
+  }
+
+  .ts-review-grid{
+    margin-top:9px
+  }
+  .ts-panel-head{
+    padding:14px 15px
+  }
+  .ts-panel-head strong{
+    font-size:13px
+  }
+  .ts-panel-head span{
+    font-size:10.5px;
+    line-height:1.4;
+    color:#69766d
+  }
+  .ts-review-list strong{font-size:12.5px}
+  .ts-review-list span{font-size:10.5px;line-height:1.4}
+  .ts-review-list small{font-size:9.5px}
+}

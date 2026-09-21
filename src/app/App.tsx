@@ -287,16 +287,15 @@ function Overview({
     ? `${findingCount} integration${findingCount===1?"":"s"} need attention`
     : `${totalObserved} third-party destination${totalObserved===1?"":"s"} observed`;
   const statusDetail=findingCount>0
-    ? "Deterministic findings are present in the current operational evidence."
+    ? `${findingCount} proven policy issue${findingCount===1?"":"s"} need review.`
     : unregisteredCount>0
-      ? `No deterministic policy violation is proven. ${unregisteredCount} destination${unregisteredCount===1?"":"s"} still need identity or purpose context.`
-      : "No deterministic policy violation is proven in the current operational evidence.";
+      ? `No proven policy violations. ${unregisteredCount} destination${unregisteredCount===1?"":"s"} still need an owner or approved purpose.`
+      : "No proven policy violations.";
 
   return <>
     <div className="ts-operational-hero">
       <div className="ts-operational-copy">
-        <span className="ts-live-label"><i/> Discovery active · Commerce Lab</span>
-        <span className="ts-kicker">Current third-party posture</span>
+        <span className="ts-live-label">Discovery active · Commerce Lab</span>
         <h1>{statusTitle}</h1>
         <p>{statusDetail}</p>
         <div className="ts-hero-actions">
@@ -304,25 +303,19 @@ function Overview({
           <button className="ts-secondary" onClick={onConnections}>Connect enforcement</button>
         </div>
       </div>
-      <div className="ts-operational-summary">
-        <span>How ThirdSight decides</span>
-        <p><b>Approved purpose</b> + technical reach + observed access + business context.</p>
-        <small>It escalates only as far as the evidence supports.</small>
-      </div>
     </div>
 
     <div className="ts-stat-grid">
-      <StatCard label="Observed destinations" value={String(totalObserved)} detail="Third-party origins in this workspace" icon={<Eye size={17}/>}/>
-      <StatCard label="Purpose-aware" value={String(registeredCount)} detail="Registered integrations with identity context" icon={<PlugZap size={17}/>}/>
-      <StatCard label="Deterministic findings" value={String(findingCount)} detail={findingCount>0?"Evidence-backed violations":"No violation currently proven"} icon={<AlertTriangle size={17}/>}/>
-      <StatCard label="Pre-send prevention" value={prevented?"Proven":"No proof"} detail={prevented?"Unjustified field stopped before send":"No persisted prevention evidence"} icon={<ShieldCheck size={17}/>}/>
+      <StatCard label="Identified" value={String(registeredCount)} detail="Integrations with an owner or policy" icon={<PlugZap size={17}/>}/>
+      <StatCard label="Policy issues" value={String(findingCount)} detail={findingCount>0?"Need investigation":"None proven"} icon={<AlertTriangle size={17}/>}/>
+      <StatCard label="Stopped before send" value={prevented?"Yes":"—"} detail={prevented?"Unapproved data removed":"No prevention event yet"} icon={<ShieldCheck size={17}/>}/>
     </div>
 
     <div className="ts-review-grid">
-      <Panel title="Review next" subtitle={reviewRows.length>0?"Unresolved or evidence-backed items worth opening next.":"Nothing currently requires review."} action="View all" onAction={onViewIntegrations}>
+      <Panel title="Review next" subtitle={reviewRows.length>0?"Items that need an owner, policy, or investigation.":"Nothing needs review."} action="View all" onAction={onViewIntegrations}>
         <ReviewQueue rows={reviewRows} onOpen={onOpenRow}/>
       </Panel>
-      <Panel title="Recent activity" subtitle="Representative persisted evidence." >
+      <Panel title="Recent activity" subtitle="Latest observed integration activity." >
         <div className="ts-activity-list">
           {events.slice(0,6).map((event,index)=><ActivityRow key={event.recordId} event={event} onClick={()=>onOpenEvent(index)}/>)}
           {events.length===0?<EmptyState text="Waiting for persisted evidence."/>:null}
