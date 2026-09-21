@@ -317,8 +317,8 @@ function Overview({
       </Panel>
       <Panel title="Recent activity" subtitle="Latest observed integration activity." >
         <div className="ts-activity-list">
-          {events.slice(0,6).map((event,index)=><ActivityRow key={event.recordId} event={event} onClick={()=>onOpenEvent(index)}/>)}
-          {events.length===0?<EmptyState text="Waiting for persisted evidence."/>:null}
+          {groupActivityEvents(events).slice(0,6).map(item=><ActivityRow key={item.event.recordId} event={item.event} count={item.count} onClick={()=>onOpenEvent(item.index)}/>)}
+          {events.length===0?<EmptyState text="No activity yet."/>:null}
         </div>
       </Panel>
     </div>
@@ -347,11 +347,11 @@ function Overview({
 function Integrations({rows,query,onQuery,onOpen}:{rows:readonly ExposureRow[];query:string;onQuery:(value:string)=>void;onOpen:(row:ExposureRow)=>void}){
   return <div className="ts-page-stack">
     <div className="ts-section-head">
-      <div><span className="ts-kicker">Inventory · Vendor Intelligence</span><h2>Integration exposure</h2><p>Expected, approved, capable and observed are separate evidence. Vendor documentation adds context; it never becomes merchant authorization.</p></div>
-      <label className="ts-search"><Search size={15}/><input value={query} onChange={e=>onQuery(e.target.value)} placeholder="Search vendors, capabilities, fields, destinations…"/></label>
+      <div><h2>Integrations</h2><p>What each integration can access, what it touched, and what you approved.</p></div>
+      <label className="ts-search"><Search size={15}/><input value={query} onChange={e=>onQuery(e.target.value)} placeholder="Search integrations, data, or domains"/></label>
     </div>
     <div className="ts-intel-principle">
-      <span>Approval authority</span><b>Merchant policy</b><i>›</i><span>Product context</span><b>Vendor documentation</b><i>›</i><span>Runtime truth</span><b>Observed evidence</b>
+      <span>Approval</span><b>Merchant policy</b><i>›</i><span>Product context</span><b>Vendor docs</b><i>›</i><span>Runtime</span><b>Observed evidence</b>
     </div>
     <div className="ts-table-card">
       <div className="ts-table-head integration">
@@ -364,11 +364,12 @@ function Integrations({rows,query,onQuery,onOpen}:{rows:readonly ExposureRow[];q
 }
 
 function ActivityView({events,onOpen}:{events:readonly ConsoleEvent[];onOpen:(index:number)=>void}){
+  const grouped=groupActivityEvents(events);
   return <div className="ts-page-stack">
-    <div className="ts-section-head"><div><span className="ts-kicker">Evidence history</span><h2>What integrations actually did</h2><p>Representative persisted evidence from the operational workspace. Every row opens the evidence behind the decision.</p></div></div>
+    <div className="ts-section-head"><div><h2>Activity</h2><p>What your integrations have done.</p></div></div>
     <div className="ts-list-card">
-      {events.map((event,index)=><ActivityRow key={event.recordId} event={event} onClick={()=>onOpen(index)} large/>)}
-      {events.length===0?<EmptyState text="No persisted evidence is available yet."/>:null}
+      {grouped.map(item=><ActivityRow key={item.event.recordId} event={item.event} count={item.count} onClick={()=>onOpen(item.index)} large/>)}
+      {events.length===0?<EmptyState text="No activity yet."/>:null}
     </div>
   </div>;
 }
@@ -376,7 +377,7 @@ function ActivityView({events,onOpen}:{events:readonly ConsoleEvent[];onOpen:(in
 function IncidentView({events,onOpen}:{events:readonly ConsoleEvent[];onOpen:(index:number)=>void}){
   const incidents=events.map((event,index)=>({event,index})).filter(item=>isIncident(item.event));
   return <div className="ts-page-stack">
-    <div className="ts-section-head"><div><span className="ts-kicker">Deterministic findings</span><h2>Incident evidence</h2><p>Representative violations and detections from persisted evidence. Prevention and detection remain separate outcomes.</p></div></div>
+    <div className="ts-section-head"><div><h2>Incidents</h2><p>Policy violations and detections that need review.</p></div></div>
     <div className="ts-list-card">
       {incidents.map(({event,index})=><ActivityRow key={event.recordId} event={event} onClick={()=>onOpen(index)} large/>)}
       {incidents.length===0?<EmptyState text="No representative incident evidence is currently in the queue."/>:null}
@@ -386,7 +387,7 @@ function IncidentView({events,onOpen}:{events:readonly ConsoleEvent[];onOpen:(in
 
 function Policies({rows,events,onOpen}:{rows:readonly ExposureRow[];events:readonly ConsoleEvent[];onOpen:(row:ExposureRow)=>void}){
   return <div className="ts-page-stack">
-    <div className="ts-section-head"><div><span className="ts-kicker">Purpose contracts</span><h2>What each integration is supposed to do</h2><p>Policy is shown separately from observed behavior so runtime activity cannot rewrite the approved purpose.</p></div></div>
+    <div className="ts-section-head"><div><h2>Policies</h2><p>What each integration is allowed to do.</p></div></div>
     <div className="ts-table-card">
       <div className="ts-table-head policy"><span>Integration</span><span>Approved purpose</span><span>Approved data</span><span>Policy state</span></div>
       {rows.map(row=>{
@@ -485,8 +486,8 @@ function ReviewQueue({rows,onOpen}:{rows:readonly ExposureRow[];onOpen:(row:Expo
       const reason=hasFinding
         ? humanize(row.findings[0]??"finding")
         : row.integrationId
-          ? "Purpose or evidence context needs review"
-          : "Identity and merchant-approved purpose not registered";
+          ? "Needs more context"
+          : "Owner or approved purpose missing";
       return <button key={row.key} onClick={()=>onOpen(row)}>
         <span className={"ts-review-icon "+(hasFinding?"finding":"unresolved")}>
           {hasFinding?<AlertTriangle size={15}/>:<Eye size={15}/>}
@@ -543,14 +544,14 @@ function IntegrationRow({row,onClick}:{row:ExposureRow;onClick:()=>void}){
   </button>;
 }
 
-function ActivityRow({event,onClick,large=false}:{event:ConsoleEvent;onClick:()=>void;large?:boolean}){
+function ActivityRow({event,onClick,large=false,count=1}:{event:ConsoleEvent;onClick:()=>void;large?:boolean;count?:number}){
   const value=eventStatus(event);
   return <button className={"ts-activity-row "+(large?"large":"")} onClick={onClick}>
-    <span className={"ts-activity-icon "+responseClass(value)}>{eventIcon(value)}</span>
+    <span className={"ts-activity-icon "+responseClass(value)}>{eventIcon(event)}</span>
     <div className="ts-activity-copy">
       <strong>{integrationLabel(event)}</strong>
       <span>{eventSummary(event)}</span>
-      <small>{new Date(event.observedAt).toLocaleString()} · {event.coverage.label.replaceAll("_"," ").toLowerCase()}</small>
+      <small>{count>1?count+" similar observations · ":""}{new Date(event.observedAt).toLocaleString()} · {event.coverage.label.replaceAll("_"," ").toLowerCase()}</small>
     </div>
     <StatusPill value={value}/>
     <ChevronRight size={15}/>
@@ -723,6 +724,32 @@ function EmptyState({text}:{text:string}){
   return <div className="ts-empty"><Eye size={17}/><span>{text}</span></div>;
 }
 
+function groupActivityEvents(events:readonly ConsoleEvent[]){
+  const grouped:Array<{event:ConsoleEvent;index:number;count:number}>=[];
+  const byKey=new Map<string,number>();
+  events.forEach((event,index)=>{
+    const second=Number.isNaN(Date.parse(event.observedAt))
+      ? event.observedAt
+      : new Date(event.observedAt).toISOString().slice(0,19);
+    const key=[
+      integrationLabel(event),
+      event.did.value?.destinationOrigin??"",
+      event.did.value?.method??"",
+      eventSummary(event),
+      eventStatus(event),
+      second,
+    ].join("|");
+    const existing=byKey.get(key);
+    if(existing===undefined){
+      byKey.set(key,grouped.length);
+      grouped.push({event,index,count:1});
+    }else{
+      grouped[existing].count+=1;
+    }
+  });
+  return grouped;
+}
+
 function eventStatus(event:ConsoleEvent){
   return event.outcome??event.decision??(event.coverage.label==="BROWSER_ONLY"?"DISCOVERY":"UNRESOLVED");
 }
@@ -763,13 +790,15 @@ function isIncident(event:ConsoleEvent){
     event.decision==="ISOLATE";
 }
 
-function eventIcon(value:string){
-  const normalized=value.toLowerCase();
-  if(normalized==="allow")return <CircleCheck size={15}/>;
-  if(normalized==="prevented"||normalized==="constrain")return <ShieldCheck size={15}/>;
-  if(normalized==="detected"||normalized==="isolate")return <AlertTriangle size={15}/>;
-  if(normalized==="observe"||normalized==="discovery")return <Eye size={15}/>;
-  return <Clock3 size={15}/>;
+function eventIcon(event:ConsoleEvent){
+  const value=eventStatus(event).toLowerCase();
+  if(value==="prevented"||value==="constrain")return <ShieldCheck size={15}/>;
+  if(value==="detected"||value==="isolate"||event.findings.length>0)return <AlertTriangle size={15}/>;
+  if(value==="allow")return <CircleCheck size={15}/>;
+  if(event.did.value?.boundary==="db-audit")return <Database size={15}/>;
+  if(event.did.value?.boundary==="browser")return <Globe2 size={15}/>;
+  if(event.did.value?.boundary)return <Workflow size={15}/>;
+  return <Eye size={15}/>;
 }
 
 function responseClass(value:string){

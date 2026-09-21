@@ -593,3 +593,94 @@
   .ts-review-list span{font-size:10.5px;line-height:1.4}
   .ts-review-list small{font-size:9.5px}
 }
+
+
+/* Mobile usability pass */
+.ts-section-head p{color:#5d6a61}
+.ts-activity-copy small{color:#657168}
+.ts-review-list small{color:#67736a}
+.ts-integration-name small{color:#69756d}
+.ts-tag-fallback{color:#6f7b73}
+.ts-panel-head span{color:#5f6c63}
+
+@media(max-width:650px){
+  .ts-shell{
+    padding-bottom:calc(100px + env(safe-area-inset-bottom))
+  }
+  .ts-sidebar{
+    height:calc(78px + env(safe-area-inset-bottom));
+    padding:7px 10px calc(9px + env(safe-area-inset-bottom))
+  }
+  .ts-nav-button{
+    min-height:58px;
+    border-radius:12px
+  }
+  .ts-nav-button b{
+    font-size:10px
+  }
+
+  .ts-section-head h2{
+    margin:0 0 5px;
+    font-size:24px
+  }
+  .ts-section-head p{
+    font-size:12.5px;
+    line-height:1.45;
+    color:#536057
+  }
+
+  .ts-intel-principle{
+    display:grid;
+    grid-template-columns:max-content minmax(0,1fr);
+    gap:7px 12px;
+    overflow:visible;
+    white-space:normal;
+    padding:12px 13px
+  }
+  .ts-intel-principle i{display:none}
+  .ts-intel-principle span{
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:0;
+    text-transform:none;
+    color:#69756d
+  }
+  .ts-intel-principle b{
+    min-width:0;
+    font-size:11px;
+    white-space:normal;
+    color:#334138
+  }
+
+  .ts-activity-copy strong{font-size:13.5px}
+  .ts-activity-copy span{
+    font-size:11.5px;
+    line-height:1.42;
+    color:#4e5b53
+  }
+  .ts-activity-copy small{
+    font-size:10px;
+    line-height:1.4;
+    color:#626f66
+  }
+  .ts-activity-icon{
+    background:#f2f4f2
+  }
+  .ts-activity-icon.allow{background:#edf5ef;color:#2c6840}
+  .ts-activity-icon.observe{background:#f4f1e7;color:#756327}
+  .ts-activity-icon.constrain{background:#f9eee4;color:#8b531b}
+  .ts-activity-icon.isolate{background:#f6e9e9;color:#883f3f}
+
+  .ts-review-list span{
+    font-size:10.5px;
+    color:#536057
+  }
+  .ts-review-list small{
+    font-size:10px;
+    color:#626f66
+  }
+  .ts-integration-name small{
+    font-size:10px;
+    color:#626f66
+  }
+}
