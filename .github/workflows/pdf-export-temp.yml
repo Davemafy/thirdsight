@@ -1,0 +1,47 @@
+name: ThirdSight PDF Merge
+on:
+  push:
+    branches:
+      - pdf-export-temp
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Figma pages
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -L --fail --retry 3 -o p1.pdf 'https://www.figma.com/api/mcp/asset/327b8740-e61d-4625-a2a5-3a7cf425f209.pdf'
+          curl -L --fail --retry 3 -o p2.pdf 'https://www.figma.com/api/mcp/asset/ec2b3865-2c0c-489b-bb39-b8e1784c69c8.pdf'
+          curl -L --fail --retry 3 -o p3.pdf 'https://www.figma.com/api/mcp/asset/16b8ffc3-3a69-4e7a-9bd9-e5f83b3d0a15.pdf'
+          curl -L --fail --retry 3 -o p4.pdf 'https://www.figma.com/api/mcp/asset/b4fb5d63-b106-467f-9cb2-6c49a4cfa764.pdf'
+
+      - name: Merge four pages
+        shell: bash
+        run: |
+          python -m pip install --quiet pypdf
+          python - <<'PY'
+          from pypdf import PdfReader, PdfWriter
+          writer = PdfWriter()
+          for path in ["p1.pdf","p2.pdf","p3.pdf","p4.pdf"]:
+              reader = PdfReader(path)
+              if len(reader.pages) != 1:
+                  raise RuntimeError(f"{path} expected 1 page, got {len(reader.pages)}")
+              writer.add_page(reader.pages[0])
+          out="ThirdSight_ICSC_2026_Track_G_Submission.pdf"
+          with open(out,"wb") as f:
+              writer.write(f)
+          check = PdfReader(out)
+          if len(check.pages) != 4:
+              raise RuntimeError(f"merged PDF expected 4 pages, got {len(check.pages)}")
+          print("merged-pages", len(check.pages))
+          PY
+
+      - name: Upload final PDF
+        uses: actions/upload-artifact@v4
+        with:
+          name: thirdsight-icsc-final-pdf
+          path: ThirdSight_ICSC_2026_Track_G_Submission.pdf
+          if-no-files-found: error
+          retention-days: 1

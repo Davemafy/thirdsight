@@ -1,12 +1,8 @@
 {
-  "rewrites": [
-    {
-      "source": "/commerce-lab",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/commerce-lab/:path*",
-      "destination": "/index.html"
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "git": {
+    "deploymentEnabled": {
+      "pdf-export-temp": false
     }
-  ]
+  }
 }
