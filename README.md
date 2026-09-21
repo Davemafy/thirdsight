@@ -50,12 +50,14 @@ See [Product onboarding](docs/product-onboarding.md) for the concrete adoption f
 
 ## Real-world validation
 
-ThirdSight now presents two deliberately separate validation environments:
+ThirdSight keeps controlled proof, public discovery, and documentation enrichment separate:
 
-- **Commerce Lab** - controlled ground truth for deterministic correctness, graded response, managed prevention, proportional-abuse detection and the no-false-alarm flash-sale proof.
-- **40-site Nigeria-facing public benchmark** - passive, logged-out discovery breadth under browser-only visibility limits.
+- **Commerce Lab** - ground truth for deterministic correctness, graded response, managed prevention, proportional-abuse detection and the no-false-alarm flash-sale proof.
+- **40-site Nigeria-facing benchmark** - passive, logged-out discovery breadth under browser-only visibility limits: **40 attempted, 30 loaded normally, 203 representative observations, 118 unique origins**.
+- **1,000-site scale benchmark** - a reproducible high-traffic public-web sample: **1,000 attempted, 522 loaded normally, 32,083 cross-origin requests observed, 980 representative observations persisted, 3,354 unique origins indexed**.
+- **Vendor Intelligence v2** - first-party vendor documentation adds an `Expected` and documented-capability layer where an origin can be resolved, while merchant policy remains the only source of `Approved`.
 
-The corrected public benchmark attempted **40** sites, loaded **30** normally, observed browser-visible cross-origin evidence on **30/30 loaded sites**, persisted **203** representative observations and covered **118** unique destination origins. Public discovery preserves `SHOULD = UNKNOWN`, `COULD = PARTIAL`, `DID = KNOWN`, `WHY = UNKNOWN` and `BROWSER_ONLY` coverage; it does not infer merchant intent, backend permissions, maliciousness or downstream vendor behavior.
+Every one of the **3,354** scale-run origins is represented in a generated inventory. Inventory coverage is not the same as vendor identification: unresolved origins stay unresolved rather than receiving a guessed product identity. Browser-only evidence still does not infer merchant authorization, backend permissions, maliciousness, necessity or downstream behavior.
 
 Submission materials:
 
