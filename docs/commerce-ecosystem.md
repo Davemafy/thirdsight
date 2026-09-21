@@ -9,9 +9,12 @@ payments and orders used by the lab are synthetic.
 
 ```text
 Shopper -> CEDAR storefront -> CEDAR API -> cedar_commerce schema
-CEDAR order event -> ThirdSight /api/gateway/v1/dispatch
-ThirdSight -> purpose contract + field enforcement -> Partner Lab
-ThirdSight -> immutable evidence history + gateway_dispatches
+CEDAR order event -> ThirdSight /api/managed-gateway
+ThirdSight -> registered integration + Purpose Contract + deterministic verifier
+ThirdSight -> constrained legitimate request -> Partner Lab managed receiver
+ThirdSight -> append-only evidence history
+
+Legacy adversarial scenarios -> /api/gateway/v1/dispatch -> signed Partner Lab receiver
 Partner Lab -> partner_lab.deliveries
 ```
 
@@ -58,9 +61,11 @@ secret through a `NEXT_PUBLIC_` variable.
 | Variable | Purpose |
 | --- | --- |
 | `DATABASE_URL` | Server-only pooled PostgreSQL connection with access limited to `cedar_commerce` |
-| `THIRDSIGHT_GATEWAY_URL` | Exact ThirdSight dispatch URL |
-| `THIRDSIGHT_MERCHANT_ID` | Fixed value `cedar-commerce` |
-| `THIRDSIGHT_INTEGRATION_SECRET` | HMAC secret shared only with ThirdSight |
+| `THIRDSIGHT_MANAGED_GATEWAY_URL` | Exact generic ThirdSight managed-gateway URL |
+| `THIRDSIGHT_GATEWAY_API_KEY` | Merchant credential for the generic managed gateway |
+| `THIRDSIGHT_GATEWAY_URL` | Legacy signed dispatch URL used by older adversarial scenarios |
+| `THIRDSIGHT_MERCHANT_ID` | Fixed value `cedar-commerce` for the legacy adapter |
+| `THIRDSIGHT_INTEGRATION_SECRET` | Legacy HMAC secret shared only with ThirdSight |
 | `OPERATOR_ACCESS_SECRET` | Bearer secret for the fixed-enum operator route |
 | `NEXT_PUBLIC_STORE_URL` | Public CEDAR origin; not a secret |
 
@@ -71,9 +76,12 @@ The existing `THIRDSIGHT_SUPABASE_URL` and
 
 | Variable | Purpose |
 | --- | --- |
-| `CEDAR_INTEGRATION_SECRET` | Verifies CEDAR request signatures |
+| `THIRDSIGHT_GATEWAY_API_KEY` | Authenticates managed merchant requests |
+| `PARTNER_MANAGED_ORIGIN` | Server-owned origin for the Commerce Lab managed receiver |
+| `PARTNER_MANAGED_TOKEN` | Credential injected by ThirdSight only after policy evaluation |
+| `CEDAR_INTEGRATION_SECRET` | Verifies legacy CEDAR request signatures |
 | `CEDAR_COMMERCE_URL` | Exact CORS origin for CEDAR |
-| `PARTNER_ANALYTICS_URL` | Registered analytics receiver URL |
+| `PARTNER_ANALYTICS_URL` | Legacy registered analytics receiver URL |
 | `PARTNER_ADVERTISING_URL` | Registered advertising receiver URL |
 | `PARTNER_CRM_URL` | Registered CRM receiver URL |
 | `PARTNER_GATEWAY_SECRET` | Signs ThirdSight-to-partner requests |
@@ -83,8 +91,9 @@ The existing `THIRDSIGHT_SUPABASE_URL` and
 | Variable | Purpose |
 | --- | --- |
 | `DATABASE_URL` | Server-only pooled PostgreSQL connection with access limited to `partner_lab` |
-| `THIRDSIGHT_PARTNER_SECRET` | Verifies ThirdSight gateway signatures |
-| `ALLOWED_GATEWAY_ORIGIN` | Optional exact browser-origin allowlist; HMAC remains mandatory |
+| `THIRDSIGHT_PARTNER_SECRET` | Verifies legacy ThirdSight gateway signatures |
+| `PARTNER_MANAGED_TOKEN` | Authenticates generic managed-gateway receiver calls |
+| `ALLOWED_GATEWAY_ORIGIN` | Optional exact browser-origin allowlist for the legacy receiver |
 
 Use independent random values for the CEDAR-to-ThirdSight and
 ThirdSight-to-Partner secrets. Do not log or persist either secret.
@@ -190,22 +199,15 @@ evidence.
 
 ## Canonical demonstration
 
-1. Set the server-side scenario to `unauthorized-field` through `/operator`.
-2. In CEDAR, search for `Auralite`, open its real product route, choose a finish
-   and configuration, add it to the persistent cart, and change the quantity.
-3. Complete contact, delivery and synthetic-payment steps and place the order.
-4. Record the CEDAR order ID and order number from the confirmation route.
-5. Confirm the CEDAR `integration_events` row attempted approved order/product
-   fields plus `customer.phone`.
-6. Open the ThirdSight evidence record returned by the gateway. It must show
-   `PREVENTED`, `SCOPE_DRIFT`, and `customer.phone` as the only blocked field.
-7. Open the matching Partner Lab delivery. It must contain `order.id`,
-   `order.value`, `product.id`, and `product.category`, and must not contain
-   `customer.phone`.
-8. Confirm the order remains `CONFIRMED`.
-9. Repeat in `normal` mode and confirm approved traffic is delivered without a
-   false block.
+1. Apply `supabase/migrations/009_managed_gateway_integrations.sql` and configure the managed-gateway and Partner Lab secrets.
+2. Set CEDAR to `unauthorized-field`.
+3. Complete a synthetic CEDAR checkout. The order is committed before optional integration delivery.
+4. CEDAR sends an analytics body containing approved order/product fields plus `customer.phone` through `/api/managed-gateway?integration=cedar-analytics&environment=synthetic-demo`.
+5. The merchant Purpose Contract does not approve `customer.phone` for analytics. The shared deterministic verifier emits `SCOPE_DRIFT`; the generic managed gateway removes only that field and forwards the remaining request.
+6. Open Partner Lab's `managed-analytics` receiver and verify the analytics request arrived without `customer.phone`.
+7. The same checkout sends a delivery request through `cedar-delivery`. Its separate merchant Purpose Contract explicitly approves `customer.phone` for fulfilment.
+8. Open Partner Lab's `managed-delivery` receiver and verify the phone field is present there.
+9. Inspect ThirdSight Activity / Integrations. The analytics request is `CONSTRAIN / PREVENTED`; the delivery request is `ALLOW`.
+10. Run the 10-integration compatibility suite. It contains 60 automated cases and distinguishes `CONTROLLED_RECEIVER` from `SCHEMA_COMPATIBLE`; it does not claim a live vendor sandbox where one was not actually contacted.
 
-A release handoff is valid only when it includes the three production URLs,
-repository and commit, order ID, integration-event ID, ThirdSight evidence ID,
-Partner Lab delivery ID, and successful response checks for all services.
+The important proof is purpose differentiation, not a global PII rule: the same semantic field is removed for analytics and allowed for delivery because the merchant approved different purposes.

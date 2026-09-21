@@ -40,7 +40,7 @@ import "./ProductConsole.css";
 
 type View="overview"|"integrations"|"activity"|"incidents"|"policies"|"connections"|"validation";
 type Finding={type:string;action:string;field?:string;reason?:string};
-type Enforcement={action:"CONSTRAIN"|"ISOLATE";outcome:"PREVENTED";removedFields:readonly string[];continuedFields:readonly string[];receiver:{receivedFields:readonly string[];forbiddenFieldReceived:boolean}};
+type Enforcement={action:"CONSTRAIN"|"ISOLATE";outcome:"PREVENTED";removedFields:readonly string[];continuedFields:readonly string[];receiver?:{receivedFields:readonly string[];forbiddenFieldReceived:boolean};forwarding?:{upstreamContacted:boolean|null;transmittedFields:readonly string[];upstreamStatus:number|null}};
 type Containment={action:"ISOLATE";credentialId:string;applied:boolean};
 type AiAssessmentView={
   analystVersion:string;
@@ -452,11 +452,11 @@ function Connections({rows,proof}:{rows:readonly ExposureRow[];proof:ChallengePr
     <div className="ts-connector-grid">
       <ConnectorCard
         icon={<Workflow size={18}/>}
-        title="Managed request boundary"
-        badge={managedProven?"Proven in prototype":"Prototype path"}
+        title="Managed gateway"
+        badge={managedProven?"Managed enforcement proven":"Inline protection"}
         tone="strong"
-        summary="Best protection. Place ThirdSight in the outbound integration path so approved purpose and business context can be checked before data leaves."
-        bullets={["Purpose Contract can be authoritative","Can remove only unjustified fields before send","Supports PREVENTED when receiver non-receipt is proven"]}
+        summary="Route outbound third-party requests through ThirdSight so approved purpose and first-party context are checked before data leaves."
+        bullets={["Registered upstreams only — no open proxy","Can remove only unjustified fields before send","Returns the real upstream response to the application"]}
       />
       <ConnectorCard
         icon={<Globe2 size={18}/>}
@@ -478,18 +478,22 @@ function Connections({rows,proof}:{rows:readonly ExposureRow[];proof:ChallengePr
 
     <div className="ts-connection-detail-grid">
       <div className="ts-code-card">
-        <div><span><Code2 size={15}/></span><div><strong>Browser sensor configuration</strong><small>Current prototype contract</small></div></div>
-        <pre>{`chrome.runtime.sendMessage({
-  type: "THIRDSIGHT_SET_INGESTION_CONFIG",
-  endpoint: "https://<host>/api/browser-observations",
-  token: "<installation-token>"
-})`}</pre>
-        <p>The installation token authenticates the prototype sensor to the ingestion endpoint. It is not device attestation.</p>
+        <div><span><Code2 size={15}/></span><div><strong>Managed gateway</strong><small>Thin SDK, server-side policy authority</small></div></div>
+        <pre>{`const thirdsight = new ThirdSight({
+  baseUrl: "https://<host>",
+  apiKey: process.env.THIRDSIGHT_GATEWAY_API_KEY
+});
+
+await thirdsight.integration("paystack").fetch(
+  "/transaction/initialize",
+  { method: "POST", body: payload, context }
+);`}</pre>
+        <p>The SDK carries the request and trusted business context. Purpose Contracts and third-party credentials stay server-side.</p>
       </div>
       <div className="ts-coverage-card">
         <span className="ts-kicker">Coverage truth</span>
         <h3>What changes by connection mode</h3>
-        <div className="ts-coverage-row"><b>Managed boundary</b><span>SHOULD + DID + WHY can be strong enough for pre-send policy enforcement.</span></div>
+        <div className="ts-coverage-row"><b>Managed gateway</b><span>SHOULD + DID + WHY can drive pre-send ALLOW, CONSTRAIN or ISOLATE decisions on real outbound traffic.</span></div>
         <div className="ts-coverage-row"><b>Browser sensor</b><span>DID is observed; COULD is partial; SHOULD and WHY stay unknown unless the merchant supplies them.</span></div>
         <div className="ts-coverage-row"><b>Audit stream</b><span>Excellent for proving access after it happened; not a claim of inline prevention.</span></div>
         <div className="ts-offline-note"><ShieldEllipsis size={15}/><p><b>Network loss:</b> the current prototype does not claim uninterrupted central coverage while disconnected. Missing periods must remain visible as coverage gaps rather than inferred away.</p></div>
@@ -705,8 +709,8 @@ function DecisionCard({event}:{event:ConsoleEvent}){
     {event.enforcement?<div className="ts-enforcement-grid">
       <div><span>Removed before send</span><b>{event.enforcement.removedFields.join(", ")||"none"}</b></div>
       <div><span>Continued</span><b>{event.enforcement.continuedFields.join(", ")||"none"}</b></div>
-      <div><span>Receiver got</span><b>{event.enforcement.receiver.receivedFields.join(", ")||"none"}</b></div>
-      <div><span>Forbidden field received</span><b>{event.enforcement.receiver.forbiddenFieldReceived?"YES":"NO"}</b></div>
+      <div><span>Sent upstream</span><b>{(event.enforcement.receiver?.receivedFields??event.enforcement.forwarding?.transmittedFields??[]).join(", ")||"none"}</b></div>
+      <div><span>Upstream contacted</span><b>{event.enforcement.forwarding?event.enforcement.forwarding.upstreamContacted===true?"YES":event.enforcement.forwarding.upstreamContacted===false?"NO":"UNKNOWN":event.enforcement.receiver?"YES":"UNKNOWN"}</b></div>
     </div>:null}
     {event.containment?<div className="ts-decision-meta"><span>Containment <b>{event.containment.action}</b></span><span>Applied <b>{event.containment.applied?"YES":"NO"}</b></span></div>:null}
   </div>;

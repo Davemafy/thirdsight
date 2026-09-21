@@ -1,0 +1,364 @@
+{
+  "generatedFor": "ThirdSight managed gateway",
+  "generatedAt": "2026-09-21",
+  "liveSandboxVerified": 0,
+  "controlledReceiver": 9,
+  "schemaCompatible": 1,
+  "totalIntegrations": 10,
+  "totalAutomatedCases": 60,
+  "note": "No live-sandbox success is claimed by this artifact. CONTROLLED_RECEIVER means the real ThirdSight gateway, deterministic verifier and outbound forwarding code are exercised against an instrumented receiver in automated tests. SCHEMA_COMPATIBLE is a representative documented-shape fixture without live vendor verification.",
+  "scenarios": [
+    {
+      "id": "LEGITIMATE",
+      "expected": "ALLOW",
+      "description": "Approved payload and valid first-party context."
+    },
+    {
+      "id": "EXTRA_FIELD",
+      "expected": "CONSTRAIN",
+      "description": "One unapproved field is removed before the controlled receiver sees the body."
+    },
+    {
+      "id": "WRONG_BUSINESS_CONTEXT",
+      "expected": "CONSTRAIN",
+      "description": "A mismatched business-object reference is not accepted as justification; the upstream is not contacted."
+    },
+    {
+      "id": "RETIRED_INTEGRATION",
+      "expected": "ISOLATE",
+      "description": "Retired integration lifecycle state prevents the outbound call."
+    },
+    {
+      "id": "BUSY_LEGITIMATE",
+      "expected": "ALLOW",
+      "description": "Ten legitimate requests remain allowed with no policy finding."
+    },
+    {
+      "id": "FAILURE",
+      "expected": "CONFIGURED",
+      "description": "CLOSED integrations stop; ALLOW_AND_AUDIT integrations forward in degraded OBSERVE mode."
+    }
+  ],
+  "integrations": [
+    {
+      "id": "paystack",
+      "name": "Paystack",
+      "role": "payment",
+      "classification": "CONTROLLED_RECEIVER",
+      "cases": [
+        {
+          "scenario": "LEGITIMATE",
+          "expected": "ALLOW"
+        },
+        {
+          "scenario": "EXTRA_FIELD",
+          "expected": "CONSTRAIN"
+        },
+        {
+          "scenario": "WRONG_BUSINESS_CONTEXT",
+          "expected": "CONSTRAIN"
+        },
+        {
+          "scenario": "RETIRED_INTEGRATION",
+          "expected": "ISOLATE"
+        },
+        {
+          "scenario": "BUSY_LEGITIMATE",
+          "expected": "ALLOW"
+        },
+        {
+          "scenario": "FAILURE",
+          "expected": "CONFIGURED"
+        }
+      ]
+    },
+    {
+      "id": "flutterwave",
+      "name": "Flutterwave",
+      "role": "payment",
+      "classification": "CONTROLLED_RECEIVER",
+      "cases": [
+        {
+          "scenario": "LEGITIMATE",
+          "expected": "ALLOW"
+        },
+        {
+          "scenario": "EXTRA_FIELD",
+          "expected": "CONSTRAIN"
+        },
+        {
+          "scenario": "WRONG_BUSINESS_CONTEXT",
+          "expected": "CONSTRAIN"
+        },
+        {
+          "scenario": "RETIRED_INTEGRATION",
+          "expected": "ISOLATE"
+        },
+        {
+          "scenario": "BUSY_LEGITIMATE",
+          "expected": "ALLOW"
+        },
+        {
+          "scenario": "FAILURE",
+          "expected": "CONFIGURED"
+        }
+      ]
+    },
+    {
+      "id": "monnify",
+      "name": "Monnify",
+      "role": "payment / virtual accounts",
+      "classification": "CONTROLLED_RECEIVER",
+      "cases": [
+        {
+          "scenario": "LEGITIMATE",
+          "expected": "ALLOW"
+        },
+        {
+          "scenario": "EXTRA_FIELD",
+          "expected": "CONSTRAIN"
+        },
+        {
+          "scenario": "WRONG_BUSINESS_CONTEXT",
+          "expected": "CONSTRAIN"
+        },
+        {
+          "scenario": "RETIRED_INTEGRATION",
+          "expected": "ISOLATE"
+        },
+        {
+          "scenario": "BUSY_LEGITIMATE",
+          "expected": "ALLOW"
+        },
+        {
+          "scenario": "FAILURE",
+          "expected": "CONFIGURED"
+        }
+      ]
+    },
+    {
+      "id": "interswitch",
+      "name": "Interswitch Webpay",
+      "role": "payment",
+      "classification": "CONTROLLED_RECEIVER",
+      "cases": [
+        {
+          "scenario": "LEGITIMATE",
+          "expected": "ALLOW"
+        },
+        {
+          "scenario": "EXTRA_FIELD",
+          "expected": "CONSTRAIN"
+        },
+        {
+          "scenario": "WRONG_BUSINESS_CONTEXT",
+          "expected": "CONSTRAIN"
+        },
+        {
+          "scenario": "RETIRED_INTEGRATION",
+          "expected": "ISOLATE"
+        },
+        {
+          "scenario": "BUSY_LEGITIMATE",
+          "expected": "ALLOW"
+        },
+        {
+          "scenario": "FAILURE",
+          "expected": "CONFIGURED"
+        }
+      ]
+    },
+    {
+      "id": "sendbox",
+      "name": "Sendbox",
+      "role": "shipping / logistics",
+      "classification": "CONTROLLED_RECEIVER",
+      "cases": [
+        {
+          "scenario": "LEGITIMATE",
+          "expected": "ALLOW"
+        },
+        {
+          "scenario": "EXTRA_FIELD",
+          "expected": "CONSTRAIN"
+        },
+        {
+          "scenario": "WRONG_BUSINESS_CONTEXT",
+          "expected": "CONSTRAIN"
+        },
+        {
+          "scenario": "RETIRED_INTEGRATION",
+          "expected": "ISOLATE"
+        },
+        {
+          "scenario": "BUSY_LEGITIMATE",
+          "expected": "ALLOW"
+        },
+        {
+          "scenario": "FAILURE",
+          "expected": "CONFIGURED"
+        }
+      ]
+    },
+    {
+      "id": "kwik",
+      "name": "Kwik Delivery",
+      "role": "last-mile fulfilment",
+      "classification": "SCHEMA_COMPATIBLE",
+      "cases": [
+        {
+          "scenario": "LEGITIMATE",
+          "expected": "ALLOW"
+        },
+        {
+          "scenario": "EXTRA_FIELD",
+          "expected": "CONSTRAIN"
+        },
+        {
+          "scenario": "WRONG_BUSINESS_CONTEXT",
+          "expected": "CONSTRAIN"
+        },
+        {
+          "scenario": "RETIRED_INTEGRATION",
+          "expected": "ISOLATE"
+        },
+        {
+          "scenario": "BUSY_LEGITIMATE",
+          "expected": "ALLOW"
+        },
+        {
+          "scenario": "FAILURE",
+          "expected": "CONFIGURED"
+        }
+      ]
+    },
+    {
+      "id": "termii",
+      "name": "Termii",
+      "role": "SMS / customer notification",
+      "classification": "CONTROLLED_RECEIVER",
+      "cases": [
+        {
+          "scenario": "LEGITIMATE",
+          "expected": "ALLOW"
+        },
+        {
+          "scenario": "EXTRA_FIELD",
+          "expected": "CONSTRAIN"
+        },
+        {
+          "scenario": "WRONG_BUSINESS_CONTEXT",
+          "expected": "CONSTRAIN"
+        },
+        {
+          "scenario": "RETIRED_INTEGRATION",
+          "expected": "ISOLATE"
+        },
+        {
+          "scenario": "BUSY_LEGITIMATE",
+          "expected": "ALLOW"
+        },
+        {
+          "scenario": "FAILURE",
+          "expected": "CONFIGURED"
+        }
+      ]
+    },
+    {
+      "id": "sendchamp",
+      "name": "Sendchamp",
+      "role": "messaging",
+      "classification": "CONTROLLED_RECEIVER",
+      "cases": [
+        {
+          "scenario": "LEGITIMATE",
+          "expected": "ALLOW"
+        },
+        {
+          "scenario": "EXTRA_FIELD",
+          "expected": "CONSTRAIN"
+        },
+        {
+          "scenario": "WRONG_BUSINESS_CONTEXT",
+          "expected": "CONSTRAIN"
+        },
+        {
+          "scenario": "RETIRED_INTEGRATION",
+          "expected": "ISOLATE"
+        },
+        {
+          "scenario": "BUSY_LEGITIMATE",
+          "expected": "ALLOW"
+        },
+        {
+          "scenario": "FAILURE",
+          "expected": "CONFIGURED"
+        }
+      ]
+    },
+    {
+      "id": "meta-capi",
+      "name": "Meta Conversions API",
+      "role": "ads / conversion attribution",
+      "classification": "CONTROLLED_RECEIVER",
+      "cases": [
+        {
+          "scenario": "LEGITIMATE",
+          "expected": "ALLOW"
+        },
+        {
+          "scenario": "EXTRA_FIELD",
+          "expected": "CONSTRAIN"
+        },
+        {
+          "scenario": "WRONG_BUSINESS_CONTEXT",
+          "expected": "CONSTRAIN"
+        },
+        {
+          "scenario": "RETIRED_INTEGRATION",
+          "expected": "ISOLATE"
+        },
+        {
+          "scenario": "BUSY_LEGITIMATE",
+          "expected": "ALLOW"
+        },
+        {
+          "scenario": "FAILURE",
+          "expected": "CONFIGURED"
+        }
+      ]
+    },
+    {
+      "id": "ga4",
+      "name": "Google Analytics 4",
+      "role": "analytics",
+      "classification": "CONTROLLED_RECEIVER",
+      "cases": [
+        {
+          "scenario": "LEGITIMATE",
+          "expected": "ALLOW"
+        },
+        {
+          "scenario": "EXTRA_FIELD",
+          "expected": "CONSTRAIN"
+        },
+        {
+          "scenario": "WRONG_BUSINESS_CONTEXT",
+          "expected": "CONSTRAIN"
+        },
+        {
+          "scenario": "RETIRED_INTEGRATION",
+          "expected": "ISOLATE"
+        },
+        {
+          "scenario": "BUSY_LEGITIMATE",
+          "expected": "ALLOW"
+        },
+        {
+          "scenario": "FAILURE",
+          "expected": "CONFIGURED"
+        }
+      ]
+    }
+  ]
+}

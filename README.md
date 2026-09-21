@@ -1,8 +1,8 @@
 # ThirdSight
 
-**Continuous third-party access verification for commerce systems.**
+**Purpose-aware control plane for third-party integrations.**
 
-ThirdSight verifies whether third-party access remains consistent with an explicit, reviewable business-purpose contract and the real business activity behind it, then applies the smallest justified response when that access cannot be explained.
+ThirdSight can sit inline on a registered outbound integration. It compares what a merchant approved against what the application is actually trying to send, uses trusted first-party business context, removes or stops unjustified access before data leaves when deterministic evidence supports that action, forwards the legitimate remainder to the real registered upstream, and preserves append-only evidence of the decision.
 
 Built for NITDA / ICSC 2026 Track G: **Watching What Third Party Integrations Really Do**.
 
@@ -40,13 +40,13 @@ Stage 7 freezes the deterministic detector. Stage 8 adds a separately gated advi
 
 A customer connects ThirdSight at the boundary where third-party access can actually be observed:
 
-- **Managed request boundary** — strongest mode; the platform supplies approved purpose and first-party context, allowing pre-send field constraints when the evidence supports them.
+- **Managed gateway** — strongest mode; a merchant routes a registered HTTP integration through `/api/managed-gateway` or the thin `ThirdSight` client. Upstream origin, route and credentials remain server-owned; the existing deterministic verifier can ALLOW, OBSERVE, CONSTRAIN or ISOLATE before forwarding.
 - **Browser sensor** — passive discovery of privacy-reduced cross-origin request metadata through the existing `/api/browser-observations` ingestion path.
 - **Audit / backend evidence** — post-access visibility for systems that cannot be placed behind an inline boundary.
 
 Connection mode determines what ThirdSight can prove. Browser-only evidence never silently becomes merchant intent, full backend capability or prevention.
 
-See [Product onboarding](docs/product-onboarding.md) for the concrete adoption flow and current prototype boundary.
+See [Product onboarding](docs/product-onboarding.md) for the concrete adoption flow, SDK example and gateway security boundary. The [Nigerian ecommerce compatibility suite](docs/managed-integration-compatibility.md) exercises the same generic path across 10 integration profiles and 60 automated scenarios without claiming unperformed live-sandbox tests.
 
 ## Real-world validation
 
@@ -73,7 +73,11 @@ Submission materials:
 ├── src/
 │   ├── app/                    # Evidence console and advisory learning UI
 │   ├── domain/                 # Frozen evidence and deterministic verification semantics
-│   ├── infrastructure/         # Browser, DB-audit, persistence, and auth adapters
+│   ├── infrastructure/         # Browser, DB-audit, persistence, gateway evidence, and auth adapters
+│   ├── gateway/                # Registered-upstream routing, credential custody, failure semantics
+│   ├── managed/                # Generic request normalization and shared enforcement adapter
+│   ├── sdk/                    # Thin managed-gateway client
+│   ├── compatibility/          # Nigerian ecommerce integration fixtures and 60-case suite
 │   ├── ai-analyst/             # Stage 8 advisory AI boundary and evaluation
 │   ├── learning-loop/          # Stage 9 verified feedback, training, and promotion gate
 │   ├── styles/

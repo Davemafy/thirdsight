@@ -13,11 +13,40 @@ ThirdSight is not one universal sensor. A customer chooses the evidence boundary
 
 ## Connection modes
 
-### Managed request boundary
+### Managed gateway
 
-Use this when a platform controls the code that sends data to a third-party integration.
+Use this when a platform controls the server-side code that sends data to a third-party integration.
 
-The platform supplies authoritative purpose/context and routes the outbound integration request through ThirdSight's managed verification boundary.
+The platform registers the integration once. ThirdSight owns the upstream origin, allowed route and credential mapping server-side. The merchant application addresses ThirdSight by integration ID; it never supplies an arbitrary upstream URL.
+
+A thin client is included in `src/sdk`:
+
+```ts
+import { ThirdSight } from "./src/sdk/index.js";
+
+const thirdsight = new ThirdSight({
+  baseUrl: "https://thirdsight.example",
+  apiKey: process.env.THIRDSIGHT_GATEWAY_API_KEY!,
+  environment: "production",
+});
+
+const paystack = thirdsight.integration("paystack");
+
+const response = await paystack.fetch("/transaction/initialize", {
+  method: "POST",
+  body: payload,
+  context: {
+    businessEvent: {
+      id: "checkout-2048",
+      type: "checkout.started",
+      orderRefHash,
+    },
+    requestRefs: { orderRefHash },
+  },
+});
+```
+
+The SDK is deliberately thin. Policy authority, Purpose Contracts, upstream resolution and credential injection remain in the gateway.
 
 This is the strongest mode because it can support:
 
@@ -26,9 +55,23 @@ This is the strongest mode because it can support:
 - runtime DID evidence;
 - first-party WHY/business-event correlation;
 - field-level CONSTRAIN before transmission;
-- a PREVENTED outcome only when receiver non-receipt is proven.
+- a PREVENTED outcome only when ThirdSight controls the outbound request and evidence proves the disallowed field was excluded before transmission; an instrumented receiver can add independent non-receipt proof.
 
-This prototype proves the flow in Commerce Lab. It is not yet packaged as a public one-line SDK.
+The managed path supports JSON request bodies, nested field paths and arrays. Unsupported body types are either blocked or explicitly forwarded in OBSERVE mode according to static integration configuration; they are never described as field-level enforced.
+
+Security boundaries in the current implementation:
+
+- only registered HTTPS upstream origins and registered method/path pairs are routable;
+- client-supplied arbitrary upstream URLs are rejected by design;
+- local, private, link-local and reserved address targets are rejected, including a DNS-resolution check before forwarding;
+- caller credentials, cookies and hop-by-hop headers are not forwarded;
+- third-party credentials are injected after policy evaluation from server-side environment configuration;
+- redirects are not followed automatically;
+- POST/PATCH requests are not automatically retried;
+- request and response sizes are bounded;
+- failure behavior is explicit per integration as `CLOSED` or `ALLOW_AND_AUDIT`.
+
+Commerce Lab now has a canonical managed path where the same `customer.phone` field is constrained for analytics but allowed for delivery because those two merchant Purpose Contracts authorize different uses.
 
 ### Browser sensor
 

@@ -83,7 +83,7 @@ export default async function handler(request:ApiRequest,response:ApiResponse):P
         blindSpotAssessment:entry.blindSpotAssessment??null,
         decision:entry.decision??null,
         coverage:entry.evidence.coverage??inferCoverage(entry.evidence.did.value?.boundary),
-        outcome:entry.outcome??derivePassiveOutcome(entry.evidence.did.value?.phase),
+        outcome:entry.outcome??(entry.evidence.did.value?.boundary==="browser"?derivePassiveOutcome(entry.evidence.did.value?.phase):null),
         aiAssessment:aiByRecord.get(entry.recordId)??null,
         vendorIntelligence:resolveVendorIntelligence(
           entry.evidence.did.value?.destinationOrigin
@@ -200,7 +200,7 @@ function buildExposureMap(entries:readonly EvidenceHistoryEntry[]){
       row.attemptedFields.add(field);
       row.preventedFields.add(field);
     }
-    for(const field of entry.enforcement?.receiver.receivedFields??[]) row.receivedFields.add(field);
+    for(const field of entry.enforcement?.receiver?.receivedFields??entry.enforcement?.forwarding?.transmittedFields??[]) row.receivedFields.add(field);
     for(const finding of entry.findings??[]) row.findings.add(finding.type);
 
     const capabilityFields=capabilityFieldsFromStatement(entry.evidence.could.value?.statement);
@@ -287,8 +287,8 @@ function buildChallengeProof(entries:readonly EvidenceHistoryEntry[]){
       proven:true,
       recordId:scopePrevention.recordId,
       removedFields:scopePrevention.enforcement?.removedFields??[],
-      receivedFields:scopePrevention.enforcement?.receiver.receivedFields??[],
-      forbiddenFieldReceived:scopePrevention.enforcement?.receiver.forbiddenFieldReceived??null,
+      receivedFields:scopePrevention.enforcement?.receiver?.receivedFields??scopePrevention.enforcement?.forwarding?.transmittedFields??[],
+      forbiddenFieldReceived:scopePrevention.enforcement?.receiver?.forbiddenFieldReceived??(scopePrevention.enforcement?.forwarding?.upstreamContacted===true?false:null),
     }:{
       proven:false,
       recordId:null,
