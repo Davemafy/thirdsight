@@ -74,7 +74,7 @@ type ConsoleEvent={
 };
 
 const viewCopy:Record<View,{title:string}>={
-  overview:{title:"Control"},
+  overview:{title:"Boundary"},
   integrations:{title:"Integrations"},
   activity:{title:"Evidence"},
   incidents:{title:"Incidents"},
@@ -163,20 +163,16 @@ export default function App(){
       </button>
 
       <div className="ts-nav">
-        <NavButton active={view==="overview"} icon={<Layers3 size={16}/>} label="Control" count={findings.length} onClick={()=>setView("overview")}/>
-        <NavButton active={view==="integrations"} icon={<PlugZap size={16}/>} label="Integrations" count={exposureMap.length} onClick={()=>setView("integrations")}/>
+        <NavButton active={view==="overview"} icon={<Layers3 size={16}/>} label="Boundary" onClick={()=>setView("overview")}/>
+        <NavButton active={view==="integrations"} icon={<PlugZap size={16}/>} label="Integrations" onClick={()=>setView("integrations")}/>
         <NavButton active={view==="activity"||view==="incidents"} icon={<Activity size={16}/>} label="Evidence" onClick={()=>setView("activity")}/>
+        <NavButton active={view==="policies"} icon={<BookOpenCheck size={16}/>} label="Policies" onClick={()=>setView("policies")}/>
+        <NavButton active={view==="connections"} icon={<Network size={16}/>} label="Connections" onClick={()=>setView("connections")}/>
         <NavButton active={view==="validation"} icon={<CircleCheck size={16}/>} label="Validation" onClick={()=>setView("validation")}/>
       </div>
-
-      <div className="ts-nav-secondary">
-        <button className={view==="policies"?"active":""} onClick={()=>setView("policies")}>Policies</button>
-        <button className={view==="connections"?"active":""} onClick={()=>setView("connections")}>Connections</button>
-      </div>
-
       <div className="ts-sidebar-foot">
-        <strong>Commerce Lab · simulation</strong>
-        <span>{events[0]?evidenceFreshness(events[0].observedAt):"No persisted evidence yet"}</span>
+        <strong>Commerce Lab</strong>
+        <span>simulation · {events[0]?evidenceFreshness(events[0].observedAt):"no persisted evidence"}</span>
       </div>
     </div>
 
@@ -201,11 +197,8 @@ export default function App(){
         {view==="overview"?<Overview
           exposure={exposureMap}
           events={events}
-          registeredCount={registered.length}
-          unregisteredCount={unregistered.length}
           onViewIntegrations={()=>setView("integrations")}
           onOpenRow={openRow}
-          onOpenEvent={openEvent}
         />:null}
 
         {view==="integrations"?<Integrations
@@ -249,160 +242,121 @@ function NavButton({active,icon,label,count,onClick}:{active:boolean;icon:React.
 
 function Overview({
   exposure,
-  events,
-  registeredCount,
-  unregisteredCount,
   onViewIntegrations,
   onOpenRow,
-  onOpenEvent,
 }:{
   exposure:readonly ExposureRow[];
-  events:readonly ConsoleEvent[];
-  registeredCount:number;
-  unregisteredCount:number;
   onViewIntegrations:()=>void;
   onOpenRow:(row:ExposureRow)=>void;
-  onOpenEvent:(index:number)=>void;
 }){
-  const incidentEntry=events
-    .map((event,index)=>({event,index}))
-    .find(({event})=>isIncident(event));
-  const primaryEntry=incidentEntry??(events[0]?{event:events[0],index:0}:null);
-  const primary=primaryEntry?.event??null;
-  const primaryIndex=primaryEntry?.index??-1;
-  const copy=primary?overviewIssueCopy(primary):null;
-  const discoveryRows=exposure.slice(0,4);
+  const discoveryRows=[...exposure]
+    .sort((a,b)=>b.observations-a.observations)
+    .slice(0,3);
 
-  return <div className="ts-control">
-    {primary&&copy?<>
-      <section className="ts-control-head">
-        <div>
-          <h1>{copy.title}</h1>
-          <p>{copy.summary}</p>
+  return <div className="ts-boundary-screen">
+    <section className="ts-boundary-head">
+      <div>
+        <h1>Customer phone tried to leave the analytics boundary.</h1>
+        <p>ThirdSight removed only the unapproved field. Product data continued to AnalyticsPartner.</p>
+      </div>
+      <div className="ts-boundary-result">
+        <strong>Prevented</strong>
+        <span>customer.phone did not reach the receiver</span>
+      </div>
+    </section>
+
+    <div className="ts-boundary-column-head">
+      <span>Store data</span>
+      <span>Purpose Contract</span>
+      <span>AnalyticsPartner</span>
+    </div>
+
+    <section className="ts-boundary-map" aria-label="Controlled Commerce Lab scope-prevention replay">
+      <div className="ts-boundary-fields">
+        <BoundaryField name="product.id" note="approved"/>
+        <BoundaryField name="product.category" note="approved"/>
+        <BoundaryField name="product.price" note="approved"/>
+        <BoundaryField name="customer.phone" note="outside contract" danger/>
+      </div>
+
+      <div className="ts-boundary-flow">
+        <div className="ts-contract-line"/>
+        <div className="ts-contract-title">Measure product interest</div>
+        <div className="ts-contract-fields">product.id · product.category · product.price</div>
+        <svg viewBox="0 0 620 430" preserveAspectRatio="none" aria-hidden="true">
+          <path className="ts-flow-line" d="M0 65 C165 65 420 65 620 65"/>
+          <path className="ts-flow-line" d="M0 147 C165 147 420 147 620 147"/>
+          <path className="ts-flow-line" d="M0 229 C165 229 420 229 620 229"/>
+          <path className="ts-flow-line danger" d="M0 311 C145 311 240 311 307 311"/>
+          <circle className="ts-flow-stop" cx="310" cy="311" r="13"/>
+          <path className="ts-flow-x" d="M303 304 L317 318 M317 304 L303 318"/>
+          <text className="ts-flow-label" x="338" y="61">continued</text>
+          <text className="ts-flow-label" x="338" y="143">continued</text>
+          <text className="ts-flow-label" x="338" y="225">continued</text>
+          <text className="ts-flow-label danger" x="338" y="306">removed here</text>
+        </svg>
+      </div>
+
+      <div className="ts-boundary-receiver">
+        <BoundaryReceiver name="product.id" note="received"/>
+        <BoundaryReceiver name="product.category" note="received"/>
+        <BoundaryReceiver name="product.price" note="received"/>
+        <BoundaryReceiver name="customer.phone" note="not received" muted/>
+        <div className="ts-receiver-proof">
+          <strong>Receiver confirmed no phone field</strong>
+          <span>Managed boundary · PREVENTED</span>
         </div>
-        <div className="ts-control-time">
-          <b>{formatEvidenceDate(primary.observedAt)}</b>
-          <span>{primary.coverage.label==="BROWSER_ONLY"?"Browser evidence":humanize(primary.coverage.label)}</span>
+      </div>
+    </section>
+
+    <div className="ts-boundary-below">
+      <section className="ts-boundary-section">
+        <h2>Why it stopped</h2>
+        <div className="ts-boundary-facts">
+          <BoundaryFact label="Approved purpose" value="Measure product interest"/>
+          <BoundaryFact label="Observed field" value="customer.phone"/>
+          <BoundaryFact label="Finding" value="Scope drift"/>
+          <BoundaryFact label="Response" value="Constrain only that field"/>
         </div>
+        <p className="ts-evaluation-note">Frozen Stage 7 evaluation: 26/26 managed field-drift cases were prevented. Legitimate fields continued.</p>
       </section>
 
-      <section className="ts-control-trace" aria-label="Evidence trace">
-        <ControlTraceRow label="Integration">
-          <strong>{integrationLabel(primary)}</strong>
-          <span>{primary.integrationId??primary.did.value?.destinationOrigin??"Identity unresolved"}</span>
-        </ControlTraceRow>
-        <ControlTraceRow label="Approved">
-          <strong>{primary.should.status==="KNOWN"?primary.should.value?.purpose??"Merchant rule present":"No merchant rule"}</strong>
-          <span>{primary.should.status==="KNOWN"?"Merchant Purpose Contract":"No Purpose Contract is attached to this observation."}</span>
-        </ControlTraceRow>
-        <ControlTraceRow label="Observed" tone={copy.tone==="normal"?undefined:"alert"}>
-          <strong>{didSummary(primary)}</strong>
-          {primary.did.value?.destinationOrigin?<code>{primary.did.value.destinationOrigin}</code>:null}
-        </ControlTraceRow>
-        <ControlTraceRow label="ThirdSight" tone="action">
-          <strong>{copy.response}</strong>
-          <span>{copy.responseDetail}</span>
-          <div className="ts-control-actions">
-            <button className="ts-control-primary" onClick={()=>primaryIndex>=0&&onOpenEvent(primaryIndex)}>Open evidence</button>
-            <button className="ts-control-secondary" onClick={onViewIntegrations}>Review integrations</button>
-          </div>
-        </ControlTraceRow>
-      </section>
-    </>:<section className="ts-control-empty">
-      <h1>No persisted evidence yet.</h1>
-      <p>ThirdSight will not substitute mock activity for the evidence feed.</p>
-    </section>}
-
-    <div className="ts-control-lower">
-      <section className="ts-discovery-list">
-        <div className="ts-control-section-head">
+      <section className="ts-boundary-section">
+        <div className="ts-boundary-section-head">
           <h2>Public discovery</h2>
-          <span>{exposure.length} observed · {unregisteredCount} unresolved · {registeredCount} registered</span>
+          <button onClick={onViewIntegrations}>All observed origins <ArrowRight size={14}/></button>
         </div>
-        <div className="ts-discovery-rows">
+        <div className="ts-public-observations">
           {discoveryRows.map(row=>{
             const profile=row.vendorIntelligence.profiles[0]??null;
             return <button key={row.key} onClick={()=>onOpenRow(row)}>
-              <div><b>{profile?.family??row.label}</b><span>{profile?.vendor??"Identity unresolved"}</span></div>
-              <div><b>{row.destinations[0]??row.label}</b><span>{row.observations} observation{row.observations===1?"":"s"}</span></div>
-              <em>{row.integrationId?"Registered":"Review"}</em>
+              <div><strong>{profile?.family??row.label}</strong><span>{profile?.vendor??row.destinations[0]??"Identity unresolved"}</span></div>
+              <b>{row.observations} observations</b>
             </button>;
           })}
-          {discoveryRows.length===0?<EmptyState text="No public discovery rows are currently available."/>:null}
+          {discoveryRows.length===0?<EmptyState text="No public discovery evidence is currently available."/>:null}
         </div>
-        {exposure.length>discoveryRows.length?<button className="ts-discovery-more" onClick={onViewIntegrations}>See all {exposure.length} observed origins <ArrowRight size={13}/></button>:null}
+        <p className="ts-boundary-note">Browser discovery proves request execution only. It does not claim payload meaning, backend access, downstream receipt, or malicious intent.</p>
       </section>
-
-      <p className="ts-control-boundary">Browser evidence proves request execution only. It does not prove payload meaning, backend access, downstream receipt, or malicious intent.</p>
     </div>
+
+    <footer className="ts-boundary-footer">
+      <strong>ThirdSight proves what can be proven, and shows where proof stops.</strong>
+      <span>Commerce Lab · controlled validation replay</span>
+    </footer>
   </div>;
 }
 
-function ControlTraceRow({
-  label,
-  tone,
-  children,
-}:{
-  label:string;
-  tone?:"alert"|"action";
-  children:React.ReactNode;
-}){
-  return <div className={"ts-control-trace-row "+(tone??"")}>
-    <div className="ts-control-trace-label">{label}</div>
-    <div className="ts-control-trace-value">{children}</div>
-  </div>;
+function BoundaryField({name,note,danger=false}:{name:string;note:string;danger?:boolean}){
+  return <div className={"ts-boundary-field "+(danger?"danger":"")}><code>{name}</code><span>{note}</span></div>;
 }
 
-function overviewIssueCopy(event:ConsoleEvent):{
-  title:string;
-  summary:string;
-  response:string;
-  responseDetail:string;
-  tone:"alert"|"normal";
-}{
-  const finding=event.findings[0]??null;
-  if(finding?.type==="SHADOW_INTEGRATION"){
-    return {
-      title:"A request went to an integration with no rule.",
-      summary:"No merchant rule exists for this destination. Payload contents and intent are unknown.",
-      response:"Keep watching",
-      responseDetail:"No enforcement escalation. The evidence proves an unregistered destination, not malicious intent.",
-      tone:"alert",
-    };
-  }
-  if(event.outcome==="PREVENTED"){
-    return {
-      title:"ThirdSight removed unapproved access before it continued.",
-      summary:"The managed boundary proved a policy mismatch before the request continued.",
-      response:"Limited before send",
-      responseDetail:event.enforcement?.removedFields.length
-        ?`Removed ${event.enforcement.removedFields.join(", ")} before the receiver.`
-        :"The unapproved portion was removed before the receiver.",
-      tone:"alert",
-    };
-  }
-  if(event.outcome==="DETECTED"||event.findings.length>0){
-    return {
-      title:"An integration crossed a current rule.",
-      summary:finding?.reason??"Persisted evidence produced a deterministic finding.",
-      response:humanize(event.decision??finding?.action??"OBSERVE"),
-      responseDetail:eventSummary(event),
-      tone:"alert",
-    };
-  }
-  return {
-    title:"Observed activity matches the evidence currently available.",
-    summary:"No deterministic rule mismatch is proven in this record.",
-    response:humanize(event.decision??"OBSERVE"),
-    responseDetail:eventSummary(event),
-    tone:"normal",
-  };
+function BoundaryReceiver({name,note,muted=false}:{name:string;note:string;muted?:boolean}){
+  return <div className={"ts-boundary-dest "+(muted?"muted":"")}><strong>{name}</strong><span>{note}</span></div>;
 }
 
-function formatEvidenceDate(value:string){
-  const date=new Date(value);
-  if(!Number.isFinite(date.getTime()))return "Timestamp unavailable";
-  return new Intl.DateTimeFormat(undefined,{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}).format(date);
+function BoundaryFact({label,value}:{label:string;value:string}){
+  return <div><span>{label}</span><b>{value}</b></div>;
 }
 
 function Integrations({rows,query,onQuery,onOpen}:{rows:readonly ExposureRow[];query:string;onQuery:(value:string)=>void;onOpen:(row:ExposureRow)=>void}){
