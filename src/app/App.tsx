@@ -305,27 +305,21 @@ function Overview({
 
   return <>
     <div className="ts-mobile-overview">
-      <section className="ts-mobile-home-intro">
-        <div className="ts-mobile-title-row">
-          <h1>Today</h1>
-          <span className="ts-mobile-monitor"><i/> Monitoring</span>
-        </div>
-        <p><b>{totalObserved}</b> integrations observed · <b>{documentedCount}</b> identified · <b>{actionCount}</b> need review</p>
-      </section>
+      <div className="ts-mobile-workspace-line">
+        <span>Commerce Lab</span>
+        <span><i/> Live evidence</span>
+      </div>
 
-      <section className="ts-mobile-latest">
-        <span className="ts-mobile-section-label">Latest</span>
-        <MobilePriorityCard
-          incident={priorityIncident}
-          fallback={reviewRows[0]??recentRows[0]??null}
-          onOpenEvent={onOpenEvent}
-          onOpenRow={onOpenRow}
-        />
-      </section>
+      <MobileBoundaryTrace
+        incident={priorityIncident}
+        fallback={reviewRows[0]??recentRows[0]??null}
+        onOpenEvent={onOpenEvent}
+        onOpenRow={onOpenRow}
+      />
 
       <section className="ts-mobile-recent">
         <div className="ts-mobile-section-head">
-          <h2>Integrations</h2>
+          <h2>Integration activity</h2>
           <button onClick={onViewIntegrations}>All {totalObserved}</button>
         </div>
         <div className="ts-mobile-integration-list">
@@ -335,8 +329,8 @@ function Overview({
       </section>
 
       <footer className="ts-mobile-context-line">
-        <span>Commerce Lab</span>
-        <button onClick={onConnections}>Connection coverage <ArrowRight size={13}/></button>
+        <span>{documentedCount} documented families · {actionCount} review items</span>
+        <button onClick={onConnections}>Coverage <ArrowRight size={13}/></button>
       </footer>
     </div>
 
@@ -400,7 +394,7 @@ function Overview({
   </>;
 }
 
-function MobilePriorityCard({
+function MobileBoundaryTrace({
   incident,
   fallback,
   onOpenEvent,
@@ -412,40 +406,130 @@ function MobilePriorityCard({
   onOpenRow:(row:ExposureRow)=>void;
 }){
   if(incident){
-    const value=eventStatus(incident.event);
-    const label=value==="PREVENTED"
-      ?"Stopped before transmission"
-      :value==="ISOLATE"
-        ?"Integration isolated"
-        :value==="DETECTED"
-          ?"Detected after access"
-          :"Needs review";
-    return <button className={"ts-mobile-priority "+responseClass(value)} onClick={()=>onOpenEvent(incident.index)}>
-      <div className="ts-mobile-priority-meta">
-        <span>{label}</span>
-        <small>{new Date(incident.event.observedAt).toLocaleDateString()}</small>
+    const event=incident.event;
+    const profile=event.vendorIntelligence.profiles[0]??null;
+    const continued=event.enforcement?.continuedFields??[];
+    const removed=event.enforcement?.removedFields??[];
+    const observed=event.did.value?.dataCategories??[];
+    const traceLines=[
+      ...continued.map(field=>({field,state:"passed" as const,label:"Passed"})),
+      ...removed.map(field=>({field,state:"stopped" as const,label:"Stopped"})),
+    ];
+    if(traceLines.length===0){
+      if(observed.length>0) traceLines.push(...observed.slice(0,4).map(field=>({field,state:"observed" as const,label:"Observed"})));
+      else traceLines.push({
+        field:[event.did.value?.method,event.did.value?.destinationPath].filter(Boolean).join(" ")||"Outbound request",
+        state:"observed" as const,
+        label:event.outcome==="DETECTED"?"Detected":"Observed",
+      });
+    }
+
+    const result=event.outcome??event.decision??"OBSERVE";
+    const context=event.why.value?.eventType
+      ?humanize(event.why.value.eventType)
+      :event.did.value?.boundary==="browser"
+        ?"Browser request"
+        :humanize(event.did.value?.boundary??"runtime");
+    const destination=event.did.value?.destinationOrigin
+      ?hostnameFromOrigin(event.did.value.destinationOrigin)
+      :"third party";
+    const approved=event.should.value?.purpose??"Merchant approval unavailable";
+    const outcomeTitle=event.outcome==="PREVENTED"&&removed.length>0
+      ?`${removed.join(", ")} stopped before transmission`
+      :event.outcome==="DETECTED"
+        ?"Access detected after it occurred"
+        :event.findings.some(finding=>finding.type==="PURPOSE_MISMATCH")
+          ?"Observed access did not match business context"
+          :event.findings.some(finding=>finding.type==="SHADOW_INTEGRATION")
+            ?"Unregistered destination needs review"
+            :eventSummary(event);
+    const outcomeDetail=event.outcome==="PREVENTED"
+      ?`Approved fields continued. Receiver got forbidden field: ${event.enforcement?.receiver.forbiddenFieldReceived?"yes":"no"}.`
+      :eventSummary(event);
+
+    return <section className="ts-boundary-trace">
+      <header className="ts-boundary-trace-head">
+        <div>
+          <span>{context} · {profile?.vendor??destination}</span>
+          <h1>{integrationLabel(event)}</h1>
+          <p>{approved}</p>
+        </div>
+        <strong className={"ts-boundary-result "+responseClass(result)}>{humanize(result)}</strong>
+      </header>
+
+      <div className="ts-boundary-axis" aria-hidden="true">
+        <span>Merchant data</span><span>ThirdSight boundary</span><span>{profile?.vendor??"Partner"}</span>
       </div>
-      <h2>{integrationLabel(incident.event)}</h2>
-      <p>{eventSummary(incident.event)}</p>
-      <span className="ts-mobile-priority-action">View evidence <ChevronRight size={15}/></span>
-    </button>;
+
+      <div className="ts-boundary-lines">
+        {traceLines.slice(0,5).map(line=><MobileTraceLine key={line.field} {...line}/>)}
+      </div>
+
+      <div className="ts-boundary-outcome">
+        <strong>{outcomeTitle}</strong>
+        <span>{outcomeDetail}</span>
+      </div>
+
+      <button className="ts-boundary-open" onClick={()=>onOpenEvent(incident.index)}>
+        Open evidence <ArrowRight size={14}/>
+      </button>
+    </section>;
   }
 
   if(fallback){
     const profile=fallback.vendorIntelligence.profiles[0]??null;
-    return <button className="ts-mobile-priority review" onClick={()=>onOpenRow(fallback)}>
-      <div className="ts-mobile-priority-meta"><span>Needs context</span><small>{fallback.observations} observation{fallback.observations===1?"":"s"}</small></div>
-      <h2>{profile?.family??fallback.label}</h2>
-      <p>{profile?.expectedPurposes[0]??"Observed destination has no merchant-approved identity or purpose registered."}</p>
-      <span className="ts-mobile-priority-action">Review integration <ChevronRight size={15}/></span>
-    </button>;
+    return <section className="ts-boundary-trace unresolved">
+      <header className="ts-boundary-trace-head">
+        <div>
+          <span>Observed destination · browser boundary</span>
+          <h1>{profile?.family??fallback.label}</h1>
+          <p>{profile?.expectedPurposes[0]??"No documentation-backed purpose is available."}</p>
+        </div>
+        <strong className="ts-boundary-result observe">Review</strong>
+      </header>
+
+      <div className="ts-boundary-axis" aria-hidden="true">
+        <span>Browser</span><span>ThirdSight boundary</span><span>{profile?.vendor??"Unknown"}</span>
+      </div>
+
+      <div className="ts-boundary-lines">
+        <MobileTraceLine field={fallback.destinations[0]??fallback.label} state="observed" label="Observed"/>
+      </div>
+
+      <div className="ts-boundary-outcome">
+        <strong>Merchant approval is not registered</strong>
+        <span>ThirdSight keeps the destination observable without inventing purpose or enforcement authority.</span>
+      </div>
+
+      <button className="ts-boundary-open" onClick={()=>onOpenRow(fallback)}>
+        Review integration <ArrowRight size={14}/>
+      </button>
+    </section>;
   }
 
-  return <div className="ts-mobile-priority quiet">
-    <div className="ts-mobile-priority-meta"><span>Monitoring</span></div>
-    <h2>No priority item yet</h2>
-    <p>ThirdSight is waiting for persisted integration evidence.</p>
+  return <section className="ts-boundary-trace unresolved">
+    <header className="ts-boundary-trace-head"><div><span>Waiting for evidence</span><h1>No integration trace yet</h1><p>ThirdSight will render the next persisted third-party access here.</p></div></header>
+  </section>;
+}
+
+function MobileTraceLine({
+  field,
+  state,
+  label,
+}:{
+  field:string;
+  state:"passed"|"stopped"|"observed";
+  label:string;
+}){
+  return <div className={"ts-trace-line "+state}>
+    <span className="ts-trace-field">{field}</span>
+    <span className="ts-trace-rail"><i/><b/></span>
+    <strong>{label}</strong>
   </div>;
+}
+
+function hostnameFromOrigin(origin:string){
+  try{return new URL(origin).hostname;}catch{return origin;}
 }
 
 function MobileIntegrationContent({row}:{row:ExposureRow}){

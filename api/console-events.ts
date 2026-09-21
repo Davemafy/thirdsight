@@ -24,11 +24,15 @@ export default async function handler(request:ApiRequest,response:ApiResponse):P
     const store=new SupabaseEvidenceHistoryStore({projectUrl:url,serviceRoleKey:key});
     const aiStore=new SupabaseAiAssessmentStore({projectUrl:url,serviceRoleKey:key});
     const learningStore=new SupabaseLearningStore({projectUrl:url,serviceRoleKey:key});
-    const [allHistory,learningFeedback]=await Promise.all([
-      store.list(900),
+    const [allHistory,learningFeedback,pinnedEntries]=await Promise.all([
+      store.list(750),
       learningStore.listFeedback(5),
+      Promise.all(CANONICAL_OPERATIONAL_RECORD_IDS.map((recordId)=>store.findByRecordId(recordId))),
     ]);
-    const operationalHistory=allHistory.filter((entry)=>isOperationalEntry(entry));
+    const operationalHistory=dedupeHistory([
+      ...pinnedEntries.filter((entry):entry is EvidenceHistoryEntry=>entry!==null),
+      ...allHistory.filter((entry)=>isOperationalEntry(entry)),
+    ]);
     const reviewedEntries=(await Promise.all(
       [...learningFeedback].reverse().map((feedback)=>store.findByRecordId(feedback.recordId)),
     )).filter((entry):entry is EvidenceHistoryEntry=>entry!==null&&isOperationalEntry(entry));
@@ -95,6 +99,22 @@ export default async function handler(request:ApiRequest,response:ApiResponse):P
   }
 }
 
+const CANONICAL_OPERATIONAL_RECORD_IDS=[
+  "browser:stage5-managed-browser:stage5-managed-proof",
+  "browser:commerce-lab:passive-browser:stage5-passive-proof",
+  "browser:commerce-lab:flash-sale:gate5-flash-sale-0",
+  "browser:commerce-lab:proportional:gate5-proportional-0",
+] as const;
+
+function dedupeHistory(entries:readonly EvidenceHistoryEntry[]):EvidenceHistoryEntry[]{
+  const seen=new Set<string>();
+  return entries.filter((entry)=>{
+    if(seen.has(entry.recordId)) return false;
+    seen.add(entry.recordId);
+    return true;
+  });
+}
+
 function isPublicBenchmarkEntry(entry:EvidenceHistoryEntry):boolean{
   return entry.recordId.startsWith("browser:benchmark40:")||
     entry.recordId.startsWith("browser:benchmark1000:");
@@ -102,6 +122,7 @@ function isPublicBenchmarkEntry(entry:EvidenceHistoryEntry):boolean{
 
 function isOperationalEntry(entry:EvidenceHistoryEntry):boolean{
   if(isPublicBenchmarkEntry(entry)) return false;
+  if(entry.recordId.startsWith("browser:browser-extension:")) return false;
 
   const did=entry.evidence.did.value;
   if(did?.boundary!=="browser") return true;
