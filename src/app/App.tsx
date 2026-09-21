@@ -19,12 +19,9 @@ import {
   Layers3,
   Network,
   MoreHorizontal,
-  PlugZap,
-  Radio,
   Search,
   ShieldCheck,
   ShieldEllipsis,
-  SlidersHorizontal,
   Workflow,
   X,
 } from "lucide-react";
@@ -188,7 +185,7 @@ export default function App(){
       </div>
     </aside>
 
-    <div className="ts-workspace">
+    <div className="ts-workspace" aria-label={current.title+" workspace"}>
       <header className="ts-topbar ts-master-topbar">
         <button className="ts-workspace-switch" type="button">Commerce Lab <ChevronDown size={14}/></button>
         <label className="ts-global-search">
@@ -659,31 +656,6 @@ function Validation({rows,proof}:{rows:readonly ExposureRow[];proof:ChallengePro
   </div>;
 }
 
-function ReviewQueue({rows,onOpen}:{rows:readonly ExposureRow[];onOpen:(row:ExposureRow)=>void}){
-  if(rows.length===0)return <EmptyState text="No unresolved or evidence-backed item is currently queued."/>;
-  return <div className="ts-review-list">
-    {rows.map(row=>{
-      const hasFinding=row.findings.length>0;
-      const reason=hasFinding
-        ? humanize(row.findings[0]??"finding")
-        : row.integrationId
-          ? "Purpose or evidence context needs review"
-          : "Identity and merchant-approved purpose not registered";
-      return <button key={row.key} onClick={()=>onOpen(row)}>
-        <span className={"ts-review-icon "+(hasFinding?"finding":"unresolved")}>
-          {hasFinding?<AlertTriangle size={15}/>:<Eye size={15}/>}
-        </span>
-        <div>
-          <strong>{row.label}</strong>
-          <span>{reason}</span>
-          <small>{row.observations} observation{row.observations===1?"":"s"} · {row.lastSeen?new Date(row.lastSeen).toLocaleString():"no timestamp"}</small>
-        </div>
-        <ChevronRight size={15}/>
-      </button>;
-    })}
-  </div>;
-}
-
 function IntegrationRow({row,onClick}:{row:ExposureRow;onClick:()=>void}){
   const profile=row.vendorIntelligence.profiles[0]??null;
   const expected=profile?.expectedPurposes.slice(0,1)??[];
@@ -871,17 +843,6 @@ function EvidenceFact({title,status,value,detail}:{title:string;status:string;va
 
 function RawEvidence({label,value}:{label:string;value:unknown}){
   return <div><span>{label}</span><pre>{JSON.stringify(value,null,2)}</pre></div>;
-}
-
-function Panel({title,subtitle,action,onAction,children}:{title:string;subtitle:string;action?:string;onAction?:()=>void;children:React.ReactNode}){
-  return <div className="ts-panel">
-    <div className="ts-panel-head"><div><strong>{title}</strong><span>{subtitle}</span></div>{action&&onAction?<button onClick={onAction}>{action}<ArrowRight size={13}/></button>:null}</div>
-    {children}
-  </div>;
-}
-
-function StatCard({label,value,detail,icon}:{label:string;value:string;detail:string;icon:React.ReactNode}){
-  return <div className="ts-stat-card"><div><span>{icon}</span><small>{label}</small></div><strong>{value}</strong><p>{detail}</p></div>;
 }
 
 function ConnectorCard({icon,title,badge,tone,summary,bullets}:{icon:React.ReactNode;title:string;badge:string;tone:"strong"|"neutral";summary:string;bullets:readonly string[]}){
