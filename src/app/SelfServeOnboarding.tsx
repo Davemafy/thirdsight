@@ -142,7 +142,7 @@ export function SelfServeOnboarding(){
           <label className="ts-contract-approval"><input type="checkbox" checked={approved} onChange={event=>setApproved(event.target.checked)}/><span>I approve this fixed preset for this workspace.</span></label>
         </div>
 
-        <button className="ts-primary-action" disabled={!canProvision} onClick={provision}><KeyRound size={15}/>{busy==="provision"?"Creating workspace…":"Create workspace & generate key"}</button>
+        <button className="ts-primary-action" disabled={!canProvision} onClick={provision}><KeyRound size={15}/>{busy==="provision"?"Creating workspace…":"Create workspace & install preset"}</button>
       </div>
 
       <div className="ts-selfserve-result">
