@@ -1347,7 +1347,7 @@
 .ts-topbar{display:none}
 .ts-content{max-width:1500px;padding:34px 40px 36px;margin:0 auto;width:100%}
 
-.ts-boundary-screen{color:#101512}
+.ts-boundary-screen{color:#101512;min-width:0}
 .ts-boundary-head{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:40px;align-items:end;padding-bottom:24px;border-bottom:1px solid #c8cbc4}
 .ts-boundary-head h1{max-width:920px;margin:0;font-size:48px;line-height:1.02;letter-spacing:-.055em;font-weight:760}
 .ts-boundary-head p{max-width:760px;margin:12px 0 0;color:#667069;font-size:16px;line-height:1.55}
