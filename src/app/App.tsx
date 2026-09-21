@@ -471,7 +471,7 @@ function MobileIntegrationContent({row}:{row:ExposureRow}){
   </div>;
 }
 
-function Integrations(function Integrations({rows,query,onQuery,onOpen}:{rows:readonly ExposureRow[];query:string;onQuery:(value:string)=>void;onOpen:(row:ExposureRow)=>void}){
+function Integrations({rows,query,onQuery,onOpen}:{rows:readonly ExposureRow[];query:string;onQuery:(value:string)=>void;onOpen:(row:ExposureRow)=>void}){
   return <div className="ts-page-stack">
     <div className="ts-section-head">
       <div><span className="ts-kicker">Inventory · Vendor Intelligence</span><h2>Integration exposure</h2><p>Expected, approved, capable and observed are separate evidence. Vendor documentation adds context; it never becomes merchant authorization.</p></div>
