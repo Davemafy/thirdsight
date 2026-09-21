@@ -170,7 +170,6 @@ export default function App(){
     <MobileSystem
       events={events}
       exposure={exposureMap}
-      proof={challengeProof}
       error={error}
     />
     <div className="ts-sidebar">
@@ -270,12 +269,10 @@ type MobileIntegrationTab="overview"|"data"|"evidence"|"policy";
 function MobileSystem({
   events,
   exposure,
-  proof,
   error,
 }:{
   events:readonly ConsoleEvent[];
   exposure:readonly ExposureRow[];
-  proof:ChallengeProof|null;
   error:boolean;
 }){
   const [view,setView]=useState<MobileView>("home");
