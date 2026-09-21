@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './app/App';
 import { CommerceLab, CommerceLabControl } from './commerce/CommerceLab';
+import ThirdSightLanding from './marketing/ThirdSightLanding';
 import './styles/global.css';
 
 const rootElement = document.getElementById('root');
@@ -15,7 +16,9 @@ const surface=path==='/commerce-lab/control'
   ? <CommerceLabControl />
   : path.startsWith('/commerce-lab')
     ? <CommerceLab />
-    : <App />;
+    : path==='/app'||path.startsWith('/app/')
+      ? <App />
+      : <ThirdSightLanding />;
 
 createRoot(rootElement).render(
   <StrictMode>
