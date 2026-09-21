@@ -6,11 +6,13 @@ import {
   VENDOR_INTELLIGENCE_VERSION,
   resolveVendorIntelligence,
 } from "../src/vendor-intelligence/vendor-intelligence.js";
+import gatewayHandler from "../src/infrastructure/gateway/gateway-handler.js";
 
-interface ApiRequest { method?: string }
+interface ApiRequest { method?: string; url?:string; body?:unknown; headers:Record<string,string|string[]|undefined> }
 interface ApiResponse { status(code:number):ApiResponse; setHeader(name:string,value:string):void; json(body:unknown):void; end():void }
 
 export default async function handler(request:ApiRequest,response:ApiResponse):Promise<void>{
+  if(request.url?.includes("managedGateway=1")) return gatewayHandler(request,response);
   response.setHeader("Cache-Control","no-store");
   if(request.method==="OPTIONS"){response.status(204).end();return;}
   if(request.method!=="GET"){response.status(405).json({error:"METHOD_NOT_ALLOWED"});return;}

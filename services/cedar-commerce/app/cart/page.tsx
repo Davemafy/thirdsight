@@ -1,0 +1,1 @@
+import{StoreHeader}from"@/components/store-header";import{StoreFooter}from"@/components/store-footer";import{CartClient}from"@/components/cart-client";export const metadata={title:"Cart"};export default function CartPage(){return <><StoreHeader/><main className="cart-page"><CartClient/></main><StoreFooter/></>}

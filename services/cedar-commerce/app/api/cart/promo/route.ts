@@ -1,0 +1,2 @@
+import{NextRequest,NextResponse}from"next/server";import{applyPromo}from"@/lib/commerce-store";import{apiError,mutationAllowed,session,withSession}from"@/lib/http";import{promoSchema}from"@/lib/validation";
+export async function POST(req:NextRequest){if(!mutationAllowed(req))return NextResponse.json({error:"RATE_LIMITED"},{status:429});try{const{code}=promoSchema.parse(await req.json());const s=await session();return withSession(await applyPromo(s.hash,code),s.fresh?s.token:undefined);}catch(e){return apiError(e)}}
