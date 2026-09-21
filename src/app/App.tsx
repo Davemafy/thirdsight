@@ -279,10 +279,30 @@ function Overview({
 }){
   const prevented=proof?.scopePrevention.proven??false;
   const totalObserved=exposure.length;
+  const documentedCount=exposure.filter(row=>row.vendorIntelligence.profiles.length>0).length;
+  const incidentPairs=events
+    .map((event,index)=>({event,index}))
+    .filter(item=>isIncident(item.event))
+    .sort((a,b)=>mobileEventPriority(b.event)-mobileEventPriority(a.event));
+  const priorityIncident=incidentPairs[0]??null;
   const reviewRows=[
     ...exposure.filter(row=>row.findings.length>0),
     ...exposure.filter(row=>row.findings.length===0&&!row.integrationId),
   ].slice(0,3);
+  const recentRows=[...exposure]
+    .filter(row=>!row.destinations.some(destination=>destination.includes("thirdsight-five.vercel.app")))
+    .sort((a,b)=>String(b.lastSeen??"").localeCompare(String(a.lastSeen??"")))
+    .slice(0,5);
+  const actionCount=Math.max(findingCount,incidentPairs.length);
+  const stoppedCount=events.filter(event=>event.outcome==="PREVENTED").length;
+  const mobileTitle=stoppedCount>0
+    ? `${stoppedCount} access attempt${stoppedCount===1?"":"s"} stopped`
+    : actionCount>0
+      ? `${actionCount} item${actionCount===1?"":"s"} need review`
+      : "No policy violation proven";
+  const mobileDetail=unregisteredCount>0
+    ? `${totalObserved} destinations observed. ${unregisteredCount} still need merchant identity or policy context.`
+    : `${totalObserved} destinations observed across the connected workspace.`;
   const statusTitle=findingCount>0
     ? `${findingCount} integration${findingCount===1?"":"s"} need attention`
     : `${totalObserved} third-party destination${totalObserved===1?"":"s"} observed`;
@@ -293,65 +313,165 @@ function Overview({
       : "No deterministic policy violation is proven in the current operational evidence.";
 
   return <>
-    <div className="ts-operational-hero">
-      <div className="ts-operational-copy">
-        <span className="ts-live-label"><i/> Discovery active · Commerce Lab</span>
-        <span className="ts-kicker">Current third-party posture</span>
-        <h1>{statusTitle}</h1>
-        <p>{statusDetail}</p>
-        <div className="ts-hero-actions">
-          <button className="ts-primary" onClick={onViewIntegrations}>Review destinations <ArrowRight size={15}/></button>
-          <button className="ts-secondary" onClick={onConnections}>Connect enforcement</button>
+    <div className="ts-mobile-overview">
+      <section className="ts-mobile-home-intro">
+        <span className="ts-mobile-live"><i/> Commerce Lab · monitoring</span>
+        <h1>{mobileTitle}</h1>
+        <p>{mobileDetail}</p>
+      </section>
+
+      <MobilePriorityCard
+        incident={priorityIncident}
+        fallback={reviewRows[0]??recentRows[0]??null}
+        onOpenEvent={onOpenEvent}
+        onOpenRow={onOpenRow}
+      />
+
+      <section className="ts-mobile-posture" aria-label="Integration posture">
+        <div><strong>{totalObserved}</strong><span>Observed</span></div>
+        <div><strong>{documentedCount}</strong><span>Identified</span></div>
+        <div><strong>{actionCount}</strong><span>Review</span></div>
+      </section>
+
+      <section className="ts-mobile-recent">
+        <div className="ts-mobile-section-head">
+          <h2>Recent integrations</h2>
+          <button onClick={onViewIntegrations}>See all</button>
+        </div>
+        <div className="ts-mobile-integration-list">
+          {recentRows.map(row=><button key={row.key} onClick={()=>onOpenRow(row)}><MobileIntegrationContent row={row}/></button>)}
+          {recentRows.length===0?<EmptyState text="Waiting for integration evidence."/>:null}
+        </div>
+      </section>
+    </div>
+
+    <div className="ts-desktop-overview">
+      <div className="ts-operational-hero">
+        <div className="ts-operational-copy">
+          <span className="ts-live-label"><i/> Discovery active · Commerce Lab</span>
+          <span className="ts-kicker">Current third-party posture</span>
+          <h1>{statusTitle}</h1>
+          <p>{statusDetail}</p>
+          <div className="ts-hero-actions">
+            <button className="ts-primary" onClick={onViewIntegrations}>Review destinations <ArrowRight size={15}/></button>
+            <button className="ts-secondary" onClick={onConnections}>Connect enforcement</button>
+          </div>
+        </div>
+        <div className="ts-operational-summary">
+          <span>How ThirdSight decides</span>
+          <p><b>Approved purpose</b> + technical reach + observed access + business context.</p>
+          <small>It escalates only as far as the evidence supports.</small>
         </div>
       </div>
-      <div className="ts-operational-summary">
-        <span>How ThirdSight decides</span>
-        <p><b>Approved purpose</b> + technical reach + observed access + business context.</p>
-        <small>It escalates only as far as the evidence supports.</small>
+
+      <div className="ts-stat-grid">
+        <StatCard label="Observed destinations" value={String(totalObserved)} detail="Third-party origins in this workspace" icon={<Eye size={17}/>}/>
+        <StatCard label="Purpose-aware" value={String(registeredCount)} detail="Registered integrations with identity context" icon={<PlugZap size={17}/>}/>
+        <StatCard label="Deterministic findings" value={String(findingCount)} detail={findingCount>0?"Evidence-backed violations":"No violation currently proven"} icon={<AlertTriangle size={17}/>}/>
+        <StatCard label="Pre-send prevention" value={prevented?"Proven":"No proof"} detail={prevented?"Unjustified field stopped before send":"No persisted prevention evidence"} icon={<ShieldCheck size={17}/>}/>
       </div>
-    </div>
 
-    <div className="ts-stat-grid">
-      <StatCard label="Observed destinations" value={String(totalObserved)} detail="Third-party origins in this workspace" icon={<Eye size={17}/>}/>
-      <StatCard label="Purpose-aware" value={String(registeredCount)} detail="Registered integrations with identity context" icon={<PlugZap size={17}/>}/>
-      <StatCard label="Deterministic findings" value={String(findingCount)} detail={findingCount>0?"Evidence-backed violations":"No violation currently proven"} icon={<AlertTriangle size={17}/>}/>
-      <StatCard label="Pre-send prevention" value={prevented?"Proven":"No proof"} detail={prevented?"Unjustified field stopped before send":"No persisted prevention evidence"} icon={<ShieldCheck size={17}/>}/>
-    </div>
+      <div className="ts-review-grid">
+        <Panel title="Review next" subtitle={reviewRows.length>0?"Unresolved or evidence-backed items worth opening next.":"Nothing currently requires review."} action="View all" onAction={onViewIntegrations}>
+          <ReviewQueue rows={reviewRows} onOpen={onOpenRow}/>
+        </Panel>
+        <Panel title="Recent activity" subtitle="Representative persisted evidence." >
+          <div className="ts-activity-list">
+            {events.slice(0,6).map((event,index)=><ActivityRow key={event.recordId} event={event} onClick={()=>onOpenEvent(index)}/>)}
+            {events.length===0?<EmptyState text="Waiting for persisted evidence."/>:null}
+          </div>
+        </Panel>
+      </div>
 
-    <div className="ts-review-grid">
-      <Panel title="Review next" subtitle={reviewRows.length>0?"Unresolved or evidence-backed items worth opening next.":"Nothing currently requires review."} action="View all" onAction={onViewIntegrations}>
-        <ReviewQueue rows={reviewRows} onOpen={onOpenRow}/>
-      </Panel>
-      <Panel title="Recent activity" subtitle="Representative persisted evidence." >
-        <div className="ts-activity-list">
-          {events.slice(0,6).map((event,index)=><ActivityRow key={event.recordId} event={event} onClick={()=>onOpenEvent(index)}/>)}
-          {events.length===0?<EmptyState text="Waiting for persisted evidence."/>:null}
+      <div className="ts-proof-strip">
+        <div>
+          <span><CircleCheck size={15}/></span>
+          <p><small>Busy sales day</small><b>{proof?.busySale.passed?"No false alarm":"Awaiting proof"}</b></p>
         </div>
-      </Panel>
-    </div>
-
-    <div className="ts-proof-strip">
-      <div>
-        <span><CircleCheck size={15}/></span>
-        <p><small>Busy sales day</small><b>{proof?.busySale.passed?"No false alarm":"Awaiting proof"}</b></p>
-      </div>
-      <div>
-        <span><AlertTriangle size={15}/></span>
-        <p><small>Abnormal partner behaviour</small><b>{proof?.abnormalBehavior.observed?"Caught":"Not observed"}</b></p>
-      </div>
-      <div>
-        <span><SlidersHorizontal size={15}/></span>
-        <p><small>Graded response</small><b>ALLOW → OBSERVE → CONSTRAIN → ISOLATE</b></p>
-      </div>
-      <div>
-        <span><ShieldCheck size={15}/></span>
-        <p><small>Managed scope control</small><b>{proof?.scopePrevention.proven?"Prevented before send":"Awaiting proof"}</b></p>
+        <div>
+          <span><AlertTriangle size={15}/></span>
+          <p><small>Abnormal partner behaviour</small><b>{proof?.abnormalBehavior.observed?"Caught":"Not observed"}</b></p>
+        </div>
+        <div>
+          <span><SlidersHorizontal size={15}/></span>
+          <p><small>Graded response</small><b>ALLOW → OBSERVE → CONSTRAIN → ISOLATE</b></p>
+        </div>
+        <div>
+          <span><ShieldCheck size={15}/></span>
+          <p><small>Managed scope control</small><b>{proof?.scopePrevention.proven?"Prevented before send":"Awaiting proof"}</b></p>
+        </div>
       </div>
     </div>
   </>;
 }
 
-function Integrations({rows,query,onQuery,onOpen}:{rows:readonly ExposureRow[];query:string;onQuery:(value:string)=>void;onOpen:(row:ExposureRow)=>void}){
+function MobilePriorityCard({
+  incident,
+  fallback,
+  onOpenEvent,
+  onOpenRow,
+}:{
+  incident:{event:ConsoleEvent;index:number}|null;
+  fallback:ExposureRow|null;
+  onOpenEvent:(index:number)=>void;
+  onOpenRow:(row:ExposureRow)=>void;
+}){
+  if(incident){
+    const value=eventStatus(incident.event);
+    const label=value==="PREVENTED"
+      ?"Stopped before transmission"
+      :value==="ISOLATE"
+        ?"Integration isolated"
+        :value==="DETECTED"
+          ?"Detected after access"
+          :"Needs review";
+    return <button className={"ts-mobile-priority "+responseClass(value)} onClick={()=>onOpenEvent(incident.index)}>
+      <div className="ts-mobile-priority-meta"><span>{label}</span><small>{new Date(incident.event.observedAt).toLocaleDateString()}</small></div>
+      <h2>{integrationLabel(incident.event)}</h2>
+      <p>{eventSummary(incident.event)}</p>
+      <span className="ts-mobile-priority-action">View evidence <ArrowRight size={15}/></span>
+    </button>;
+  }
+
+  if(fallback){
+    const profile=fallback.vendorIntelligence.profiles[0]??null;
+    return <button className="ts-mobile-priority review" onClick={()=>onOpenRow(fallback)}>
+      <div className="ts-mobile-priority-meta"><span>Needs context</span><small>{fallback.observations} observation{fallback.observations===1?"":"s"}</small></div>
+      <h2>{profile?.family??fallback.label}</h2>
+      <p>{profile?.expectedPurposes[0]??"ThirdSight observed this destination, but no merchant-approved identity or purpose is registered."}</p>
+      <span className="ts-mobile-priority-action">Review integration <ArrowRight size={15}/></span>
+    </button>;
+  }
+
+  return <div className="ts-mobile-priority quiet">
+    <div className="ts-mobile-priority-meta"><span>Monitoring</span></div>
+    <h2>No priority item yet</h2>
+    <p>ThirdSight is waiting for persisted integration evidence.</p>
+  </div>;
+}
+
+function MobileIntegrationContent({row}:{row:ExposureRow}){
+  const profile=row.vendorIntelligence.profiles[0]??null;
+  const state=mobileRowState(row);
+  const observed=row.attemptedFields.length>0
+    ?`Touched ${row.attemptedFields.slice(0,2).join(", ")}`
+    :row.boundaries.includes("browser")
+      ?`${row.observations} browser observation${row.observations===1?"":"s"}`
+      :`${row.observations} observation${row.observations===1?"":"s"}`;
+
+  return <div className="ts-mobile-integration-content">
+    <span className={"ts-mobile-integration-icon "+state.tone}>{profile?<PlugZap size={16}/>:<Eye size={16}/>}</span>
+    <div className="ts-mobile-integration-copy">
+      <strong>{profile?.family??row.label}</strong>
+      <span>{profile?.vendor??"Unidentified integration"}</span>
+      <small>{observed}</small>
+    </div>
+    <span className={"ts-mobile-integration-state "+state.tone}>{state.label}</span>
+    <ChevronRight size={16}/>
+  </div>;
+}
+
+function Integrations(function Integrations({rows,query,onQuery,onOpen}:{rows:readonly ExposureRow[];query:string;onQuery:(value:string)=>void;onOpen:(row:ExposureRow)=>void}){
   return <div className="ts-page-stack">
     <div className="ts-section-head">
       <div><span className="ts-kicker">Inventory · Vendor Intelligence</span><h2>Integration exposure</h2><p>Expected, approved, capable and observed are separate evidence. Vendor documentation adds context; it never becomes merchant authorization.</p></div>
@@ -517,6 +637,7 @@ function IntegrationRow({row,onClick}:{row:ExposureRow;onClick:()=>void}){
   const capable=localCapability.length>0?localCapability:documentedCapability;
 
   return <button className="ts-table-row integration" onClick={onClick}>
+    <MobileIntegrationContent row={row}/>
     <div className="ts-integration-name">
       <span className={"ts-integration-dot "+responseClass(row.latestResponse)}/>
       <p>
@@ -735,14 +856,19 @@ function eventStatus(event:ConsoleEvent){
 }
 
 function eventSummary(event:ConsoleEvent){
-  if(event.outcome==="PREVENTED")return "An unjustified field was removed at the managed boundary before transmission.";
-  if(event.outcome==="DETECTED")return event.did.value?.boundary==="db-audit"?"Access was observed after it occurred; future credential use may be contained.":"Runtime evidence proves the access occurred before the finding.";
-  if(event.decision==="ALLOW")return "Observed access is consistent with approved scope and available business context.";
-  if(event.decision==="CONSTRAIN")return "ThirdSight recorded a deterministic policy violation and a constrained response.";
-  if(event.decision==="ISOLATE")return "ThirdSight recorded deterministic evidence strong enough to isolate future integration access.";
-  if(event.decision==="OBSERVE")return "Evidence is incomplete or ambiguous, so ThirdSight keeps the integration under observation instead of escalating authority.";
-  if(event.coverage.label==="BROWSER_ONLY")return "Browser-visible cross-origin request metadata was discovered and persisted.";
-  return "Persisted evidence does not support a stronger enforcement claim.";
+  const findingTypes=event.findings.map(finding=>finding.type);
+  if(event.outcome==="PREVENTED")return "An unapproved field was removed before transmission while approved data continued.";
+  if(event.outcome==="DETECTED")return event.did.value?.boundary==="db-audit"?"Access was observed after it happened; future credential use may be contained.":"Runtime evidence proves the access occurred before the finding.";
+  if(findingTypes.includes("PURPOSE_MISMATCH"))return "The traffic looked plausible, but the access did not match the expected first-party business object.";
+  if(findingTypes.includes("SHADOW_INTEGRATION"))return "This destination has no registered integration identity, so ThirdSight keeps it under review instead of escalating authority.";
+  if(findingTypes.includes("STALE_INTEGRATION"))return "This integration remained active outside its current approved lifecycle.";
+  if(event.recordId.includes(":flash-sale:")&&event.decision==="ALLOW")return "The traffic spike matched first-party business activity, so ThirdSight allowed it without a false alarm.";
+  if(event.decision==="ALLOW")return "Observed access matches the approved scope and available business context.";
+  if(event.decision==="CONSTRAIN")return "ThirdSight constrained only the access that was not justified by policy.";
+  if(event.decision==="ISOLATE")return "The evidence justified isolating future integration access.";
+  if(event.decision==="OBSERVE")return "Evidence is incomplete or ambiguous, so ThirdSight keeps this under observation.";
+  if(event.coverage.label==="BROWSER_ONLY")return "Browser-visible request activity was observed and persisted.";
+  return "The current evidence does not support a stronger enforcement claim.";
 }
 
 function integrationLabel(event:ConsoleEvent){
@@ -768,6 +894,28 @@ function isIncident(event:ConsoleEvent){
     event.outcome==="DETECTED"||
     event.decision==="CONSTRAIN"||
     event.decision==="ISOLATE";
+}
+
+function mobileEventPriority(event:ConsoleEvent){
+  if(event.outcome==="PREVENTED")return 100;
+  if(event.decision==="ISOLATE")return 90;
+  if(event.outcome==="DETECTED")return 80;
+  if(event.decision==="CONSTRAIN")return 70;
+  if(event.findings.some(finding=>finding.type==="PURPOSE_MISMATCH"))return 65;
+  if(event.findings.some(finding=>finding.type==="SHADOW_INTEGRATION"))return 60;
+  if(event.findings.length>0)return 55;
+  if(event.decision==="OBSERVE")return 30;
+  return 0;
+}
+
+function mobileRowState(row:ExposureRow):{label:string;tone:"normal"|"review"|"stopped"|"watching"}{
+  const response=row.latestResponse.toLowerCase();
+  if(response==="isolate"||response==="detected")return {label:"Isolated",tone:"stopped"};
+  if(response==="constrain"||response==="prevented")return {label:"Stopped",tone:"stopped"};
+  if(row.findings.length>0)return {label:"Review",tone:"review"};
+  if(response==="allow")return {label:"Normal",tone:"normal"};
+  if(!row.integrationId)return {label:"Review",tone:"review"};
+  return {label:"Watching",tone:"watching"};
 }
 
 function eventIcon(value:string){
