@@ -435,7 +435,7 @@ function IncidentView({events,onOpen}:{events:readonly ConsoleEvent[];onOpen:(in
   </div>;
 }
 
-function Policies(function Policies({rows,events,onOpen}:{rows:readonly ExposureRow[];events:readonly ConsoleEvent[];onOpen:(row:ExposureRow)=>void}){
+function Policies({rows,events,onOpen}:{rows:readonly ExposureRow[];events:readonly ConsoleEvent[];onOpen:(row:ExposureRow)=>void}){
   return <div className="ts-page-stack">
     <div className="ts-section-head"><div><span className="ts-kicker">Purpose contracts</span><h2>What each integration is supposed to do</h2><p>Policy is shown separately from observed behavior so runtime activity cannot rewrite the approved purpose.</p></div></div>
     <div className="ts-table-card">
@@ -671,7 +671,7 @@ function EvidenceLine({label,status,value,source}:{label:string;status:string;va
   return <div><p><strong>{label}</strong><span className={"ts-final-evidence-state "+status.toLowerCase()}>{humanize(status)}</span></p><b>{value}</b><small>{source}</small></div>;
 }
 
-function VendorIntelligencePanel(function VendorIntelligencePanel({event}:{event:ConsoleEvent}){
+function VendorIntelligencePanel({event}:{event:ConsoleEvent}){
   const profile=event.vendorIntelligence.profiles[0]??null;
   const approved=event.should.status==="KNOWN"
     ? event.should.value?.purpose??"Merchant policy present"
