@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import {
   Activity,
   AlertTriangle,
@@ -90,9 +91,6 @@ export default function App(){
   const [selected,setSelected]=useState(0);
   const [view,setView]=useState<View>("overview");
   const [detailOpen,setDetailOpen]=useState(false);
-  const [error,setError]=useState(false);
-  const [retrying,setRetrying]=useState(false);
-  const [recovered,setRecovered]=useState(false);
   const [aiPromoted,setAiPromoted]=useState(false);
   const [exposureMap,setExposureMap]=useState<ExposureRow[]>([]);
   const [challengeProof,setChallengeProof]=useState<ChallengeProof|null>(null);
@@ -100,9 +98,17 @@ export default function App(){
   const [mobileMenuOpen,setMobileMenuOpen]=useState(false);
   const [retryKey,setRetryKey]=useState(0);
 
+  const retryEvidence=()=>{
+    toast.loading("Retrying connection…",{
+      id:"evidence-feed",
+      description:"Checking the evidence feed now.",
+      duration:Infinity,
+    });
+    setRetryKey(value=>value+1);
+  };
+
   useEffect(()=>{
     let live=true;
-    let recoveredTimer:number|undefined;
     const load=(manual=false)=>fetch("/api/console-events",{cache:"no-store"})
       .then(r=>{if(!r.ok)throw new Error("evidence unavailable");return r.json()})
       .then(d=>{
@@ -113,24 +119,33 @@ export default function App(){
         setChallengeProof((d.challengeProof??null) as ChallengeProof|null);
         setAiPromoted(Boolean(d.aiAnalyst?.promoted));
         setSelected(current=>current<history.length?current:0);
-        setError(false);
         if(manual){
-          setRetrying(false);
-          setRecovered(true);
-          recoveredTimer=window.setTimeout(()=>live&&setRecovered(false),2400);
+          toast.success("Connection restored",{
+            id:"evidence-feed",
+            description:"Latest evidence is available again.",
+            duration:2400,
+          });
+        }else{
+          toast.dismiss("evidence-feed");
         }
       })
       .catch(()=>{
         if(!live)return;
-        setError(true);
-        if(manual)setRetrying(false);
+        toast.error("Live evidence is unavailable",{
+          id:"evidence-feed",
+          description:"We couldn't refresh your latest activity.",
+          duration:Infinity,
+          action:{
+            label:"Retry",
+            onClick:retryEvidence,
+          },
+        });
       });
     load(retryKey>0);
     const id=window.setInterval(()=>load(false),5000);
     return()=>{
       live=false;
       window.clearInterval(id);
-      if(recoveredTimer)window.clearTimeout(recoveredTimer);
     };
   },[retryKey]);
 
@@ -213,26 +228,6 @@ export default function App(){
           <button className="ts-mobile-more" onClick={()=>setMobileMenuOpen(true)} aria-label="More navigation"><MoreHorizontal size={19}/></button>
         </div>
       </div>
-
-      {error?<div className="ts-evidence-toast" role="status" aria-live="polite">
-        <AlertTriangle size={17}/>
-        <div>
-          <strong>{retrying?"Retrying connection…":"Live evidence is unavailable"}</strong>
-          <span>{retrying?"Checking the evidence feed now.":"We couldn't refresh your latest activity."}</span>
-        </div>
-        <button
-          disabled={retrying}
-          onClick={()=>{
-            setRecovered(false);
-            setRetrying(true);
-            setRetryKey(value=>value+1);
-          }}
-        >{retrying?"Retrying…":"Retry"}</button>
-      </div>:null}
-      {recovered?<div className="ts-evidence-toast success" role="status" aria-live="polite">
-        <CircleCheck size={17}/>
-        <div><strong>Connection restored</strong><span>Latest evidence is available again.</span></div>
-      </div>:null}
 
       <div className="ts-content">
         {view==="overview"?<Overview

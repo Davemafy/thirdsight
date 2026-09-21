@@ -798,3 +798,50 @@
 .ts-evidence-toast.success span{
   color:#5e7163;
 }
+
+
+/* Sonner notifications */
+.ts-sonner-toast{
+  border:1px solid #dfe5e0!important;
+  border-radius:12px!important;
+  background:#fff!important;
+  color:#243128!important;
+  box-shadow:0 14px 38px rgba(20,30,23,.14)!important;
+  padding:13px!important;
+}
+.ts-sonner-title{
+  font-size:12px!important;
+  font-weight:750!important;
+  color:#26342b!important;
+}
+.ts-sonner-description{
+  margin-top:2px!important;
+  font-size:10.5px!important;
+  line-height:1.4!important;
+  color:#68756c!important;
+}
+.ts-sonner-action{
+  min-height:32px!important;
+  padding:0 11px!important;
+  border:1px solid #d3dbd5!important;
+  border-radius:7px!important;
+  background:#f7f9f7!important;
+  color:#30453a!important;
+  font-size:10.5px!important;
+  font-weight:750!important;
+}
+.ts-sonner-close{
+  border:1px solid #dfe5e0!important;
+  background:#fff!important;
+  color:#66736a!important;
+}
+@media(max-width:650px){
+  [data-sonner-toaster]{
+    left:12px!important;
+    right:12px!important;
+    width:auto!important;
+  }
+  .ts-sonner-toast{
+    width:100%!important;
+  }
+}
