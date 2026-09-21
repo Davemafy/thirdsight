@@ -1,21 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  Activity,
   AlertTriangle,
   ArrowRight,
-  BookOpenCheck,
   ChevronRight,
   CircleCheck,
   Code2,
   Database,
   Eye,
   Globe2,
-  Layers3,
-  Network,
-  MoreHorizontal,
-  PlugZap,
   Search,
-  ShieldCheck,
   ShieldEllipsis,
   Workflow,
   X,
@@ -73,16 +66,6 @@ type ConsoleEvent={
   vendorIntelligence:VendorIntelligenceResolution;
 };
 
-const viewCopy:Record<View,{title:string}>={
-  overview:{title:"Overview"},
-  integrations:{title:"Integrations"},
-  activity:{title:"Activity"},
-  incidents:{title:"Incidents"},
-  policies:{title:"Policies"},
-  connections:{title:"Connections"},
-  validation:{title:"Validation"},
-};
-
 export default function App(){
   const [events,setEvents]=useState<ConsoleEvent[]>([]);
   const [selected,setSelected]=useState(0);
@@ -117,8 +100,6 @@ export default function App(){
 
   const selectedEvent=events[selected]??events[0]??null;
   const registered=exposureMap.filter(row=>Boolean(row.integrationId));
-  const unregistered=exposureMap.filter(row=>!row.integrationId);
-  const findings=exposureMap.filter(row=>row.findings.length>0);
   const normalizedQuery=query.trim().toLowerCase();
   const filteredExposure=useMemo(()=>exposureMap.filter(row=>{
     if(!normalizedQuery)return true;
@@ -153,82 +134,57 @@ export default function App(){
     if(index>=0)openEvent(index);
   };
 
-  const current=viewCopy[view];
-
-  return <div className="ts-shell">
-    <div className="ts-sidebar">
-      <button className="ts-brand" onClick={()=>setView("overview")}>
-        <span><ShieldCheck size={20}/></span>
-        <div><strong>ThirdSight</strong><small>Integration security</small></div>
+  return <div className="ts-app">
+    <header className="ts-header">
+      <button className="ts-wordmark" onClick={()=>setView("overview")} aria-label="ThirdSight boundary">
+        <span className="ts-wordmark-mark" aria-hidden="true"><i/></span>
+        <strong>ThirdSight</strong>
       </button>
 
-      <div className="ts-nav">
-        <NavButton active={view==="overview"} icon={<Layers3 size={16}/>} label="Overview" onClick={()=>setView("overview")}/>
-        <NavButton active={view==="integrations"} icon={<PlugZap size={16}/>} label="Integrations" onClick={()=>setView("integrations")}/>
-        <NavButton active={view==="activity"} icon={<Activity size={16}/>} label="Activity" onClick={()=>setView("activity")}/>
-        <NavButton active={view==="incidents"} icon={<AlertTriangle size={16}/>} label="Incidents" onClick={()=>setView("incidents")}/>
-        <NavButton active={view==="policies"} icon={<BookOpenCheck size={16}/>} label="Policies" onClick={()=>setView("policies")}/>
-        <NavButton active={view==="connections"} icon={<Network size={16}/>} label="Connections" onClick={()=>setView("connections")}/>
-        <div className="ts-nav-separator"/>
-        <NavButton active={view==="validation"} icon={<CircleCheck size={16}/>} label="Validation" onClick={()=>setView("validation")}/>
+      <nav className="ts-primary-nav" aria-label="Primary">
+        <button className={view==="overview"?"active":""} onClick={()=>setView("overview")}>Boundary</button>
+        <button className={view==="integrations"?"active":""} onClick={()=>setView("integrations")}>Integrations</button>
+        <button className={view==="activity"||view==="incidents"?"active":""} onClick={()=>setView("activity")}>Evidence</button>
+        <button className={view==="validation"?"active":""} onClick={()=>setView("validation")}>Validation</button>
+      </nav>
+
+      <div className="ts-header-right">
+        <div className="ts-workspace-label"><strong>Commerce Lab</strong><span>simulation</span></div>
+        <button className="ts-more-button" onClick={()=>setMobileMenuOpen(true)}>More</button>
       </div>
+    </header>
 
-      <div className="ts-sidebar-foot">
-        <span>{events[0]?evidenceFreshness(events[0].observedAt):"No persisted evidence yet"}</span>
-      </div>
-    </div>
+    <main className="ts-main">
+      {error?<div className="ts-error"><AlertTriangle size={16}/><div><strong>Evidence feed unavailable.</strong><span>ThirdSight will not substitute mock runtime data.</span></div></div>:null}
 
-    <div className="ts-workspace">
-      <div className="ts-topbar">
-        <div className="ts-mobile-product">
-          <span><ShieldCheck size={17}/></span>
-          <div><b>ThirdSight</b><small>{current.title}</small></div>
-        </div>
-        <div className="ts-desktop-context">
-          <strong>{current.title}</strong>
-        </div>
-        <div className="ts-topbar-actions">
-          <span className="ts-env">Commerce Lab</span>
-          <button className="ts-connect-button" onClick={()=>setView("connections")}><PlugZap size={14}/> Connect platform</button>
-          <button className="ts-mobile-more" onClick={()=>setMobileMenuOpen(true)} aria-label="More navigation"><MoreHorizontal size={19}/></button>
-        </div>
-      </div>
+      {view==="overview"?<Overview
+        exposure={exposureMap}
+        onViewIntegrations={()=>setView("integrations")}
+        onOpenRow={openRow}
+        onValidation={()=>setView("validation")}
+      />:null}
 
-      <div className="ts-content">
-        {error?<div className="ts-error"><AlertTriangle size={16}/><div><strong>Live evidence is unavailable.</strong><span>ThirdSight will not substitute mock data for the production evidence feed.</span></div></div>:null}
+      {view==="integrations"?<Integrations
+        rows={filteredExposure}
+        query={query}
+        onQuery={setQuery}
+        onOpen={openRow}
+      />:null}
 
-        {view==="overview"?<Overview
-          exposure={exposureMap}
-          events={events}
-          registeredCount={registered.length}
-          unregisteredCount={unregistered.length}
-          findingCount={findings.length}
-          onViewIntegrations={()=>setView("integrations")}
-          onOpenRow={openRow}
-        />:null}
-
-        {view==="integrations"?<Integrations
-          rows={filteredExposure}
-          query={query}
-          onQuery={setQuery}
-          onOpen={openRow}
-        />:null}
-
-        {view==="activity"?<ActivityView events={events} onOpen={openEvent}/>:null}
-        {view==="incidents"?<IncidentView events={events} onOpen={openEvent}/>:null}
-        {view==="policies"?<Policies rows={registered} events={events} onOpen={openRow}/>:null}
-        {view==="connections"?<Connections rows={exposureMap} proof={challengeProof}/>:null}
-        {view==="validation"?<Validation rows={exposureMap} proof={challengeProof}/>:null}
-      </div>
-    </div>
+      {view==="activity"?<ActivityView events={events} onOpen={openEvent}/>:null}
+      {view==="incidents"?<IncidentView events={events} onOpen={openEvent}/>:null}
+      {view==="policies"?<Policies rows={registered} events={events} onOpen={openRow}/>:null}
+      {view==="connections"?<Connections rows={exposureMap} proof={challengeProof}/>:null}
+      {view==="validation"?<Validation rows={exposureMap} proof={challengeProof}/>:null}
+    </main>
 
     {mobileMenuOpen?<div className="ts-mobile-menu-layer">
       <button className="ts-mobile-menu-backdrop" aria-label="Close menu" onClick={()=>setMobileMenuOpen(false)}/>
-      <div className="ts-mobile-menu">
+      <div className="ts-mobile-menu ts-text-menu">
         <div className="ts-mobile-menu-head"><div><strong>ThirdSight</strong><span>More</span></div><button onClick={()=>setMobileMenuOpen(false)} aria-label="Close"><X size={18}/></button></div>
-        <button onClick={()=>{setView("policies");setMobileMenuOpen(false)}}><BookOpenCheck size={18}/><div><b>Policies</b><span>Approved purpose and data scope</span></div><ChevronRight size={16}/></button>
-        <button onClick={()=>{setView("connections");setMobileMenuOpen(false)}}><Network size={18}/><div><b>Connections</b><span>Connect browser, backend and audit evidence</span></div><ChevronRight size={16}/></button>
-        <button onClick={()=>{setView("validation");setMobileMenuOpen(false)}}><CircleCheck size={18}/><div><b>Validation</b><span>Controlled proof and public-site breadth</span></div><ChevronRight size={16}/></button>
+        <button onClick={()=>{setView("policies");setMobileMenuOpen(false)}}><div><b>Policies</b><span>Purpose contracts and approved scope</span></div><ChevronRight size={16}/></button>
+        <button onClick={()=>{setView("connections");setMobileMenuOpen(false)}}><div><b>Connections</b><span>Managed, browser and audit boundaries</span></div><ChevronRight size={16}/></button>
+        <button onClick={()=>{setView("incidents");setMobileMenuOpen(false)}}><div><b>Incidents</b><span>Deterministic findings only</span></div><ChevronRight size={16}/></button>
       </div>
     </div>:null}
 
@@ -240,82 +196,122 @@ export default function App(){
   </div>;
 }
 
-function NavButton({active,icon,label,count,onClick}:{active:boolean;icon:React.ReactNode;label:string;count?:number;onClick:()=>void}){
-  return <button className={"ts-nav-button "+(active?"active":"")} onClick={onClick}>
-    <span>{icon}</span><b>{label}</b>{typeof count==="number"&&count>0?<em>{count}</em>:null}
-  </button>;
-}
-
 function Overview({
   exposure,
-  events,
-  registeredCount,
-  unregisteredCount,
-  findingCount,
   onViewIntegrations,
   onOpenRow,
+  onValidation,
 }:{
   exposure:readonly ExposureRow[];
-  events:readonly ConsoleEvent[];
-  registeredCount:number;
-  unregisteredCount:number;
-  findingCount:number;
   onViewIntegrations:()=>void;
   onOpenRow:(row:ExposureRow)=>void;
+  onValidation:()=>void;
 }){
-  const attentionRows=exposure.filter(row=>
-    row.findings.length>0||
-    !row.integrationId||
-    row.latestResponse==="CONSTRAIN"||
-    row.latestResponse==="ISOLATE"||
-    row.latestResponse==="PREVENTED"||
-    row.latestResponse==="DETECTED"
-  );
-  const limitedCount=exposure.filter(row=>
-    row.preventedFields.length>0||
-    row.latestResponse==="CONSTRAIN"||
-    row.latestResponse==="ISOLATE"||
-    row.latestResponse==="PREVENTED"
-  ).length;
-  const normalCount=exposure.filter(row=>
-    row.findings.length===0&&row.latestResponse==="ALLOW"
-  ).length;
-  const reviewRows=attentionRows.slice(0,6);
-  const needReview=attentionRows.length;
-  const headline=findingCount>0
-    ?`${findingCount} integration${findingCount===1?"":"s"} crossed current rules`
-    :needReview>0
-      ?`${needReview} integration${needReview===1?" needs":"s need"} a rule or identity`
-      :"Observed access matches current rules";
+  const publicRows=[...exposure]
+    .sort((left,right)=>right.observations-left.observations)
+    .slice(0,3);
 
-  return <div className="ts-overview-plain">
-    <section className="ts-overview-summary">
-      <div className="ts-overview-title">
-        <h1>{headline}</h1>
-        <span>{events[0]?evidenceFreshness(events[0].observedAt):"No persisted evidence yet"}</span>
-      </div>
-      <div className="ts-overview-counts" aria-label="Current integration state">
-        <span><b>{limitedCount}</b> limited or isolated</span>
-        <span><b>{normalCount}</b> within policy</span>
-        <span><b>{unregisteredCount}</b> unresolved</span>
-      </div>
-    </section>
+  const publicLabel=(row:ExposureRow)=>{
+    const profile=row.vendorIntelligence.profiles[0]??null;
+    return profile?.family??row.label;
+  };
 
-    <section className="ts-attention-ledger">
-      <div className="ts-ledger-heading">
-        <h2>Needs attention</h2>
-        <span>{needReview}</span>
-      </div>
-      <ReviewQueue rows={reviewRows} onOpen={onOpenRow}/>
-    </section>
-
-    <div className="ts-overview-footer">
+  return <div className="ts-boundary-page">
+    <section className="ts-boundary-hero">
       <div>
-        <strong>{registeredCount} registered integrations</strong>
-        <span>{exposure.length} observed in this workspace</span>
+        <h1>Customer phone tried to leave the analytics boundary.</h1>
+        <p>ThirdSight removed only the field outside the Purpose Contract. Product data continued to AnalyticsPartner.</p>
       </div>
-      <button onClick={onViewIntegrations}>All integrations <ArrowRight size={14}/></button>
+      <div className="ts-boundary-result">
+        <strong>Prevented</strong>
+        <span>customer.phone did not reach the receiver</span>
+      </div>
+    </section>
+
+    <section className="ts-boundary-figure" aria-label="Managed analytics boundary">
+      <div className="ts-boundary-head">
+        <span>Store data</span>
+        <span><b>Purpose Contract</b><small>Measure product interest</small></span>
+        <span>AnalyticsPartner</span>
+      </div>
+
+      <BoundaryField name="product.id" state="approved" receiver="received"/>
+      <BoundaryField name="product.category" state="approved" receiver="received"/>
+      <BoundaryField name="product.price" state="approved" receiver="received"/>
+      <BoundaryField name="customer.phone" state="outside contract" receiver="not received" blocked/>
+
+      <div className="ts-receiver-proof">
+        <strong>Receiver confirmed no phone field</strong>
+        <span>Managed boundary · prevented before transmission</span>
+      </div>
+    </section>
+
+    <div className="ts-boundary-lower">
+      <section className="ts-boundary-section">
+        <div className="ts-boundary-section-title">
+          <h2>Why ThirdSight acted</h2>
+          <button onClick={onValidation}>Validation evidence <ArrowRight size={14}/></button>
+        </div>
+        <div className="ts-boundary-facts">
+          <div><span>Approved purpose</span><b>Measure product interest</b></div>
+          <div><span>Observed field</span><b>customer.phone</b></div>
+          <div><span>Finding</span><b>Scope drift</b></div>
+          <div><span>Response</span><b>Constrain only that field</b></div>
+        </div>
+
+        <div className="ts-frozen-eval">
+          <p><strong>Frozen detector evaluation</strong> · 392 synthetic cases · 0 false positives · 46/46 preventable unnecessary-access cases prevented.</p>
+          <p><b>Known blind spot:</b> the perfect-mimic compromise remained allowed because SHOULD, COULD, DID and WHY contained no contradiction.</p>
+        </div>
+      </section>
+
+      <section className="ts-boundary-section">
+        <div className="ts-boundary-section-title">
+          <h2>Public discovery stays separate</h2>
+          <button onClick={onViewIntegrations}>All integrations <ArrowRight size={14}/></button>
+        </div>
+        <div className="ts-public-discovery">
+          {publicRows.map(row=><button key={row.key} onClick={()=>onOpenRow(row)}>
+            <div>
+              <b>{publicLabel(row)}</b>
+              <span>{row.destinations[0]??row.label}</span>
+            </div>
+            <strong>{row.observations}</strong>
+            <span>observation{row.observations===1?"":"s"}</span>
+          </button>)}
+          {publicRows.length===0?<EmptyState text="No public browser observations are currently available."/>:null}
+        </div>
+        <p className="ts-boundary-note-line">Browser discovery proves request execution only. It does not prove payload meaning, backend access, downstream receipt or malicious intent.</p>
+      </section>
     </div>
+
+    <footer className="ts-boundary-footer">
+      <strong>ThirdSight proves what can be proven, and shows where proof stops.</strong>
+      <span>Commerce Lab · controlled synthetic scenario</span>
+    </footer>
+  </div>;
+}
+
+function BoundaryField({
+  name,
+  state,
+  receiver,
+  blocked=false,
+}:{
+  name:string;
+  state:string;
+  receiver:string;
+  blocked?:boolean;
+}){
+  return <div className={"ts-boundary-field "+(blocked?"blocked":"")}>
+    <div className="ts-field-source"><code>{name}</code><span>{state}</span></div>
+    <div className="ts-field-flow">
+      <span className="ts-flow-line"/>
+      <i className="ts-contract-cross" aria-hidden="true"/>
+      {blocked?<i className="ts-stop-mark" aria-hidden="true">×</i>:null}
+      <b>{blocked?"removed here":"continued"}</b>
+    </div>
+    <div className="ts-field-receiver"><strong>{name}</strong><span>{receiver}</span></div>
   </div>;
 }
 
@@ -438,32 +434,6 @@ function Validation({rows,proof}:{rows:readonly ExposureRow[];proof:ChallengePro
   return <div className="ts-validation-stack">
     <IntegrationExposureMap rows={rows.slice(0,10)} proof={proof}/>
     <RealWorldValidation/>
-  </div>;
-}
-
-function ReviewQueue({rows,onOpen}:{rows:readonly ExposureRow[];onOpen:(row:ExposureRow)=>void}){
-  if(rows.length===0)return <EmptyState text="Nothing needs attention right now."/>;
-  return <div className="ts-review-list simple">
-    {rows.map(row=>{
-      const status=simpleRowStatus(row);
-      const profile=row.vendorIntelligence.profiles[0]??null;
-      const approved=row.approvedFields.length>0?row.approvedFields.slice(0,3).join(", "):"No merchant rule";
-      const reason=row.findings.length>0
-        ?humanize(row.findings[0]??"finding")
-        :!row.integrationId
-          ?"Identity or policy missing"
-          :status.detail;
-      return <button key={row.key} onClick={()=>onOpen(row)}>
-        <div className="ts-review-name">
-          <strong>{profile?.family??row.label}</strong>
-          <small>{profile?.vendor??row.integrationId??"Unidentified integration"}</small>
-        </div>
-        <div className="ts-review-fact"><span>Approved</span><b>{approved}</b></div>
-        <div className="ts-review-fact"><span>Observed</span><b>{simpleObservedRow(row)}</b></div>
-        <div className={"ts-review-result "+status.tone}><b>{status.label}</b><span>{reason}</span></div>
-        <ChevronRight size={15}/>
-      </button>;
-    })}
   </div>;
 }
 
@@ -719,16 +689,6 @@ function StatusPill({value}:{value:string}){
 
 function EmptyState({text}:{text:string}){
   return <div className="ts-empty"><Eye size={17}/><span>{text}</span></div>;
-}
-
-function evidenceFreshness(value:string){
-  const timestamp=new Date(value).getTime();
-  if(!Number.isFinite(timestamp))return "Evidence timestamp unavailable";
-  const elapsed=Math.max(0,Date.now()-timestamp);
-  if(elapsed<60_000)return `Last evidence ${Math.max(1,Math.floor(elapsed/1000))}s ago`;
-  if(elapsed<3_600_000)return `Last evidence ${Math.floor(elapsed/60_000)}m ago`;
-  if(elapsed<86_400_000)return `Last evidence ${Math.floor(elapsed/3_600_000)}h ago`;
-  return `Last evidence ${Math.floor(elapsed/86_400_000)}d ago`;
 }
 
 function eventStatus(event:ConsoleEvent){
