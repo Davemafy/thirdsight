@@ -6,7 +6,6 @@ import {
   BookOpenCheck,
   ChevronRight,
   CircleCheck,
-  Clock3,
   Code2,
   Database,
   Eye,
@@ -692,15 +691,6 @@ function isIncident(event:ConsoleEvent){
     event.outcome==="DETECTED"||
     event.decision==="CONSTRAIN"||
     event.decision==="ISOLATE";
-}
-
-function eventIcon(value:string){
-  const normalized=value.toLowerCase();
-  if(normalized==="allow")return <CircleCheck size={15}/>;
-  if(normalized==="prevented"||normalized==="constrain")return <ShieldCheck size={15}/>;
-  if(normalized==="detected"||normalized==="isolate")return <AlertTriangle size={15}/>;
-  if(normalized==="observe"||normalized==="discovery")return <Eye size={15}/>;
-  return <Clock3 size={15}/>;
 }
 
 function responseClass(value:string){
