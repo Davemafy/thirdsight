@@ -53,7 +53,11 @@ export async function getOrCreateCart(sessionHash:string):Promise<Cart>{
     const cart:Cart={id:randomUUID(),status:"ACTIVE",promoCode:null,lines:[],subtotal:0,discount:0,delivery:7500,total:7500}; m.carts.set(cart.id,cart);m.sessionCart.set(sessionHash,cart.id);return cart;
   }
   const sql=db(); let [cart]=await sql<any[]>`select * from cedar_commerce.carts where session_token_hash=${sessionHash} and status='ACTIVE' limit 1`;
-  if(!cart)[cart]=await sql<any[]>`insert into cedar_commerce.carts(session_token_hash) values(${sessionHash}) returning *`;
+  if(!cart){
+    [cart]=await sql<any[]>`insert into cedar_commerce.carts(session_token_hash) values(${sessionHash}) on conflict(session_token_hash) do nothing returning *`;
+    if(!cart)[cart]=await sql<any[]>`select * from cedar_commerce.carts where session_token_hash=${sessionHash} and status='ACTIVE' limit 1`;
+  }
+  if(!cart)throw domain("CART_SESSION_UNAVAILABLE",409);
   return loadDbCart(cart.id);
 }
 
