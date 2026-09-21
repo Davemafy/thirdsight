@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/commerce-lab",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/commerce-lab/:path*",
+      "destination": "/index.html"
+    }
+  ]
+}
