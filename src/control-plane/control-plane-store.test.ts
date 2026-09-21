@@ -22,7 +22,7 @@ describe("MerchantControlPlaneStore",()=>{
 
     expect(created.rawKey).toMatch(/^ts_live_/);
     expect(persisted).not.toBeNull();
-    const persistedRecord=persisted as Record<string,unknown>;
+    const persistedRecord=persisted as unknown as Record<string,unknown>;
     expect(persistedRecord).not.toHaveProperty("rawKey");
     expect(persistedRecord).not.toHaveProperty("api_key");
     expect(persistedRecord.key_hash).toBe(hashApiKey(created.rawKey));
