@@ -2,7 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Activity,
   AlertTriangle,
+  ArrowLeft,
   ArrowRight,
+  Bell,
+  Building2,
   BookOpenCheck,
   ChevronRight,
   CircleCheck,
@@ -13,6 +16,11 @@ import {
   Globe2,
   Layers3,
   Network,
+  HelpCircle,
+  Home,
+  LockKeyhole,
+  LogOut,
+  MessageSquare,
   MoreHorizontal,
   PlugZap,
   Radio,
@@ -159,6 +167,12 @@ export default function App(){
   const current=viewCopy[view];
 
   return <div className="ts-shell">
+    <MobileSystem
+      events={events}
+      exposure={exposureMap}
+      proof={challengeProof}
+      error={error}
+    />
     <div className="ts-sidebar">
       <button className="ts-brand" onClick={()=>setView("overview")}>
         <span><ShieldCheck size={20}/></span>
@@ -246,6 +260,622 @@ export default function App(){
       onClose={()=>setDetailOpen(false)}
     />:null}
   </div>;
+}
+
+
+type MobileView="home"|"integrations"|"activity"|"more";
+type MobileActivityFilter="all"|"blocked"|"allowed"|"review";
+type MobileIntegrationTab="overview"|"data"|"evidence"|"policy";
+
+function MobileSystem({
+  events,
+  exposure,
+  proof,
+  error,
+}:{
+  events:readonly ConsoleEvent[];
+  exposure:readonly ExposureRow[];
+  proof:ChallengeProof|null;
+  error:boolean;
+}){
+  const [view,setView]=useState<MobileView>("home");
+  const [selectedIntegration,setSelectedIntegration]=useState<ExposureRow|null>(null);
+  const [selectedIncident,setSelectedIncident]=useState<ConsoleEvent|null>(null);
+  const [activityFilter,setActivityFilter]=useState<MobileActivityFilter>("all");
+  const [activityQuery,setActivityQuery]=useState("");
+
+  const leadEvent=useMemo(()=>pickLeadEvent(events),[events]);
+  const integrationRows=useMemo(()=>sortMobileIntegrations(exposure),[exposure]);
+
+  const openIntegration=(row:ExposureRow)=>{
+    setSelectedIncident(null);
+    setSelectedIntegration(row);
+  };
+  const openIncident=(event:ConsoleEvent)=>{
+    setSelectedIntegration(null);
+    setSelectedIncident(event);
+  };
+
+  return <div className="tm-app">
+    <div className="tm-screen">
+      {view==="home"?<MobileHome
+        exposure={integrationRows}
+        leadEvent={leadEvent}
+        error={error}
+        onOpenIntegration={openIntegration}
+        onOpenIncident={openIncident}
+        onViewAll={()=>setView("integrations")}
+      />:null}
+
+      {view==="integrations"?<MobileIntegrations
+        rows={integrationRows}
+        onOpen={openIntegration}
+      />:null}
+
+      {view==="activity"?<MobileActivity
+        events={events}
+        query={activityQuery}
+        filter={activityFilter}
+        onQuery={setActivityQuery}
+        onFilter={setActivityFilter}
+        onOpen={openIncident}
+      />:null}
+
+      {view==="more"?<MobileSettings
+        exposureCount={exposure.length}
+        onIntegrations={()=>setView("integrations")}
+        onPolicies={()=>setView("integrations")}
+        onActivity={()=>setView("activity")}
+      />:null}
+    </div>
+
+    <MobileBottomNav value={view} onChange={setView}/>
+
+    {selectedIntegration?<MobileIntegrationDetail
+      row={selectedIntegration}
+      events={events}
+      onClose={()=>setSelectedIntegration(null)}
+      onOpenIncident={(event)=>{setSelectedIntegration(null);setSelectedIncident(event)}}
+    />:null}
+
+    {selectedIncident?<MobileIncidentDetail
+      event={selectedIncident}
+      onClose={()=>setSelectedIncident(null)}
+    />:null}
+  </div>;
+}
+
+function MobileHome({
+  exposure,
+  leadEvent,
+  error,
+  onOpenIntegration,
+  onOpenIncident,
+  onViewAll,
+}:{
+  exposure:readonly ExposureRow[];
+  leadEvent:ConsoleEvent|null;
+  error:boolean;
+  onOpenIntegration:(row:ExposureRow)=>void;
+  onOpenIncident:(event:ConsoleEvent)=>void;
+  onViewAll:()=>void;
+}){
+  const latest=leadEvent;
+  const latestField=latest?mobilePrimaryField(latest):null;
+  const topRows=exposure
+    .filter(row=>!row.destinations.some(destination=>destination.includes("thirdsight-five.vercel.app")))
+    .slice(0,3);
+
+  return <main className="tm-home">
+    <header className="tm-home-head">
+      <strong>ThirdSight</strong>
+      <button className="tm-avatar" aria-label="Workspace profile">D</button>
+    </header>
+
+    <section className="tm-home-hero">
+      <span className="tm-overline">YOUR DATA, UNDER CONTROL</span>
+      <h1>Third parties<br/>shouldn't get more<br/>than you allow.</h1>
+      <div className="tm-home-wave" aria-hidden="true"><i/><b/></div>
+    </section>
+
+    <section className="tm-live-protection">
+      <span className={error?"tm-live-dot error":"tm-live-dot"}/>
+      <div><strong>{error?"Evidence connection interrupted":"Live protection"}</strong><small>{error?"Coverage gap is visible":"Monitoring "+exposure.length+" integrations"}</small></div>
+    </section>
+
+    <section className="tm-latest-block">
+      <div className="tm-section-line"><strong>Latest event</strong><span>{latest?mobileRelativeTime(latest.observedAt):"—"}</span></div>
+      {latest?<button className="tm-latest-event" onClick={()=>onOpenIncident(latest)}>
+        <VendorMark label={mobileVendorName(latest)} tone="blue"/>
+        <div>
+          <strong>{integrationLabel(latest)}</strong>
+          <span>{latestField?mobileEventVerb(latest)+" "+latestField:eventSummary(latest)}</span>
+          <b className={"tm-inline-state "+mobileEventTone(latest)}>{mobileEventOutcomeLabel(latest)}</b>
+        </div>
+        <ChevronRight size={17}/>
+      </button>:<div className="tm-home-empty">Waiting for persisted evidence.</div>}
+    </section>
+
+    <section className="tm-home-integrations">
+      <div className="tm-section-line"><strong>Integrations</strong><button onClick={onViewAll}>See all</button></div>
+      <div className="tm-integration-stack">
+        {topRows.map(row=><button className="tm-home-integration" key={row.key} onClick={()=>onOpenIntegration(row)}>
+          <VendorMark label={mobileVendorRowName(row)} tone={mobileVendorTone(row)}/>
+          <div><strong>{mobileVendorRowName(row)}</strong><span>{mobileHomeRowMeta(row)}</span></div>
+          <b className={"tm-inline-state "+mobileRowTone(row)}>{mobileRowLabel(row)}</b>
+          <ChevronRight size={16}/>
+        </button>)}
+      </div>
+    </section>
+  </main>;
+}
+
+function MobileIntegrations({
+  rows,
+  onOpen,
+}:{
+  rows:readonly ExposureRow[];
+  onOpen:(row:ExposureRow)=>void;
+}){
+  const [query,setQuery]=useState("");
+  const normalized=query.trim().toLowerCase();
+  const filtered=rows.filter(row=>{
+    if(!normalized)return true;
+    const profile=row.vendorIntelligence.profiles[0];
+    return [
+      row.label,
+      row.integrationId??"",
+      profile?.vendor??"",
+      profile?.family??"",
+      ...row.destinations,
+    ].join(" ").toLowerCase().includes(normalized);
+  });
+
+  return <main className="tm-list-screen">
+    <header className="tm-page-head"><div><h1>Integrations</h1><p>Who can touch customer data, and what ThirdSight has seen.</p></div></header>
+    <label className="tm-search"><Search size={17}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search integrations or domains"/></label>
+    <div className="tm-integration-list">
+      {filtered.map(row=><button key={row.key} onClick={()=>onOpen(row)}>
+        <VendorMark label={mobileVendorRowName(row)} tone={mobileVendorTone(row)}/>
+        <div><strong>{mobileVendorRowName(row)}</strong><span>{mobileIntegrationSubtitle(row)}</span><small>{mobileHomeRowMeta(row)}</small></div>
+        <b className={"tm-inline-state "+mobileRowTone(row)}>{mobileRowLabel(row)}</b>
+        <ChevronRight size={16}/>
+      </button>)}
+      {filtered.length===0?<div className="tm-empty-state">No integrations match this search.</div>:null}
+    </div>
+  </main>;
+}
+
+function MobileActivity({
+  events,
+  query,
+  filter,
+  onQuery,
+  onFilter,
+  onOpen,
+}:{
+  events:readonly ConsoleEvent[];
+  query:string;
+  filter:MobileActivityFilter;
+  onQuery:(value:string)=>void;
+  onFilter:(value:MobileActivityFilter)=>void;
+  onOpen:(event:ConsoleEvent)=>void;
+}){
+  const sorted=[...events].sort((a,b)=>Date.parse(b.observedAt)-Date.parse(a.observedAt));
+  const normalized=query.trim().toLowerCase();
+  const visible=sorted.filter(event=>{
+    const matchesQuery=!normalized||[
+      integrationLabel(event),
+      mobilePrimaryField(event)??"",
+      event.did.value?.destinationOrigin??"",
+      eventSummary(event),
+    ].join(" ").toLowerCase().includes(normalized);
+    if(!matchesQuery)return false;
+    if(filter==="blocked")return event.outcome==="PREVENTED"||event.outcome==="DETECTED"||event.decision==="CONSTRAIN"||event.decision==="ISOLATE";
+    if(filter==="allowed")return event.decision==="ALLOW";
+    if(filter==="review")return event.decision==="OBSERVE"||event.findings.length>0;
+    return true;
+  });
+
+  return <main className="tm-activity-screen">
+    <header className="tm-activity-head"><h1>Live activity</h1><span><i/> Monitoring</span></header>
+    <label className="tm-search"><Search size={17}/><input value={query} onChange={e=>onQuery(e.target.value)} placeholder="Search events, domains, or data fields..."/></label>
+    <div className="tm-filter-row">
+      {(["all","blocked","allowed","review"] as const).map(item=><button className={filter===item?"active":""} key={item} onClick={()=>onFilter(item)}>{humanize(item)}</button>)}
+    </div>
+    <div className="tm-timeline">
+      {visible.map((event,index)=><button className="tm-timeline-row" key={event.recordId} onClick={()=>onOpen(event)}>
+        <time>{mobileClockTime(event.observedAt)}</time>
+        <span className={"tm-timeline-dot "+mobileEventTone(event)}>{index===0?<i/>:null}</span>
+        <VendorMark label={mobileVendorName(event)} tone={mobileEventTone(event)}/>
+        <div><strong>{integrationLabel(event)}</strong><span>{mobileActivitySentence(event)}</span><b className={"tm-inline-state "+mobileEventTone(event)}>{mobileEventOutcomeLabel(event)}</b></div>
+      </button>)}
+      {visible.length===0?<div className="tm-empty-state">No activity matches this filter.</div>:null}
+    </div>
+  </main>;
+}
+
+function MobileSettings({
+  exposureCount,
+  onIntegrations,
+  onPolicies,
+  onActivity,
+}:{
+  exposureCount:number;
+  onIntegrations:()=>void;
+  onPolicies:()=>void;
+  onActivity:()=>void;
+}){
+  return <main className="tm-settings-screen">
+    <header className="tm-page-head"><h1>Settings</h1></header>
+
+    <button className="tm-profile-card">
+      <span className="tm-avatar large">D</span>
+      <div><strong>Workspace admin</strong><span>Commerce Lab</span></div>
+      <ChevronRight size={17}/>
+    </button>
+
+    <div className="tm-settings-group">
+      <SettingsRow icon={<Building2 size={19}/>} label="Organization" detail="Commerce Lab"/>
+      <SettingsRow icon={<ShieldCheck size={19}/>} label="Data policies" detail="Manage approved data" onClick={onPolicies}/>
+      <SettingsRow icon={<PlugZap size={19}/>} label="Connected integrations" detail={exposureCount+" integrations"} onClick={onIntegrations}/>
+      <SettingsRow icon={<Bell size={19}/>} label="Notifications" detail="Incidents, weekly summaries" onClick={onActivity}/>
+    </div>
+
+    <div className="tm-settings-group plain">
+      <SettingsRow icon={<HelpCircle size={19}/>} label="Help & documentation"/>
+      <SettingsRow icon={<MessageSquare size={19}/>} label="Send feedback"/>
+      <SettingsRow icon={<LockKeyhole size={19}/>} label="Privacy & security"/>
+      <SettingsRow icon={<LogOut size={19}/>} label="Sign out" danger/>
+    </div>
+
+    <footer className="tm-settings-foot"><span>ThirdSight v0.1</span><small>Observe · Understand · Enforce</small></footer>
+  </main>;
+}
+
+function SettingsRow({
+  icon,
+  label,
+  detail,
+  onClick,
+  danger=false,
+}:{
+  icon:React.ReactNode;
+  label:string;
+  detail?:string;
+  onClick?:()=>void;
+  danger?:boolean;
+}){
+  return <button className={"tm-settings-row "+(danger?"danger":"")} onClick={onClick}>
+    <span>{icon}</span>
+    <div><strong>{label}</strong>{detail?<small>{detail}</small>:null}</div>
+    {!danger?<ChevronRight size={17}/>:null}
+  </button>;
+}
+
+function MobileBottomNav({
+  value,
+  onChange,
+}:{
+  value:MobileView;
+  onChange:(view:MobileView)=>void;
+}){
+  const items=[
+    {view:"home" as const,label:"Home",icon:<Home size={21}/>},
+    {view:"integrations" as const,label:"Integrations",icon:<PlugZap size={21}/>},
+    {view:"activity" as const,label:"Activity",icon:<Activity size={21}/>},
+    {view:"more" as const,label:"More",icon:<MoreHorizontal size={22}/>},
+  ];
+  return <nav className="tm-bottom-nav">
+    {items.map(item=><button key={item.view} className={value===item.view?"active":""} onClick={()=>onChange(item.view)}>
+      <span>{item.icon}</span><b>{item.label}</b>
+    </button>)}
+  </nav>;
+}
+
+function MobileIntegrationDetail({
+  row,
+  events,
+  onClose,
+  onOpenIncident,
+}:{
+  row:ExposureRow;
+  events:readonly ConsoleEvent[];
+  onClose:()=>void;
+  onOpenIncident:(event:ConsoleEvent)=>void;
+}){
+  const [tab,setTab]=useState<MobileIntegrationTab>("overview");
+  const profile=row.vendorIntelligence.profiles[0]??null;
+  const event=events.find(item=>
+    (row.integrationId!==null&&item.integrationId===row.integrationId)||
+    Boolean(item.did.value?.destinationOrigin&&row.destinations.includes(item.did.value.destinationOrigin))
+  )??null;
+  const dataFields=[...new Set([...row.approvedFields,...row.attemptedFields,...row.preventedFields])];
+  const unapproved=row.attemptedFields.filter(field=>!row.approvedFields.includes(field));
+
+  return <div className="tm-fullscreen tm-dark">
+    <header className="tm-detail-top"><button onClick={onClose}><ArrowLeft size={21}/></button><button><MoreHorizontal size={21}/></button></header>
+
+    <section className="tm-integration-identity">
+      <VendorMark label={mobileVendorRowName(row)} tone={mobileVendorTone(row)} large/>
+      <div><h1>{mobileVendorRowName(row)}</h1><p>{mobileIntegrationSubtitle(row)}</p></div>
+      <span className={"tm-detail-badge "+mobileRowTone(row)}>{mobileRowLabel(row)}</span>
+    </section>
+
+    <div className="tm-detail-tabs">
+      {(["overview","data","evidence","policy"] as const).map(item=><button key={item} className={tab===item?"active":""} onClick={()=>setTab(item)}>{humanize(item)}</button>)}
+    </div>
+
+    <div className="tm-dark-scroll">
+      {tab==="overview"?<>
+        <section className="tm-dark-section">
+          <h2>Data access</h2>
+          <p>What this integration is trying to access, and how it compares to your policy.</p>
+          <div className="tm-data-access">
+            {(dataFields.length?dataFields:["No structured fields observed"]).slice(0,8).map(field=>{
+              const approved=row.approvedFields.includes(field);
+              const blocked=row.preventedFields.includes(field);
+              return <div key={field}><code>{field}</code><span className={approved?"approved":"denied"}>{approved?"Approved":blocked?"Not approved":"Observed"} {approved?<CircleCheck size={15}/>:<X size={15}/>}</span></div>;
+            })}
+          </div>
+          {unapproved.length>0?<button className="tm-dark-warning" onClick={()=>event&&onOpenIncident(event)}>
+            <AlertTriangle size={16}/><span>This integration requested {unapproved.length} field{unapproved.length===1?"":"s"} outside your approved scope.</span><ChevronRight size={16}/>
+          </button>:null}
+        </section>
+
+        <section className="tm-dark-section">
+          <h2>About this integration</h2>
+          <div className="tm-about-row"><VendorMark label={profile?.vendor??row.label} tone={mobileVendorTone(row)}/><div><strong>{profile?.vendor??"Unresolved vendor"}</strong><span>{profile?.expectedPurposes[0]??"Documented purpose unavailable"}</span></div>{profile?.sources[0]?<a href={profile.sources[0].url} target="_blank" rel="noreferrer"><ArrowRight size={15}/></a>:null}</div>
+          <div className="tm-integration-meta"><div><span>Last seen</span><strong>{row.lastSeen?new Date(row.lastSeen).toLocaleDateString():"—"}</strong></div><div><span>Total requests</span><strong>{row.observations}</strong></div></div>
+          <span className="tm-dark-label">Domains</span>
+          <div className="tm-domain-chips">{row.destinations.slice(0,4).map(domain=><code key={domain}>{mobileHost(domain)}</code>)}</div>
+        </section>
+      </>:null}
+
+      {tab==="data"?<section className="tm-dark-section">
+        <h2>Documented capability</h2>
+        <p>{profile?.expectedPurposes[0]??"No vendor-documented purpose is available for this origin."}</p>
+        <div className="tm-capability-list">
+          {(profile?.documentedCapabilities??["Browser-visible capability only"]).slice(0,6).map(item=><div key={item}><CircleCheck size={15}/><span>{item}</span></div>)}
+        </div>
+      </section>:null}
+
+      {tab==="evidence"?<section className="tm-dark-section">
+        <h2>Observed evidence</h2>
+        <div className="tm-evidence-list">
+          <div><span>Observations</span><strong>{row.observations}</strong></div>
+          <div><span>Boundaries</span><strong>{row.boundaries.join(", ")||"Unknown"}</strong></div>
+          <div><span>Latest response</span><strong>{humanize(row.latestResponse)}</strong></div>
+          <div><span>Findings</span><strong>{row.findings.length?row.findings.map(humanize).join(", "):"None"}</strong></div>
+        </div>
+        {event?<button className="tm-dark-link" onClick={()=>onOpenIncident(event)}>Open latest evidence <ArrowRight size={15}/></button>:null}
+      </section>:null}
+
+      {tab==="policy"?<section className="tm-dark-section">
+        <h2>Merchant policy</h2>
+        <p>Vendor documentation describes expected product behaviour. Merchant policy is the approval authority.</p>
+        <div className="tm-policy-fields">
+          {row.approvedFields.length?row.approvedFields.map(field=><span key={field}>{field}<CircleCheck size={14}/></span>):<div className="tm-dark-empty">No merchant-approved fields are registered for this integration.</div>}
+        </div>
+      </section>:null}
+    </div>
+  </div>;
+}
+
+function MobileIncidentDetail({
+  event,
+  onClose,
+}:{
+  event:ConsoleEvent;
+  onClose:()=>void;
+}){
+  const field=mobilePrimaryField(event);
+  const vendor=mobileVendorName(event);
+  const blocked=event.outcome==="PREVENTED"||event.decision==="CONSTRAIN"||event.decision==="ISOLATE";
+  const title=field
+    ?integrationLabel(event)+(blocked?" tried to send ":" accessed ")+field
+    :integrationLabel(event)+" needs review";
+  const reason=event.findings[0]?.reason??event.should.reason??eventSummary(event);
+  const received=event.enforcement?.receiver.receivedFields??[];
+  const steps=event.outcome==="PREVENTED"
+    ?[
+      ["Request detected",field?field+" in payload":"Outbound payload observed"],
+      ["Policy check","Field not in approved scope"],
+      ["Request modified","Field removed before transmission"],
+      ["Transmission continued",received.length?received.join(", ")+" sent":"Approved fields continued"],
+    ]
+    :[
+      ["Runtime evidence","Access was observed at the monitored boundary"],
+      ["Evidence compared",event.findings[0]?humanize(event.findings[0].type):"No deterministic violation"],
+      ["Response",humanize(event.outcome??event.decision??"OBSERVE")],
+    ];
+
+  return <div className="tm-fullscreen tm-dark tm-incident">
+    <header className="tm-detail-top"><button onClick={onClose}><ArrowLeft size={21}/></button><button><MoreHorizontal size={21}/></button></header>
+    <div className="tm-dark-scroll">
+      <section className="tm-incident-head">
+        <span className={"tm-incident-status "+mobileEventTone(event)}><i/>{blocked?"Blocked":event.outcome==="DETECTED"?"Detected":"Review"}</span>
+        <small>{new Date(event.observedAt).toLocaleString()}</small>
+        <h1>{title}</h1>
+        <p>{event.outcome==="PREVENTED"?"This field isn't in the approved scope, so ThirdSight stopped it before transmission.":eventSummary(event)}</p>
+      </section>
+
+      {field?<section className="tm-incident-section"><h2>Data field</h2><div className="tm-code-field"><code>{field}</code><span>Copy</span></div></section>:null}
+
+      <section className="tm-incident-section">
+        <h2>Integration</h2>
+        <div className="tm-incident-integration"><VendorMark label={vendor} tone={mobileEventTone(event)}/><div><strong>{integrationLabel(event)}</strong><span>{event.did.value?.destinationOrigin?mobileHost(event.did.value.destinationOrigin):vendor}</span></div></div>
+      </section>
+
+      <section className="tm-incident-section">
+        <h2>{blocked?"Why it was blocked":"Why this matters"}</h2>
+        <p>{reason}</p>
+      </section>
+
+      <section className="tm-incident-section">
+        <h2>What happened</h2>
+        <div className="tm-step-list">
+          {steps.map((step,index)=><div key={step[0]}><b>{index+1}</b><span><strong>{step[0]}</strong><small>{step[1]}</small></span></div>)}
+        </div>
+      </section>
+    </div>
+  </div>;
+}
+
+function VendorMark({
+  label,
+  tone="blue",
+  large=false,
+}:{
+  label:string;
+  tone?:"blue"|"purple"|"orange"|"green"|"black"|"red"|"review"|"allow"|"constrain"|"isolate"|"observe"|"unknown";
+  large?:boolean;
+}){
+  const glyph=mobileVendorGlyph(label);
+  return <span className={"tm-vendor-mark "+tone+(large?" large":"")}>{glyph}</span>;
+}
+
+function mobileVendorGlyph(label:string){
+  const value=label.toLowerCase();
+  if(value.includes("tiktok"))return "♪";
+  if(value.includes("google"))return "G";
+  if(value.includes("stripe"))return "S";
+  if(value.includes("meta")||value.includes("facebook"))return "M";
+  if(value.includes("cloudflare"))return "C";
+  if(value.includes("linkedin"))return "in";
+  return label.trim().charAt(0).toUpperCase()||"?";
+}
+
+function mobileVendorName(event:ConsoleEvent){
+  return event.vendorIntelligence.profiles[0]?.vendor??integrationLabel(event);
+}
+
+function mobileVendorRowName(row:ExposureRow){
+  return row.vendorIntelligence.profiles[0]?.family??row.label;
+}
+
+function mobileVendorTone(row:ExposureRow):"blue"|"purple"|"orange"|"green"|"black"|"red"{
+  const value=(row.vendorIntelligence.profiles[0]?.vendor??row.label).toLowerCase();
+  if(value.includes("tiktok"))return "black";
+  if(value.includes("google"))return "orange";
+  if(value.includes("stripe"))return "purple";
+  if(value.includes("cloudflare"))return "orange";
+  if(value.includes("meta"))return "blue";
+  return "blue";
+}
+
+function mobileIntegrationSubtitle(row:ExposureRow){
+  const profile=row.vendorIntelligence.profiles[0];
+  return profile?profile.vendor+" · "+humanize(profile.category):row.integrationId??"Identity unresolved";
+}
+
+function mobileHomeRowMeta(row:ExposureRow){
+  if(row.findings.length>0)return humanize(row.findings[0]);
+  if(row.attemptedFields.length>0)return row.attemptedFields.slice(0,2).join(", ");
+  return row.observations+" observation"+(row.observations===1?"":"s");
+}
+
+function mobileRowLabel(row:ExposureRow){
+  const value=row.latestResponse.toLowerCase();
+  if(value==="allow")return "Normal";
+  if(value==="constrain"||value==="prevented")return "Blocked";
+  if(value==="isolate"||value==="detected")return "Blocked";
+  return "Review";
+}
+
+function mobileRowTone(row:ExposureRow){
+  const value=row.latestResponse.toLowerCase();
+  if(value==="allow")return "allow";
+  if(value==="constrain"||value==="prevented")return "constrain";
+  if(value==="isolate"||value==="detected")return "isolate";
+  return "review";
+}
+
+function sortMobileIntegrations(rows:readonly ExposureRow[]){
+  const score=(row:ExposureRow)=>{
+    const value=row.latestResponse.toLowerCase();
+    if(value==="isolate"||value==="detected")return 5;
+    if(value==="constrain"||value==="prevented")return 4;
+    if(row.findings.length>0)return 3;
+    if(!row.integrationId)return 2;
+    if(value==="allow")return 1;
+    return 0;
+  };
+  return [...rows].sort((a,b)=>score(b)-score(a)||Date.parse(b.lastSeen)-Date.parse(a.lastSeen));
+}
+
+function pickLeadEvent(events:readonly ConsoleEvent[]){
+  const priority=(event:ConsoleEvent)=>{
+    if(event.outcome==="PREVENTED")return 100;
+    if(event.decision==="ISOLATE")return 90;
+    if(event.outcome==="DETECTED")return 80;
+    if(event.decision==="CONSTRAIN")return 70;
+    if(event.findings.some(finding=>finding.type==="PURPOSE_MISMATCH"))return 60;
+    if(event.findings.length>0)return 50;
+    if(event.decision==="ALLOW")return 10;
+    return 0;
+  };
+  return [...events].sort((a,b)=>priority(b)-priority(a)||Date.parse(b.observedAt)-Date.parse(a.observedAt))[0]??null;
+}
+
+function mobilePrimaryField(event:ConsoleEvent){
+  return event.enforcement?.removedFields[0]
+    ??event.findings.find(finding=>Boolean(finding.field))?.field
+    ??event.did.value?.dataCategories?.[0]
+    ??null;
+}
+
+function mobileEventVerb(event:ConsoleEvent){
+  if(event.outcome==="PREVENTED")return "Tried to send";
+  if(event.decision==="ALLOW")return "Sent";
+  if(event.outcome==="DETECTED")return "Accessed";
+  return "Requested";
+}
+
+function mobileEventOutcomeLabel(event:ConsoleEvent){
+  if(event.outcome==="PREVENTED")return "Stopped before transmission";
+  if(event.outcome==="DETECTED")return "Detected";
+  if(event.decision==="ALLOW")return "Allowed";
+  if(event.decision==="CONSTRAIN")return "Blocked";
+  if(event.decision==="ISOLATE")return "Isolated";
+  return "Review";
+}
+
+function mobileEventTone(event:ConsoleEvent){
+  if(event.outcome==="PREVENTED"||event.decision==="CONSTRAIN")return "constrain";
+  if(event.outcome==="DETECTED"||event.decision==="ISOLATE")return "isolate";
+  if(event.decision==="ALLOW")return "allow";
+  if(event.decision==="OBSERVE")return "observe";
+  return "review";
+}
+
+function mobileActivitySentence(event:ConsoleEvent){
+  const field=mobilePrimaryField(event);
+  if(field)return mobileEventVerb(event)+" "+field;
+  return eventSummary(event);
+}
+
+function mobileHost(origin:string){
+  try{return new URL(origin).hostname;}catch{return origin;}
+}
+
+function mobileClockTime(value:string){
+  const date=new Date(value);
+  if(Number.isNaN(date.getTime()))return "—";
+  return date.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"});
+}
+
+function mobileRelativeTime(value:string){
+  const date=new Date(value);
+  if(Number.isNaN(date.getTime()))return "—";
+  const diff=Math.max(0,Date.now()-date.getTime());
+  const mins=Math.floor(diff/60000);
+  if(mins<1)return "now";
+  if(mins<60)return mins+"m ago";
+  const hours=Math.floor(mins/60);
+  if(hours<24)return hours+"h ago";
+  const days=Math.floor(hours/24);
+  return days+"d ago";
 }
 
 function NavButton({active,icon,label,count,onClick}:{active:boolean;icon:React.ReactNode;label:string;count?:number;onClick:()=>void}){
