@@ -1,0 +1,7 @@
+# Standalone deployments have their own Vercel project roots.
+services/
+
+# Local-only test output and documentation inputs.
+**/tests/
+**/playwright-report/
+**/test-results/
