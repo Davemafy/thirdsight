@@ -15,7 +15,7 @@ permissions:
 jobs:
   quality:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     steps:
       - name: Checkout repository
@@ -26,8 +26,24 @@ jobs:
         with:
           node-version: '20.20.2'
 
-      - name: Install dependencies
+      - name: Install root dependencies
         run: npm install
 
-      - name: Run quality gate
+      - name: Run ThirdSight quality gate
         run: npm run quality
+
+      - name: Install CEDAR dependencies
+        run: npm ci --prefix services/cedar-commerce
+
+      - name: Verify CEDAR
+        run: |
+          npm --prefix services/cedar-commerce run typecheck
+          npm --prefix services/cedar-commerce test
+
+      - name: Install Partner Lab dependencies
+        run: npm ci --prefix services/partner-lab
+
+      - name: Verify Partner Lab
+        run: |
+          npm --prefix services/partner-lab run typecheck
+          npm --prefix services/partner-lab test
