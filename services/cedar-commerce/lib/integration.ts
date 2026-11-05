@@ -106,7 +106,8 @@ async function emitManagedCommerce(
     reasonCode:primary.decision==="CONSTRAIN"?"SCOPE_DRIFT":primary.decision,
     allowedFields:primary.receivedFields,
     blockedFields:[],
-    partnerDelivered:primary.partnerDelivered,
+    // A successful analytics dispatch does not prove that delivery reached its partner.
+    partnerDelivered:delivery?.partnerDelivered===true,
     forbiddenFieldDelivered:primary.forbiddenFieldReceived,
     evidenceId:primary.evidenceId,
     deliveryEvidenceId:delivery?.evidenceId??null,
